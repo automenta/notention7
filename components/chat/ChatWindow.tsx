@@ -20,7 +20,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ privkey, pubkey, selecte
     const [newMessage, setNewMessage] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
     
-    const contactPubkey = selectedContact ? [selectedContact.pubkey] : [];
+    const contactPubkey = useMemo(() => selectedContact ? [selectedContact.pubkey] : [], [selectedContact]);
     const profiles = useNostrProfile(contactPubkey);
     const selectedProfile = selectedContact ? profiles[selectedContact.pubkey] : null;
 

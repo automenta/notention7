@@ -1,26 +1,26 @@
 
 import { GoogleGenAI } from "@google/genai";
 
-if (!process.env.API_KEY || process.env.API_KEY === "YOUR_GEMINI_API_KEY") {
+export const isApiKeyAvailable = !!(process.env.API_KEY && process.env.API_KEY !== "YOUR_GEMINI_API_KEY");
+
+if (!isApiKeyAvailable) {
     console.warn("Gemini API key is not set in process.env.API_KEY. AI features will be disabled.");
 }
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
 
 export const summarizeText = async (textToSummarize: string): Promise<string> => {
-    if (!process.env.API_KEY || process.env.API_KEY === "YOUR_GEMINI_API_KEY") {
+    if (!isApiKeyAvailable) {
         throw new Error("Gemini API key not configured. Cannot summarize text.");
     }
 
     try {
         const model = 'gemini-2.5-flash';
 
-        const prompt = `Your task is to summarize the following note content. The note may contain a mix of free-form text, hashtags, and structured key-value properties (e.g., "status is Done"). Your summary should focus on the main narrative and key points from the free-form text. Do not simply list the properties. Generate a single, concise paragraph. Output only the summary text itself, without any introductory phrases like "Here is a summary:".
+        const prompt = `Summarize the following note content into a single, concise paragraph. Focus on the main narrative and key points. Ignore structured data like hashtags or key-value properties. Do not include any introductory phrases in your response.
 
-        Note Content:
-        ---
-        ${textToSummarize}
-        ---
+Note Content:
+${textToSummarize}
         `;
 
         const response = await ai.models.generateContent({

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import localforage from 'localforage';
 
@@ -33,9 +33,9 @@ export function useLocalForage<T,>(key: string, initialValue: T): [T, Dispatch<S
     return () => {
       isMounted = false;
     };
-  }, [key]); // Only run on mount based on key
+  }, [key]); // Only re-run if key changes
 
-  const setValue: Dispatch<SetStateAction<T>> = (value) => {
+  const setValue: Dispatch<SetStateAction<T>> = useCallback((value) => {
     try {
       const valueToStore = value instanceof Function ? value(storedValue) : value;
       setStoredValue(valueToStore);
@@ -45,7 +45,7 @@ export function useLocalForage<T,>(key: string, initialValue: T): [T, Dispatch<S
     } catch(err) {
       console.error(err);
     }
-  };
+  }, [key, storedValue]);
 
   return [storedValue, setValue, loading];
 }

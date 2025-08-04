@@ -75,10 +75,6 @@ const App: React.FC = () => {
     
     const handleSelectView = (view: View) => {
         setActiveView(view);
-         if (view !== 'notes' && notes.length > 0 && selectedNoteId === null) {
-            const sortedNotes = notes.slice().sort((a,b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-            setSelectedNoteId(sortedNotes[0].id);
-        }
     };
 
     const handleSelectNoteFromOtherView = (id: string) => {

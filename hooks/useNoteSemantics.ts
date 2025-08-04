@@ -1,8 +1,6 @@
+
 import { useState, useEffect } from 'react';
 import type { Property } from '../types';
-
-const TAG_REGEX = /#([a-zA-Z0-9_]+)/g;
-const PROPERTY_REGEX = /\[\s*([^:]+?)\s*:\s*([^\]]+?)\s*\]/g;
 
 export const useNoteSemantics = (htmlContent: string) => {
     const [tags, setTags] = useState<string[]>([]);
@@ -12,32 +10,34 @@ export const useNoteSemantics = (htmlContent: string) => {
     useEffect(() => {
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = htmlContent;
-        const text = tempDiv.textContent || '';
         
-        const foundTags = new Set<string>();
-        let tagMatch;
-        while ((tagMatch = TAG_REGEX.exec(text)) !== null) {
-            foundTags.add(tagMatch[1]);
-        }
-        setTags(Array.from(foundTags));
+        const foundTags = Array.from(tempDiv.querySelectorAll<HTMLElement>('.widget.tag'))
+            .map(el => el.dataset.tag || '')
+            .filter(Boolean);
+        setTags(Array.from(new Set(foundTags))); // Ensure uniqueness
 
-        const foundProperties: Property[] = [];
-        let propMatch;
-        while ((propMatch = PROPERTY_REGEX.exec(text)) !== null) {
-            const key = propMatch[1].trim();
-            const value = propMatch[2].trim();
-            if (key && value) {
-                foundProperties.push({
-                    key,
-                    operator: 'is', // Simplified operator for text-based properties
-                    values: [value],
-                });
-            }
-        }
+        const foundProperties: Property[] = Array.from(tempDiv.querySelectorAll<HTMLElement>('.widget.property'))
+            .map(el => {
+                let values: string[] = [];
+                try {
+                    // Safely parse the values array from the data attribute
+                    values = JSON.parse(el.dataset.values || '[]');
+                    if (!Array.isArray(values)) values = [];
+                } catch {
+                    values = []; // Default to empty array on parsing error
+                }
+                
+                return {
+                    key: el.dataset.key || '',
+                    operator: el.dataset.operator || 'is',
+                    values: values,
+                };
+            })
+            .filter(p => p.key);
         setProperties(foundProperties);
 
-        // The concept of "imaginary" properties is removed with the new text-based syntax.
-        setIsImaginary(false);
+        // An imaginary property is one whose operator is not 'is'.
+        setIsImaginary(foundProperties.some(p => p.operator !== 'is'));
         
     }, [htmlContent]);
 

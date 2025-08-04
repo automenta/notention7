@@ -38,7 +38,7 @@ export const ChatView: React.FC<{
             const decryptedContent = await nip04.decrypt(privkey, peerPubkey, event.content);
             addMessage(peerPubkey, event, decryptedContent);
         } catch (e) {
-            // console.warn(`Could not decrypt message ${event.id}:`, e);
+            // Decryption errors are expected if a message is not intended for the user, so they are suppressed.
         }
     }, [privkey, pubkey, addMessage]);
     

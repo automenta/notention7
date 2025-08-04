@@ -1,186 +1,272 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import type { Note, AppSettings, OntologyNode } from '../types';
+import type { Note, AppSettings, OntologyNode, Property } from '../types';
 import { useNoteSemantics } from '../hooks/useNoteSemantics';
 import { useOntologyIndex } from '../hooks/useOntologyIndex';
 import { Toolbar } from './editor/Toolbar';
 import { EditorHeader } from './editor/EditorHeader';
-import { InsertMenu, type InsertMenuItem } from './editor/InsertMenu';
+import { SemanticInsertModal, type InsertMenuItem } from './editor/SemanticInsertModal';
+import { PropertyEditorPopover } from './editor/PropertyEditorPopover';
 import { getTextFromHtml } from '../utils/nostr';
+import { formatPropertyForDisplay } from '../utils/properties';
 
-interface NoteEditorProps {
+// A one-time conversion for legacy note content from plain text to widgets.
+const convertPlainTextToWidgets = (html: string): string => {
+    if (!html) return html;
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    
+    // If widgets already exist, assume it's modern format
+    if (tempDiv.querySelector('.widget[data-operator]')) return html;
+
+    let widgetizedHtml = html;
+    // Regex for legacy [key:value] format
+    const propertyRegex = /\[\s*([^:<>]+?)\s*:\s*([^\]<>]*?)\s*\]/g;
+    const tagRegex = /(?:^|\s)#([a-zA-Z0-9_-]+)/g;
+
+    widgetizedHtml = widgetizedHtml.replace(propertyRegex, (match, key, value) => {
+        const k = key.trim();
+        const v = value ? value.trim() : '';
+        const operator = 'is';
+        const values = [v];
+        return `<span class="widget property" contenteditable="false" data-key="${k}" data-operator="${operator}" data-values='${JSON.stringify(values)}'>${formatPropertyForDisplay(k, operator, values)}</span>`;
+    });
+    
+    widgetizedHtml = widgetizedHtml.replace(tagRegex, (match, tag) => {
+        const prefix = match.startsWith(' ') ? ' ' : '';
+        return `${prefix}<span class="widget tag" contenteditable="false" data-tag="${tag}">#${tag}</span>`;
+    });
+    
+    return widgetizedHtml;
+};
+
+export const NoteEditor: React.FC<{
     note: Note;
     onSave: (note: Note) => void;
     onDelete: (id: string) => void;
     settings: AppSettings;
-}
-
-const generateHighlights = (html: string): string => {
-    if (!html) return '';
-    // Use a temporary div to avoid replacing within attributes.
-    // This is a simplified approach. A more robust solution would be a proper parser.
-    // The goal here is to highlight without breaking existing html formatting.
-    let highlightedHtml = html;
-
-    // Highlight properties: [key: value]
-    highlightedHtml = highlightedHtml.replace(
-        /\[\s*([^:]+?)\s*:\s*([^\]]+?)\s*\]/g,
-        (match, key, value) => `<span class="widget property">[<span class="property-key">${key.trim()}</span>: <span class="property-value">${value.trim()}</span>]</span>`
-    );
-
-    // Highlight tags: #tag
-    highlightedHtml = highlightedHtml.replace(
-        /#([a-zA-Z0-9_]+)/g,
-        match => `<span class="widget tag">${match}</span>`
-    );
-
-    return highlightedHtml;
-};
-
-
-export const NoteEditor: React.FC<NoteEditorProps> = ({ note, onSave, onDelete, settings }) => {
+}> = ({ note, onSave, onDelete, settings }) => {
     const [title, setTitle] = useState(note.title);
-    const [content, setContent] = useState(note.content);
-    const [highlightedContent, setHighlightedContent] = useState('');
-
+    const [content, setContent] = useState('');
     const saveTimeoutRef = useRef<number | null>(null);
     const editorRef = useRef<HTMLDivElement>(null);
-    const editorWrapperRef = useRef<HTMLDivElement>(null);
 
     const { tags, properties } = useNoteSemantics(content);
-    const { allTags, allTemplates } = useOntologyIndex(settings.ontology);
+    const { allTags, allTemplates, propertyTypes } = useOntologyIndex(settings.ontology);
 
-    const [menuState, setMenuState] = useState<{
-        open: boolean;
-        position: { top: number; left: number };
-        items: InsertMenuItem[];
-        query: string;
-        trigger: string;
-    }>({ open: false, position: { top: 0, left: 0 }, items: [], query: '', trigger: '' });
-    
+    const [insertModalState, setInsertModalState] = useState<{ open: boolean; type: 'tag' | 'template' | null }>({ open: false, type: null });
+    const [editingWidget, setEditingWidget] = useState<HTMLElement | null>(null);
+
     useEffect(() => {
         setTitle(note.title);
-        setContent(note.content);
+        const initialContent = convertPlainTextToWidgets(note.content);
+        setContent(initialContent);
         if (editorRef.current) {
-            editorRef.current.innerHTML = note.content;
+            editorRef.current.innerHTML = initialContent;
         }
+        setEditingWidget(null);
     }, [note.id]);
     
     useEffect(() => {
-        setHighlightedContent(generateHighlights(content));
-    }, [content]);
+        const currentlyEditing = editorRef.current?.querySelector('.is-editing');
+        if (currentlyEditing && currentlyEditing !== editingWidget) {
+            currentlyEditing.classList.remove('is-editing');
+        }
+        if (editingWidget) {
+            editingWidget.classList.add('is-editing');
+        }
+        return () => {
+            editingWidget?.classList.remove('is-editing');
+        }
+    }, [editingWidget]);
 
     const debouncedSave = useCallback(() => {
         if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-
         saveTimeoutRef.current = window.setTimeout(() => {
-            if (editorRef.current) {
-                const currentContent = editorRef.current.innerHTML;
-                onSave({
-                  ...note,
-                  title: title,
-                  content: currentContent,
-                  tags,
-                  properties,
-                  updatedAt: new Date().toISOString()
-                });
-            }
+            const currentContent = editorRef.current?.innerHTML || content;
+            const updatedSemantics = useNoteSemantics(currentContent);
+            onSave({ ...note, title, content: currentContent, tags: updatedSemantics.tags, properties: updatedSemantics.properties, updatedAt: new Date().toISOString() });
         }, 500);
-    }, [note, title, tags, properties, onSave]);
+    }, [note, onSave, title, content]);
 
     useEffect(() => {
         debouncedSave();
-        return () => {
-            if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-        };
+        return () => { if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current); };
     }, [title, content, debouncedSave]);
-    
-    const handleContentChange = (e: React.FormEvent<HTMLDivElement>) => {
-        const newContent = e.currentTarget.innerHTML;
-        setContent(newContent);
-        checkForMenuTrigger(e.currentTarget);
+
+    const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
+        if (editingWidget) setEditingWidget(null);
+        processInputRules(e.currentTarget);
+        setContent(e.currentTarget.innerHTML);
     };
-    
-    const checkForMenuTrigger = (editor: HTMLDivElement) => {
+
+    const processInputRules = (editor: HTMLDivElement): boolean => {
         const selection = window.getSelection();
-        if (!selection || selection.rangeCount === 0 || !selection.isCollapsed) {
-            setMenuState(s => ({ ...s, open: false }));
+        if (!selection || !selection.isCollapsed || selection.rangeCount === 0) return false;
+
+        const range = selection.getRangeAt(0);
+        const container = range.startContainer;
+        if (container.nodeType !== Node.TEXT_NODE) return false;
+
+        const textBeforeCaret = container.textContent?.substring(0, range.startOffset) || '';
+        
+        // Rule: [key:value]
+        const propMatch = textBeforeCaret.match(/(\[([^:\]]+?):([^\]]*?)\])$/);
+        if (propMatch) {
+            const [fullMatch, , key, value] = propMatch.map(s => s || '');
+            if (key.trim()) {
+                const offsetToReplace = fullMatch.length;
+                if (offsetToReplace > range.startOffset) return false;
+
+                range.setStart(container, range.startOffset - offsetToReplace);
+                range.deleteContents();
+                
+                const widgetId = `widget-${crypto.randomUUID()}`;
+                const operator = 'is';
+                const values = [value.trim()];
+                
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = `<span id="${widgetId}" class="widget property" contenteditable="false" data-key="${key.trim()}" data-operator="${operator}" data-values='${JSON.stringify(values)}'>${formatPropertyForDisplay(key.trim(), operator, values)}</span>&nbsp;`;
+
+                const nodeToInsert = tempDiv.firstChild;
+                if(nodeToInsert) {
+                    range.insertNode(nodeToInsert);
+                    range.setStartAfter(nodeToInsert);
+                    range.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    const handleOpenInsertMenu = (type: 'tag' | 'template') => {
+        // Ensure the editor has focus to preserve the caret position for insertion.
+        editorRef.current?.focus();
+        setInsertModalState({ open: true, type });
+    };
+
+    const handleSemanticInsert = (item: InsertMenuItem) => {
+        const editor = editorRef.current;
+        const selection = window.getSelection();
+
+        if (!editor || !selection || selection.rangeCount === 0) {
+            setInsertModalState({ open: false, type: null });
             return;
         }
-        const range = selection.getRangeAt(0);
-        const textBeforeCaret = range.startContainer.textContent?.substring(0, range.startOffset) || '';
-        
-        const tagMatch = textBeforeCaret.match(/#(\w*)$/);
-        const commandMatch = textBeforeCaret.match(/\/(\w*)$/);
-        
-        const match = commandMatch || tagMatch;
-
-        if (match) {
-            const rect = range.getBoundingClientRect();
-            const trigger = match[0][0];
-            const query = match[1];
-
-            const menuItems = trigger === '#'
-                ? allTags.map(t => ({ id: t.id, label: t.label, description: t.description }))
-                : allTemplates.map(t => ({ id: t.id, label: t.label, description: t.description, template: t }));
-
-            setMenuState({
-                open: true,
-                position: { top: rect.bottom + window.scrollY, left: rect.left + window.scrollX },
-                items: menuItems,
-                query,
-                trigger,
-            });
-        } else {
-            setMenuState(s => ({ ...s, open: false }));
-        }
-    };
-
-    const handleMenuSelect = (item: InsertMenuItem) => {
-        const selection = window.getSelection();
-        if (!selection || !editorRef.current) return;
 
         const range = selection.getRangeAt(0);
-        const textToReplace = `${menuState.trigger}${menuState.query}`;
-        
-        // Move range start back to encompass the trigger text
-        range.setStart(range.startContainer, range.startOffset - textToReplace.length);
         range.deleteContents();
 
-        let textToInsert = '';
-        if (menuState.trigger === '#') {
-            textToInsert = `#${item.label} `;
-        } else if (menuState.trigger === '/') {
-            const template = (item as any).template as OntologyNode;
+        let htmlToInsert = '';
+        let firstWidgetId: string | null = null;
+        if (insertModalState.type === 'tag') {
+            htmlToInsert = `<span class="widget tag" contenteditable="false" data-tag="${item.label}">#${item.label}</span>&nbsp;`;
+        } else if (insertModalState.type === 'template') {
+            const template = item.template;
             if (template && template.attributes) {
-                textToInsert = Object.keys(template.attributes).map(key => `[${key}: ]`).join('\n') + '\n';
+                htmlToInsert = Object.keys(template.attributes).map((key, index) => {
+                    const k = key.trim();
+                    const v = [''];
+                    const op = 'is';
+                    const widgetId = `widget-${crypto.randomUUID()}`;
+                    if (index === 0) firstWidgetId = widgetId;
+                    return `<span id="${widgetId}" class="widget property" contenteditable="false" data-key="${k}" data-operator="${op}" data-values='${JSON.stringify(v)}'>${formatPropertyForDisplay(k, op, v)}</span>`;
+                }).join(' ') + '&nbsp;';
             }
         }
         
-        range.insertNode(document.createTextNode(textToInsert));
-        
-        // Move cursor to the end of inserted text
-        range.collapse(false);
-        selection.removeAllRanges();
-        selection.addRange(range);
+        if (!htmlToInsert) {
+            setInsertModalState({ open: false, type: null });
+            return;
+        }
 
-        // Refocus and update content
-        editorRef.current.focus();
-        setContent(editorRef.current.innerHTML);
-        setMenuState({ ...menuState, open: false });
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = htmlToInsert;
+        const nodesToInsert = Array.from(tempDiv.childNodes);
+        
+        let lastNode: Node | null = null;
+        nodesToInsert.forEach(node => {
+            range.insertNode(node);
+            lastNode = node;
+            range.setStartAfter(node);
+            range.collapse(true);
+        });
+        
+        if(lastNode) {
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
+
+        setContent(editor.innerHTML);
+        
+        if (firstWidgetId) {
+            setTimeout(() => {
+                const firstWidget = editor.querySelector<HTMLElement>(`#${firstWidgetId}`);
+                if (firstWidget) {
+                   setEditingWidget(firstWidget);
+                }
+            }, 50);
+        }
+        
+        setInsertModalState({ open: false, type: null });
     };
 
 
-    const handleSetLink = useCallback(() => {
-        const previousUrl = document.queryCommandValue('createLink');
-        const url = window.prompt('URL', previousUrl);
-
-        if (url === null) return;
-        if (url === '') {
-            document.execCommand('unlink', false);
-        } else {
-             document.execCommand('createLink', false, url);
+    const handleEditorClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        const target = e.target as HTMLElement;
+        const widget = target.closest<HTMLElement>('.widget.property');
+        if (widget) {
+            e.preventDefault();
+            e.stopPropagation();
+            if(editingWidget !== widget) {
+                if (!widget.id) {
+                    widget.id = `widget-${crypto.randomUUID()}`;
+                }
+                setEditingWidget(widget);
+            }
+        } else if (editingWidget) {
+            setEditingWidget(null);
         }
-    }, []);
+    };
+    
+    const handleSaveProperty = (widgetId: string, key: string, operator: string, values: string[]) => {
+        const editor = editorRef.current;
+        const widget = editor?.querySelector<HTMLElement>(`#${widgetId}`);
+        if (widget) {
+            widget.dataset.key = key;
+            widget.dataset.operator = operator;
+            widget.dataset.values = JSON.stringify(values);
+            
+            widget.innerHTML = formatPropertyForDisplay(key, operator, values);
+
+            setContent(editor.innerHTML);
+        }
+        setEditingWidget(null);
+    };
+
+    const handleDeleteProperty = (widgetId: string) => {
+        const editor = editorRef.current;
+        const widget = editor?.querySelector(`#${widgetId}`);
+        if (widget) {
+            const nextSibling = widget.nextSibling;
+            // Remove trailing space if it exists to avoid double spaces
+            if (nextSibling && nextSibling.nodeType === Node.TEXT_NODE && nextSibling.textContent?.startsWith('\u00A0')) {
+                nextSibling.textContent = nextSibling.textContent.substring(1);
+            }
+            widget.remove();
+            setContent(editor.innerHTML);
+        }
+        setEditingWidget(null);
+    }
+    
+    const handleSetLink = useCallback(() => {
+        editorRef.current?.focus();
+        const url = window.prompt('URL', document.queryCommandValue('createLink'));
+        if (url === null) return;
+        document.execCommand(url ? 'createLink' : 'unlink', false, url);
+    }, [editorRef]);
 
     const handleInsertSummary = (summary: string) => {
         if (editorRef.current) {
@@ -189,64 +275,61 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ note, onSave, onDelete, 
             setContent(editorRef.current.innerHTML);
         }
     };
-    
-    const isPublished = !!note.nostrEventId;
-    const contentTextForHeader = useMemo(() => getTextFromHtml(content), [content]);
+
+    const insertModalItems = useMemo(() => {
+        if (insertModalState.type === 'tag') {
+            return allTags.map(t => ({ id: t.id, label: t.label, description: t.description }));
+        }
+        if (insertModalState.type === 'template') {
+            return allTemplates.map(t => ({ id: t.id, label: t.label, description: t.description, template: t }));
+        }
+        return [];
+    }, [insertModalState.type, allTags, allTemplates]);
+
 
     return (
         <div className="relative flex flex-col h-full bg-gray-800/50 rounded-lg overflow-hidden">
-            <EditorHeader 
-                note={note}
-                contentText={contentTextForHeader}
-                settings={settings}
-                title={title}
-                setTitle={setTitle}
-                onDelete={onDelete}
-                onSave={onSave}
-                onInsertSummary={handleInsertSummary}
-                tags={tags}
-                properties={properties}
+            <EditorHeader note={note} contentText={useMemo(() => getTextFromHtml(content), [content])} settings={settings} title={title} setTitle={setTitle} onDelete={onDelete} onSave={onSave} onInsertSummary={handleInsertSummary} tags={tags} properties={properties} />
+            <Toolbar 
+                editorRef={editorRef} 
+                onLink={handleSetLink} 
+                onInsertTag={() => handleOpenInsertMenu('tag')}
+                onInsertTemplate={() => handleOpenInsertMenu('template')}
             />
-
-            <Toolbar editorRef={editorRef} onLink={handleSetLink} />
-            
-            <div ref={editorWrapperRef} className="flex-grow flex flex-col overflow-y-auto note-content relative">
-                <div
-                    className="ProseMirror highlights"
-                    dangerouslySetInnerHTML={{ __html: highlightedContent }}
-                />
+            <div className="flex-grow flex flex-col overflow-y-auto note-content relative">
                 <div
                     ref={editorRef}
-                    className="ProseMirror editor-input"
-                    contentEditable={true}
-                    onInput={handleContentChange}
-                    onKeyUp={() => checkForMenuTrigger(editorRef.current!)}
-                    onClick={() => checkForMenuTrigger(editorRef.current!)}
+                    className="ProseMirror"
+                    contentEditable={!editingWidget}
+                    onInput={handleInput}
+                    onClick={handleEditorClick}
                     suppressContentEditableWarning={true}
-                    data-placeholder="Start writing with #tags, [properties], or / for templates..."
-                    onScroll={(e) => {
-                        const target = e.target as HTMLDivElement;
-                        if (editorWrapperRef.current) {
-                            const highlightLayer = editorWrapperRef.current.querySelector('.highlights') as HTMLDivElement;
-                            if (highlightLayer) {
-                                highlightLayer.scrollTop = target.scrollTop;
-                                highlightLayer.scrollLeft = target.scrollLeft;
-                            }
-                        }
-                    }}
+                    data-placeholder="Start writing..."
+                    dangerouslySetInnerHTML={{ __html: content }}
                 />
             </div>
-             {menuState.open && (
-                <InsertMenu
-                    items={menuState.items}
-                    query={menuState.query}
-                    onSelect={handleMenuSelect}
-                    onClose={() => setMenuState(s => ({ ...s, open: false }))}
-                    position={menuState.position}
+            
+            {insertModalState.open && (
+                <SemanticInsertModal
+                    isOpen={insertModalState.open}
+                    onClose={() => setInsertModalState({ open: false, type: null })}
+                    onSelect={handleSemanticInsert}
+                    items={insertModalItems}
+                    title={insertModalState.type === 'tag' ? 'Insert Tag' : 'Insert Template'}
                 />
             )}
-             <div className="flex-shrink-0 p-2 text-xs text-center text-gray-500 border-t border-gray-700/50">
-                {isPublished && note.publishedAt ? `Published on Nostr: ${new Date(note.publishedAt).toLocaleString()}` : `Last saved: ${new Date(note.updatedAt).toLocaleString()}`}
+
+            {editingWidget && (
+                <PropertyEditorPopover 
+                    widgetEl={editingWidget}
+                    onSave={handleSaveProperty}
+                    onDelete={handleDeleteProperty}
+                    onClose={() => setEditingWidget(null)}
+                    propertyTypes={propertyTypes}
+                />
+            )}
+            <div className="flex-shrink-0 p-2 text-xs text-center text-gray-500 border-t border-gray-700/50">
+                {note.nostrEventId && note.publishedAt ? `Published on Nostr: ${new Date(note.publishedAt).toLocaleString()}` : `Last saved: ${new Date(note.updatedAt).toLocaleString()}`}
             </div>
         </div>
     );

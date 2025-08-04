@@ -13,6 +13,10 @@ export interface OntologyAttribute {
     type: 'string' | 'date' | 'number' | 'enum' | 'datetime' | 'geo';
     description?: string;
     options?: string[]; // for enum type
+    operators: {
+        real: string[];
+        imaginary: string[];
+    };
 }
 
 export interface OntologyNode {

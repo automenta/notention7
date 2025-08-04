@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { pool } from '../services/nostrService';
 import { DEFAULT_RELAYS } from '../utils/nostr';
 import type { NostrProfile, NostrEvent } from '../types';
@@ -18,26 +18,27 @@ export const useNostrProfile = (pubkeys: string[]): Record<string, NostrProfile>
         return initialProfiles;
     });
 
-    const subRef = useRef<any>(null);
-
     useEffect(() => {
         const pubkeysToFetch = pubkeys.filter(pk => !profileCache.has(pk) && !requestedPubkeys.has(pk));
         
         if (pubkeysToFetch.length === 0) {
-            // Ensure local state is up-to-date with global cache
-            const newProfiles: Record<string, NostrProfile> = {};
-            let hasChanged = false;
-            pubkeys.forEach(pk => {
-                if (profileCache.has(pk)) {
-                    newProfiles[pk] = profileCache.get(pk)!;
-                    if (profiles[pk] !== newProfiles[pk]) {
-                        hasChanged = true;
+            // Ensure local state is up-to-date with global cache even if not fetching
+            setProfiles(currentProfiles => {
+                const newProfiles: Record<string, NostrProfile> = {};
+                let hasChanged = false;
+                pubkeys.forEach(pk => {
+                    if (profileCache.has(pk)) {
+                        newProfiles[pk] = profileCache.get(pk)!;
+                        if (currentProfiles[pk] !== newProfiles[pk]) {
+                            hasChanged = true;
+                        }
                     }
+                });
+                if (hasChanged || Object.keys(newProfiles).length !== Object.keys(currentProfiles).length) {
+                    return newProfiles;
                 }
+                return currentProfiles;
             });
-            if (hasChanged || Object.keys(newProfiles).length !== Object.keys(profiles).length) {
-                setProfiles(newProfiles);
-            }
             return;
         };
 
@@ -51,17 +52,13 @@ export const useNostrProfile = (pubkeys: string[]): Record<string, NostrProfile>
             } catch {}
         };
         
-        if (subRef.current) {
-            subRef.current.close();
-        }
-
-        subRef.current = pool.subscribeMany(DEFAULT_RELAYS, [{ kinds: [0], authors: pubkeysToFetch }], {
+        const sub = pool.subscribeMany(DEFAULT_RELAYS, [{ kinds: [0], authors: pubkeysToFetch }], {
             onevent: handleEvent,
         });
 
-        // No automatic close, let it listen for profile updates
+        // Cleanup subscription on unmount or when pubkeys change
         return () => {
-            // The subscription might be managed elsewhere or be persistent
+            sub.close();
         };
 
     }, [pubkeys]);

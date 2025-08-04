@@ -4,7 +4,7 @@ import {
     BoldIcon, ItalicIcon, UnderlineIcon, StrikethroughIcon,
     Heading1Icon, Heading2Icon, Heading3Icon,
     ListUlIcon, ListOlIcon, QuoteIcon, CodeIcon, CodeBlockIcon,
-    LinkIcon, HorizontalRuleIcon
+    LinkIcon, HorizontalRuleIcon, TagIcon, DocumentDuplicateIcon
 } from '../icons';
 
 // A helper to safely execute commands
@@ -31,13 +31,16 @@ const getSelectionParent = () => {
 interface ToolbarProps {
     editorRef: React.RefObject<HTMLDivElement>;
     onLink: () => void;
+    onInsertTag: () => void;
+    onInsertTemplate: () => void;
 }
 
-export const Toolbar: React.FC<ToolbarProps> = ({ editorRef, onLink }) => {
+export const Toolbar: React.FC<ToolbarProps> = ({ editorRef, onLink, onInsertTag, onInsertTemplate }) => {
     const [activeButtons, setActiveButtons] = useState<Record<string, boolean>>({});
 
     const updateActiveStates = useCallback(() => {
         if (!editorRef.current) return;
+        editorRef.current.focus();
         const parent = getSelectionParent();
         setActiveButtons({
             bold: queryCommandState('bold'),
@@ -60,17 +63,27 @@ export const Toolbar: React.FC<ToolbarProps> = ({ editorRef, onLink }) => {
             updateActiveStates();
         };
         document.addEventListener('selectionchange', handleSelectionChange);
-        return () => document.removeEventListener('selectionchange', handleSelectionChange);
-    }, [updateActiveStates]);
+        editorRef.current?.addEventListener('focus', handleSelectionChange);
+        return () => {
+            document.removeEventListener('selectionchange', handleSelectionChange);
+            editorRef.current?.removeEventListener('focus', handleSelectionChange);
+        };
+    }, [updateActiveStates, editorRef]);
     
     const toggleBlock = (tag: string) => {
+        editorRef.current?.focus();
         const parent = getSelectionParent();
         if (parent?.closest(tag)) {
             execCommand('formatBlock', '<p>');
         } else {
             execCommand('formatBlock', `<${tag}>`);
         }
+        updateActiveStates();
+    }
+
+    const simpleCommand = (cmd: string) => {
         editorRef.current?.focus();
+        execCommand(cmd);
         updateActiveStates();
     }
     
@@ -83,23 +96,24 @@ export const Toolbar: React.FC<ToolbarProps> = ({ editorRef, onLink }) => {
     
     return (
         <div className="flex-shrink-0 p-2 border-b border-gray-700/50 flex items-center flex-wrap gap-1">
-            <button onClick={() => { execCommand('bold'); updateActiveStates(); }} className={buttonClass(activeButtons['bold'])} title="Bold"><BoldIcon className="h-5 w-5"/></button>
-            <button onClick={() => { execCommand('italic'); updateActiveStates(); }} className={buttonClass(activeButtons['italic'])} title="Italic"><ItalicIcon className="h-5 w-5"/></button>
-            <button onClick={() => { execCommand('underline'); updateActiveStates(); }} className={buttonClass(activeButtons['underline'])} title="Underline"><UnderlineIcon className="h-5 w-5"/></button>
-            <button onClick={() => { execCommand('strikeThrough'); updateActiveStates(); }} className={buttonClass(activeButtons['strikeThrough'])} title="Strikethrough"><StrikethroughIcon className="h-5 w-5"/></button>
+            <button onClick={() => simpleCommand('bold')} className={buttonClass(activeButtons['bold'])} title="Bold"><BoldIcon className="h-5 w-5"/></button>
+            <button onClick={() => simpleCommand('italic')} className={buttonClass(activeButtons['italic'])} title="Italic"><ItalicIcon className="h-5 w-5"/></button>
+            <button onClick={() => simpleCommand('underline')} className={buttonClass(activeButtons['underline'])} title="Underline"><UnderlineIcon className="h-5 w-5"/></button>
+            <button onClick={() => simpleCommand('strikeThrough')} className={buttonClass(activeButtons['strikeThrough'])} title="Strikethrough"><StrikethroughIcon className="h-5 w-5"/></button>
             <div className="w-px h-6 bg-gray-700 mx-1"></div>
             <button onClick={() => toggleBlock('h1')} className={buttonClass(activeButtons['h1'])} title="Heading 1"><Heading1Icon className="h-5 w-5"/></button>
             <button onClick={() => toggleBlock('h2')} className={buttonClass(activeButtons['h2'])} title="Heading 2"><Heading2Icon className="h-5 w-5"/></button>
             <button onClick={() => toggleBlock('h3')} className={buttonClass(activeButtons['h3'])} title="Heading 3"><Heading3Icon className="h-5 w-5"/></button>
             <div className="w-px h-6 bg-gray-700 mx-1"></div>
-            <button onClick={() => { execCommand('insertUnorderedList'); updateActiveStates(); }} className={buttonClass(activeButtons['insertUnorderedList'])} title="Bullet List"><ListUlIcon className="h-5 w-5"/></button>
-            <button onClick={() => { execCommand('insertOrderedList'); updateActiveStates(); }} className={buttonClass(activeButtons['insertOrderedList'])} title="Numbered List"><ListOlIcon className="h-5 w-5"/></button>
+            <button onClick={() => simpleCommand('insertUnorderedList')} className={buttonClass(activeButtons['insertUnorderedList'])} title="Bullet List"><ListUlIcon className="h-5 w-5"/></button>
+            <button onClick={() => simpleCommand('insertOrderedList')} className={buttonClass(activeButtons['insertOrderedList'])} title="Numbered List"><ListOlIcon className="h-5 w-5"/></button>
             <button onClick={() => toggleBlock('blockquote')} className={buttonClass(activeButtons['blockquote'])} title="Blockquote"><QuoteIcon className="h-5 w-5"/></button>
             <div className="w-px h-6 bg-gray-700 mx-1"></div>
+            <button onClick={onInsertTag} className={buttonClass(false)} title="Insert Tag"><TagIcon className="h-5 w-5"/></button>
+            <button onClick={onInsertTemplate} className={buttonClass(false)} title="Insert Template"><DocumentDuplicateIcon className="h-5 w-5"/></button>
             <button onClick={onLink} className={buttonClass(false)} title="Add Link"><LinkIcon className="h-5 w-5"/></button>
-            <button onClick={() => { execCommand('formatBlock', '<code>'); updateActiveStates(); }} className={buttonClass(activeButtons['code'])} title="Inline Code"><CodeIcon className="h-5 w-5"/></button>
-            <button onClick={toggleCodeBlock} className={buttonClass(activeButtons['codeBlock'])} title="Code Block"><CodeBlockIcon className="h-5 w-5"/></button>
-            <button onClick={() => execCommand('insertHorizontalRule')} className={buttonClass(false)} title="Horizontal Rule"><HorizontalRuleIcon className="h-5 w-5"/></button>
+            <button onClick={() => toggleCodeBlock()} className={buttonClass(activeButtons['codeBlock'])} title="Code Block"><CodeBlockIcon className="h-5 w-5"/></button>
+            <button onClick={() => simpleCommand('insertHorizontalRule')} className={buttonClass(false)} title="Horizontal Rule"><HorizontalRuleIcon className="h-5 w-5"/></button>
         </div>
     );
 };

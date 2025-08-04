@@ -1,40 +1,49 @@
 
 import { useMemo } from 'react';
-import type { OntologyNode } from '../types';
+import type { OntologyNode, OntologyAttribute } from '../types';
 
 export const useOntologyIndex = (ontology: OntologyNode[]) => {
     return useMemo(() => {
         const safeOntology = Array.isArray(ontology) ? ontology : [];
 
         const tags = new Set<{ id: string; label: string, description?: string }>();
-        const props = new Map<string, { id: string; label: string, description?: string }>();
+        const propertyTypes = new Map<string, OntologyAttribute>();
         const templates = safeOntology.find(n => n.id === 'templates')?.children || [];
         
-        function traverse(nodes: OntologyNode[], isTemplateContext: boolean) {
+        function traverse(nodes: OntologyNode[]) {
             nodes.forEach(node => {
-                // Don't add templates themselves or their children as regular tags/props
-                if (!isTemplateContext) { 
+                // Don't add 'Templates' itself as a tag, or its children
+                if (node.id !== 'templates') {
                     tags.add({ id: node.id, label: node.label, description: node.description });
-                    if (node.attributes) {
-                        Object.entries(node.attributes).forEach(([attrKey, attrValue]) => {
-                            if (!props.has(attrKey)) {
-                                props.set(attrKey, { id: `${node.id}-${attrKey}`, label: attrKey, description: attrValue.description });
-                            }
-                        });
-                    }
                 }
+                
+                if (node.attributes) {
+                    Object.entries(node.attributes).forEach(([attrKey, attrValue]) => {
+                        if (!propertyTypes.has(attrKey)) {
+                            propertyTypes.set(attrKey, attrValue);
+                        }
+                    });
+                }
+
                 if (node.children) {
-                    traverse(node.children, isTemplateContext || node.id === 'templates');
+                    traverse(node.children);
                 }
             });
         }
         
-        traverse(safeOntology, false);
+        traverse(safeOntology);
+
+        const allProperties = Array.from(propertyTypes.keys()).map(key => ({
+            id: key,
+            label: key,
+            description: propertyTypes.get(key)?.description
+        }));
 
         return { 
-            allTags: Array.from(tags), 
-            allProperties: Array.from(props.values()), 
-            allTemplates: templates 
+            allTags: Array.from(tags).filter(t => !templates.some(tmpl => tmpl.id === t.id)),
+            allProperties, 
+            allTemplates: templates,
+            propertyTypes,
         };
     }, [ontology]);
 };

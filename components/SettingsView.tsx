@@ -4,13 +4,12 @@ import { nip19, getPublicKey, generateSecretKey } from 'nostr-tools';
 import type { AppSettings } from '../types';
 import { bytesToHex, hexToBytes } from '../utils/nostr';
 import { ClipboardIcon, KeyIcon, SparklesIcon, TrashIcon } from './icons';
+import { isApiKeyAvailable } from '../services/geminiService';
 
 interface SettingsViewProps {
     settings: AppSettings;
     setSettings: React.Dispatch<React.SetStateAction<AppSettings>>;
 }
-
-const isApiKeySet = process.env.API_KEY && process.env.API_KEY !== "YOUR_GEMINI_API_KEY";
 
 const TabButton: React.FC<{ label: string; isActive: boolean; onClick: () => void; }> = ({ label, isActive, onClick }) => (
     <button
@@ -64,7 +63,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, setSetting
     const [activeTab, setActiveTab] = useState<'ai' | 'nostr' | 'data'>('ai');
     
     const handleToggleAI = () => {
-        if (!isApiKeySet) return;
+        if (!isApiKeyAvailable) return;
         setSettings(prev => ({ ...prev, aiEnabled: !prev.aiEnabled }));
     };
     
@@ -120,26 +119,26 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, setSetting
                             </div>
                             <div 
                                 className="relative"
-                                title={!isApiKeySet ? "A valid Gemini API key must be configured to enable this feature." : ""}
+                                title={!isApiKeyAvailable ? "A valid Gemini API key must be configured to enable this feature." : ""}
                             >
                                 <button
                                     id="ai-toggle"
                                     onClick={handleToggleAI}
-                                    disabled={!isApiKeySet}
+                                    disabled={!isApiKeyAvailable}
                                     className={`relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-blue-500 ${
-                                        isApiKeySet ? (settings.aiEnabled ? 'bg-blue-600' : 'bg-gray-600') : 'bg-gray-700 cursor-not-allowed'
+                                        isApiKeyAvailable ? (settings.aiEnabled ? 'bg-blue-600' : 'bg-gray-600') : 'bg-gray-700 cursor-not-allowed'
                                     }`}
                                 >
                                     <span
                                         aria-hidden="true"
                                         className={`inline-block h-5 w-5 rounded-full bg-white shadow-lg transform ring-0 transition ease-in-out duration-200 ${
-                                            settings.aiEnabled && isApiKeySet ? 'translate-x-5' : 'translate-x-0'
+                                            settings.aiEnabled && isApiKeyAvailable ? 'translate-x-5' : 'translate-x-0'
                                         }`}
                                     />
                                 </button>
                             </div>
                         </div>
-                        {!isApiKeySet && (
+                        {!isApiKeyAvailable && (
                             <div className="mt-4 p-3 bg-yellow-900/50 border border-yellow-700 text-yellow-300 text-sm rounded-md">
                                 <strong>Action Required:</strong> A Google Gemini API key is not configured. AI features are disabled. Please set the <code>API_KEY</code> to proceed.
                             </div>
