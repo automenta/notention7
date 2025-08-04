@@ -8,6 +8,7 @@ import { SemanticInsertModal, type InsertMenuItem } from './editor/SemanticInser
 import { PropertyEditorPopover } from './editor/PropertyEditorPopover';
 import { getTextFromHtml } from '../utils/nostr';
 import { formatPropertyForDisplay } from '../utils/properties';
+import { getNoteSemantics } from '../utils/noteSemantics';
 
 // A one-time conversion for legacy note content from plain text to widgets.
 const convertPlainTextToWidgets = (html: string): string => {
@@ -83,8 +84,8 @@ export const NoteEditor: React.FC<{
         if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
         saveTimeoutRef.current = window.setTimeout(() => {
             const currentContent = editorRef.current?.innerHTML || content;
-            const updatedSemantics = useNoteSemantics(currentContent);
-            onSave({ ...note, title, content: currentContent, tags: updatedSemantics.tags, properties: updatedSemantics.properties, updatedAt: new Date().toISOString() });
+            const { tags: updatedTags, properties: updatedProperties } = getNoteSemantics(currentContent);
+            onSave({ ...note, title, content: currentContent, tags: updatedTags, properties: updatedProperties, updatedAt: new Date().toISOString() });
         }, 500);
     }, [note, onSave, title, content]);
 

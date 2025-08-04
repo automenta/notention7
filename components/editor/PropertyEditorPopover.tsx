@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { TrashIcon, MapPinIcon } from '../icons';
-import type { OntologyAttribute } from '@/types.ts';
+import type { OntologyAttribute } from '../../types';
 import { MapPickerModal } from './MapPickerModal';
 
 interface PropertyEditorPopoverProps {
@@ -39,10 +39,12 @@ export const PropertyEditorPopover: React.FC<PropertyEditorPopoverProps> = ({ wi
     useEffect(() => {
         const newAttributeType = propertyTypes.get(key.trim());
         if (newAttributeType) {
-            const allOperators = [...newAttributeType.operators.real, ...newAttributeType.operators.imaginary];
-            if (!allOperators.includes(operator)) {
-                setOperator(newAttributeType.operators.real[0] || allOperators[0]);
-                setValues(['']);
+            if (newAttributeType.operators) {
+                const allOperators = [...newAttributeType.operators.real, ...newAttributeType.operators.imaginary];
+                if (!allOperators.includes(operator)) {
+                    setOperator(newAttributeType.operators.real[0] || allOperators[0]);
+                    setValues(['']);
+                }
             }
         }
     }, [key, operator, propertyTypes]);
@@ -125,12 +127,12 @@ export const PropertyEditorPopover: React.FC<PropertyEditorPopoverProps> = ({ wi
                         <input type="text" value={key} onChange={(e) => setKey(e.target.value)} className={inputClass} />
                      </div>
                      
-                     {attributeType && (
+                     {attributeType && attributeType.operators && (
                          <div>
                             <label className={labelClass}>Operator</label>
                             <select value={operator} onChange={e => setOperator(e.target.value)} className={inputClass}>
-                                {attributeType.operators.real.length > 0 && <optgroup label="Real">{attributeType.operators.real.map(op => <option key={op} value={op}>{op}</option>)}</optgroup>}
-                                {attributeType.operators.imaginary.length > 0 && <optgroup label="Imaginary">{attributeType.operators.imaginary.map(op => <option key={op} value={op}>{op}</option>)}</optgroup>}
+                                {attributeType.operators.real && attributeType.operators.real.length > 0 && <optgroup label="Real">{attributeType.operators.real.map(op => <option key={op} value={op}>{op}</option>)}</optgroup>}
+                                {attributeType.operators.imaginary && attributeType.operators.imaginary.length > 0 && <optgroup label="Imaginary">{attributeType.operators.imaginary.map(op => <option key={op} value={op}>{op}</option>)}</optgroup>}
                             </select>
                          </div>
                      )}
