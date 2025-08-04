@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
-import { NoteEditor } from './components/NoteEditor';
+import { EditorManager } from './components/EditorManager';
 import { SettingsView } from './components/SettingsView';
 import { NetworkView } from './components/NetworkView';
 import { ChatView } from './components/ChatView';
@@ -92,7 +92,7 @@ const App: React.FC = () => {
         switch (activeView) {
             case 'notes':
                 return selectedNote ? (
-                    <NoteEditor 
+                    <EditorManager 
                         key={selectedNote.id} // Re-mount component when note changes
                         note={selectedNote} 
                         onSave={updateNote} 

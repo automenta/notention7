@@ -40,14 +40,14 @@ const convertPlainTextToWidgets = (html: string): string => {
     return widgetizedHtml;
 };
 
-export const NoteEditor: React.FC<{
+export const TiptapEditor: React.FC<{
     note: Note;
     onSave: (note: Note) => void;
     onDelete: (id: string) => void;
     settings: AppSettings;
 }> = ({ note, onSave, onDelete, settings }) => {
     const [title, setTitle] = useState(note.title);
-    const [content, setContent] = useState('');
+    const [content, setContent] = useState(convertPlainTextToWidgets(note.content));
     const saveTimeoutRef = useRef<number | null>(null);
     const editorRef = useRef<HTMLDivElement>(null);
 
@@ -57,15 +57,7 @@ export const NoteEditor: React.FC<{
     const [insertModalState, setInsertModalState] = useState<{ open: boolean; type: 'tag' | 'template' | null }>({ open: false, type: null });
     const [editingWidget, setEditingWidget] = useState<HTMLElement | null>(null);
 
-    useEffect(() => {
-        setTitle(note.title);
-        const initialContent = convertPlainTextToWidgets(note.content);
-        setContent(initialContent);
-        if (editorRef.current) {
-            editorRef.current.innerHTML = initialContent;
-        }
-        setEditingWidget(null);
-    }, [note.id]);
+    
     
     useEffect(() => {
         const currentlyEditing = editorRef.current?.querySelector('.is-editing');
@@ -79,6 +71,8 @@ export const NoteEditor: React.FC<{
             editingWidget?.classList.remove('is-editing');
         }
     }, [editingWidget]);
+
+    
 
     const debouncedSave = useCallback(() => {
         if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
