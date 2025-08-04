@@ -1,7 +1,6 @@
 
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import L from 'leaflet';
-import { XCircleIcon } from '../icons';
 
 interface MapPickerModalProps {
     isOpen: boolean;

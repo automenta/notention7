@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { finalizeEvent } from 'nostr-tools';
 
-import type { Note, AppSettings, Property } from '../../types';
+import type { Note, AppSettings, Property } from '@/types.ts';
 import {
     SparklesIcon, TrashIcon, LoadingSpinner, WorldIcon,
-    CubeIcon, CubeTransparentIcon, CodeBracketsIcon, XCircleIcon
+    CubeIcon, CodeBracketsIcon, XCircleIcon
 } from '../icons';
-import { summarizeText } from '../../services/geminiService';
-import { pool } from '../../services/nostrService';
-import { hexToBytes, DEFAULT_RELAYS } from '../../utils/nostr';
+import { summarizeText } from '@/services/geminiService.ts';
+import { pool } from '@/services/nostrService.ts';
+import { hexToBytes, DEFAULT_RELAYS } from '@/utils/nostr.ts';
 import { SemanticsModal } from './SemanticsModal';
 import { SummaryModal } from './SummaryModal';
 

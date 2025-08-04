@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { TrashIcon, MapPinIcon } from '../icons';
-import type { OntologyAttribute } from '../../types';
+import type { OntologyAttribute } from '@/types.ts';
 import { MapPickerModal } from './MapPickerModal';
 
 interface PropertyEditorPopoverProps {

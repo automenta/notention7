@@ -7,7 +7,7 @@ export interface Property {
     key: string;
     operator: string;
     values: string[];
-};
+}
 
 export interface OntologyAttribute {
     type: 'string' | 'date' | 'number' | 'enum' | 'datetime' | 'geo';

@@ -1,10 +1,10 @@
 
 import React, { useState, useMemo } from 'react';
 import { nip19, finalizeEvent } from 'nostr-tools';
-import type { AppSettings, NostrProfile } from '../../types';
+import type { AppSettings, NostrProfile } from '@/types.ts';
 import { LoadingSpinner, EditIcon } from '../icons';
-import { DEFAULT_RELAYS, bytesToHex, hexToBytes, formatNpub } from '../../utils/nostr';
-import { pool } from '../../services/nostrService';
+import { DEFAULT_RELAYS, hexToBytes, formatNpub } from '@/utils/nostr.ts';
+import { pool } from '@/services/nostrService.ts';
 
 const ProfileEditorModal: React.FC<{
     isOpen: boolean;

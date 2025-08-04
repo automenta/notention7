@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { nip04, getPublicKey, finalizeEvent } from 'nostr-tools';
+import { nip04, getPublicKey } from 'nostr-tools';
 import type { AppSettings, NostrEvent, Contact } from '../types';
 import { DEFAULT_RELAYS, hexToBytes } from '../utils/nostr';
 import { pool } from '../services/nostrService';
@@ -35,7 +35,7 @@ export const ChatView: React.FC<{
             const peerPubkey = event.pubkey === pubkey ? event.tags.find(t => t[0] === 'p')?.[1] : event.pubkey;
             if (!peerPubkey) return;
             
-            const decryptedContent = await nip04.decrypt(privkey, peerPubkey, event.content);
+            const decryptedContent = nip04.decrypt(privkey, peerPubkey, event.content);
             addMessage(peerPubkey, event, decryptedContent);
         } catch (e) {
             // Decryption errors are expected if a message is not intended for the user, so they are suppressed.

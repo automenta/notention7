@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import type { OntologyNode } from '../../types';
-import { SearchIcon, PlusCircleIcon, TagIcon, XCircleIcon } from '../icons';
+import type { OntologyNode } from '@/types.ts';
+import { SearchIcon, PlusCircleIcon, TagIcon } from '../icons';
 
 export interface InsertMenuItem {
     id: string;

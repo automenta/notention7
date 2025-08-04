@@ -40,7 +40,7 @@ export const useNostrProfile = (pubkeys: string[]): Record<string, NostrProfile>
                 return currentProfiles;
             });
             return;
-        };
+        }
 
         pubkeysToFetch.forEach(pk => requestedPubkeys.add(pk));
 

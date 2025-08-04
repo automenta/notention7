@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import type { Note, AppSettings, OntologyNode, Property } from '../types';
+import type { Note, AppSettings } from '../types';
 import { useNoteSemantics } from '../hooks/useNoteSemantics';
 import { useOntologyIndex } from '../hooks/useOntologyIndex';
 import { Toolbar } from './editor/Toolbar';

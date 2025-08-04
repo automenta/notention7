@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { nip19, nip04, finalizeEvent } from 'nostr-tools';
-import type { NostrEvent, Contact } from '../../types';
-import { useNostrProfile } from '../../hooks/useNostrProfile';
-import { pool } from '../../services/nostrService';
-import { DEFAULT_RELAYS, hexToBytes, formatNpub } from '../../utils/nostr';
+import type { NostrEvent, Contact } from '@/types.ts';
+import { useNostrProfile } from '@/hooks/useNostrProfile.ts';
+import { pool } from '@/services/nostrService.ts';
+import { DEFAULT_RELAYS, hexToBytes, formatNpub } from '@/utils/nostr.ts';
 import { SendIcon, ArrowLeftIcon } from '../icons';
 
 interface ChatWindowProps {
@@ -33,7 +33,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ privkey, pubkey, selecte
         if (!newMessage.trim() || !selectedContact) return;
         
         try {
-            const encryptedContent = await nip04.encrypt(privkey, selectedContact.pubkey, newMessage.trim());
+            const encryptedContent = nip04.encrypt(privkey, selectedContact.pubkey, newMessage.trim());
             const event = finalizeEvent({
                 kind: 4,
                 created_at: Math.floor(Date.now() / 1000),

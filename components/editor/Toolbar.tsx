@@ -3,7 +3,7 @@ import React, { useCallback, useState, useEffect } from 'react';
 import {
     BoldIcon, ItalicIcon, UnderlineIcon, StrikethroughIcon,
     Heading1Icon, Heading2Icon, Heading3Icon,
-    ListUlIcon, ListOlIcon, QuoteIcon, CodeIcon, CodeBlockIcon,
+    ListUlIcon, ListOlIcon, QuoteIcon, CodeBlockIcon,
     LinkIcon, HorizontalRuleIcon, TagIcon, DocumentDuplicateIcon
 } from '../icons';
 
