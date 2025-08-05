@@ -1,10 +1,9 @@
 import React from 'react';
 import type {View} from '../types';
 import {ChatIcon, MapIcon, NetworkIcon, NoteIcon, OntologyIcon, PlusIcon, SettingsIcon} from './icons';
+import {useView} from './contexts/ViewContext';
 
 interface HeaderProps {
-    activeView: View;
-    onSelectView: (view: View) => void;
     onNewNote: () => void;
 }
 
@@ -30,7 +29,8 @@ const NavButton: React.FC<NavButtonProps> = ({icon, label, isActive, onClick}) =
 );
 
 
-export const Header: React.FC<HeaderProps> = ({activeView, onSelectView, onNewNote}) => {
+export const Header: React.FC<HeaderProps> = ({onNewNote}) => {
+    const {activeView, setActiveView} = useView();
     const navItems: { view: View; label: string; icon: React.ReactElement }[] = [
         {view: 'notes', label: 'Notes', icon: <NoteIcon/>},
         {view: 'map', label: 'Map', icon: <MapIcon/>},
@@ -58,7 +58,7 @@ export const Header: React.FC<HeaderProps> = ({activeView, onSelectView, onNewNo
                         icon={item.icon}
                         label={item.label}
                         isActive={activeView === item.view}
-                        onClick={() => onSelectView(item.view)}
+                        onClick={() => setActiveView(item.view)}
                     />
                 ))}
             </div>
@@ -69,7 +69,7 @@ export const Header: React.FC<HeaderProps> = ({activeView, onSelectView, onNewNo
                     icon={<SettingsIcon/>}
                     label="Settings"
                     isActive={activeView === 'settings'}
-                    onClick={() => onSelectView('settings')}
+                    onClick={() => setActiveView('settings')}
                 />
             </div>
         </header>

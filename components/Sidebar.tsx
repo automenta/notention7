@@ -3,13 +3,8 @@ import type {Note} from '../types';
 import {TrashIcon, WorldIcon} from './icons';
 import {getTextFromHtml} from '../utils/nostr';
 import {Search} from './sidebar/Search';
-
-interface SidebarProps {
-    notes: Note[];
-    selectedNoteId: string | null;
-    onSelectNote: (id: string | null) => void;
-    onDeleteNote: (id: string) => void;
-}
+import {useNotesContext as useNotes} from './contexts/NotesContext';
+import {useView} from './contexts/ViewContext';
 
 type SortOrder = 'updatedAt_desc' | 'updatedAt_asc' | 'createdAt_desc' | 'createdAt_asc' | 'title_asc' | 'title_desc';
 
@@ -59,12 +54,9 @@ const NoteListItem: React.FC<{
 };
 
 
-export const Sidebar: React.FC<SidebarProps> = ({
-                                                    notes,
-                                                    selectedNoteId,
-                                                    onSelectNote,
-                                                    onDeleteNote,
-                                                }) => {
+export const Sidebar: React.FC = () => {
+    const {notes, deleteNote} = useNotes();
+    const {selectedNoteId, setSelectedNoteId} = useView();
     const [searchTerm, setSearchTerm] = useState('');
     const [sortOrder, setSortOrder] = useState<SortOrder>('updatedAt_desc');
 
@@ -154,8 +146,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                 key={note.id}
                                 note={note}
                                 isSelected={selectedNoteId === note.id}
-                                onSelect={() => onSelectNote(note.id)}
-                                onDelete={() => onDeleteNote(note.id)}
+                                onSelect={() => setSelectedNoteId(note.id)}
+                                onDelete={() => deleteNote(note.id)}
                             />
                         ))
                 ) : (

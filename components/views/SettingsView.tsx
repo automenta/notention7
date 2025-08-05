@@ -1,14 +1,9 @@
 import React, {useMemo, useState} from 'react';
 import {generateSecretKey, getPublicKey, nip19} from 'nostr-tools';
-import type {AppSettings} from '../types';
-import {bytesToHex, hexToBytes} from '../utils/nostr';
-import {ClipboardIcon, KeyIcon, SparklesIcon, TrashIcon} from './icons';
-import {isApiKeyAvailable} from '../services/geminiService';
-
-interface SettingsViewProps {
-    settings: AppSettings;
-    setSettings: React.Dispatch<React.SetStateAction<AppSettings>>;
-}
+import {bytesToHex, hexToBytes} from '../../utils/nostr';
+import {ClipboardIcon, KeyIcon, SparklesIcon, TrashIcon} from '../icons';
+import {isApiKeyAvailable} from '../../services/geminiService';
+import {useSettings} from '../contexts/SettingsContext';
 
 const TabButton: React.FC<{ label: string; isActive: boolean; onClick: () => void; }> = ({
                                                                                              label,
@@ -68,7 +63,8 @@ const CopyableField: React.FC<{ label: string; value: string; isSecret?: boolean
 };
 
 
-export const SettingsView: React.FC<SettingsViewProps> = ({settings, setSettings}) => {
+export const SettingsView: React.FC = () => {
+    const {settings, setSettings} = useSettings();
     const [activeTab, setActiveTab] = useState<'ai' | 'nostr' | 'data'>('ai');
 
     const handleToggleAI = () => {

@@ -1,11 +1,7 @@
 import React, {useEffect, useMemo, useRef} from 'react';
 import L from 'leaflet';
-import type {Note} from '../types';
-
-interface MapViewProps {
-    notes: Note[];
-    onSelectNote: (id: string) => void;
-}
+import {useNotesContext as useNotes} from '../contexts/NotesContext';
+import {useView} from '../contexts/ViewContext';
 
 interface GeoPoint {
     noteId: string;
@@ -14,10 +10,17 @@ interface GeoPoint {
     lng: number;
 }
 
-export const MapView: React.FC<MapViewProps> = ({notes, onSelectNote}) => {
+export const MapView: React.FC = () => {
+    const {notes} = useNotes();
+    const {setActiveView, setSelectedNoteId} = useView();
     const mapRef = useRef<L.Map | null>(null);
     const mapContainerRef = useRef<HTMLDivElement | null>(null);
     const markersRef = useRef<L.Marker[]>([]);
+
+    const onSelectNote = (id: string) => {
+        setActiveView('notes');
+        setSelectedNoteId(id);
+    };
 
     const geoPoints = useMemo<GeoPoint[]>(() => {
         const points: GeoPoint[] = [];

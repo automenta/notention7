@@ -1,11 +1,13 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {getPublicKey, nip19} from 'nostr-tools';
-import type {AppSettings, NostrEvent, NostrProfile} from '../types';
-import {KeyIcon, LoadingSpinner, SettingsIcon} from './icons';
-import {DEFAULT_RELAYS, formatNpub, hexToBytes} from '../utils/nostr';
-import {pool} from '../services/nostrService';
-import {useNostrProfile} from '../hooks/useNostrProfile';
-import {ProfileHeader} from './network/ProfileHeader';
+import type {NostrEvent, NostrProfile} from '../../types';
+import {KeyIcon, LoadingSpinner, SettingsIcon} from '../icons';
+import {DEFAULT_RELAYS, formatNpub, hexToBytes} from '../../utils/nostr';
+import {pool} from '../../services/nostrService';
+import {useNostrProfile} from '../../hooks/useNostrProfile';
+import {ProfileHeader} from '../network/ProfileHeader';
+import {useSettings} from '../contexts/SettingsContext';
+import {useView} from '../contexts/ViewContext';
 
 const NostrEventCard: React.FC<{ event: NostrEvent, profile: NostrProfile | undefined }> = ({event, profile}) => {
     const eventDate = new Date(event.created_at * 1000).toLocaleString();
@@ -26,14 +28,10 @@ const NostrEventCard: React.FC<{ event: NostrEvent, profile: NostrProfile | unde
     );
 };
 
-interface NetworkViewProps {
-    settings: AppSettings;
-    setSettings: React.Dispatch<React.SetStateAction<AppSettings>>;
-    onNavigateToSettings: () => void;
-}
-
-
-export const NetworkView: React.FC<NetworkViewProps> = ({settings, setSettings, onNavigateToSettings}) => {
+export const NetworkView: React.FC = () => {
+    const {settings, setSettings} = useSettings();
+    const {setActiveView} = useView();
+    const onNavigateToSettings = () => setActiveView('settings');
     const pubkey = useMemo(() => settings.nostr?.privkey ? getPublicKey(hexToBytes(settings.nostr.privkey)) : null, [settings.nostr?.privkey]);
     const [events, setEvents] = useState<NostrEvent[]>([]);
     const [isLoading, setIsLoading] = useState(true);

@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
-import type {OntologyNode} from '../types';
-import {ChevronDownIcon} from './icons';
+import type {OntologyNode} from '../../types';
+import {ChevronDownIcon} from '../icons';
+import {useSettings} from '../contexts/SettingsContext';
 
 interface OntologyNodeProps {
     node: OntologyNode;
@@ -38,11 +39,10 @@ const OntologyNodeItem: React.FC<OntologyNodeProps> = ({node, level}) => {
     );
 };
 
-interface OntologyViewProps {
-    ontology: OntologyNode[];
-}
+export const OntologyView: React.FC = () => {
+    const {settings} = useSettings();
+    const ontology = settings.ontology;
 
-export const OntologyView: React.FC<OntologyViewProps> = ({ontology}) => {
     return (
         <div className="p-8 h-full overflow-y-auto bg-gray-800/50 rounded-lg">
             <div className="max-w-4xl mx-auto">
