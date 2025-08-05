@@ -1,6 +1,5 @@
-
-import { useMemo } from 'react';
-import type { OntologyNode, OntologyAttribute } from '../types';
+import {useMemo} from 'react';
+import type {OntologyAttribute, OntologyNode} from '../types';
 
 export const useOntologyIndex = (ontology: OntologyNode[]) => {
     return useMemo(() => {
@@ -9,14 +8,14 @@ export const useOntologyIndex = (ontology: OntologyNode[]) => {
         const tags = new Set<{ id: string; label: string, description?: string }>();
         const propertyTypes = new Map<string, OntologyAttribute>();
         const templates = safeOntology.find(n => n.id === 'templates')?.children || [];
-        
+
         function traverse(nodes: OntologyNode[]) {
             nodes.forEach(node => {
                 // Don't add 'Templates' itself as a tag, or its children
                 if (node.id !== 'templates') {
-                    tags.add({ id: node.id, label: node.label, description: node.description });
+                    tags.add({id: node.id, label: node.label, description: node.description});
                 }
-                
+
                 if (node.attributes) {
                     Object.entries(node.attributes).forEach(([attrKey, attrValue]) => {
                         if (!propertyTypes.has(attrKey)) {
@@ -30,7 +29,7 @@ export const useOntologyIndex = (ontology: OntologyNode[]) => {
                 }
             });
         }
-        
+
         traverse(safeOntology);
 
         const allProperties = Array.from(propertyTypes.keys()).map(key => ({
@@ -39,9 +38,9 @@ export const useOntologyIndex = (ontology: OntologyNode[]) => {
             description: propertyTypes.get(key)?.description
         }));
 
-        return { 
+        return {
             allTags: Array.from(tags).filter(t => !templates.some(tmpl => tmpl.id === t.id)),
-            allProperties, 
+            allProperties,
             allTemplates: templates,
             propertyTypes,
         };

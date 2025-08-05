@@ -1,4 +1,3 @@
-
 /**
  * A map from operator keys to their display symbols.
  * This ensures consistent visual representation of semantic operators across the app.
@@ -26,7 +25,7 @@ export const OPERATOR_MAP: Record<string, string> = {
  */
 export const formatPropertyForDisplay = (key: string, operator: string, values: string[]): string => {
     // Sanitize values to prevent accidental HTML injection
-    const escapeHtml = (unsafe: string) => 
+    const escapeHtml = (unsafe: string) =>
         unsafe
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
@@ -37,9 +36,9 @@ export const formatPropertyForDisplay = (key: string, operator: string, values: 
     const operatorSymbol = OPERATOR_MAP[operator] || operator;
     const keyHtml = `<span class="property-key">${escapeHtml(key)}</span>`;
     const operatorHtml = `<span class="property-operator">${operatorSymbol}</span>`;
-    
+
     let valueHtml = '';
-    
+
     // Handle the special 'between' operator which uses two values
     if (operator === 'between' && values.length >= 2) {
         const val1 = `<span class="property-value">${escapeHtml(values[0] || '')}</span>`;

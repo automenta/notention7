@@ -1,5 +1,4 @@
-
-import { GoogleGenAI } from "@google/genai";
+import {GoogleGenAI} from "@google/genai";
 
 export const isApiKeyAvailable = !!(process.env.API_KEY && process.env.API_KEY !== "YOUR_GEMINI_API_KEY");
 
@@ -7,7 +6,7 @@ if (!isApiKeyAvailable) {
     console.warn("Gemini API key is not set in process.env.API_KEY. AI features will be disabled.");
 }
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
+const ai = new GoogleGenAI({apiKey: process.env.API_KEY || ""});
 
 export const summarizeText = async (textToSummarize: string): Promise<string> => {
     if (!isApiKeyAvailable) {
@@ -37,7 +36,7 @@ ${textToSummarize}
         if (!summary) {
             throw new Error("Received an empty summary from the API.");
         }
-        
+
         return summary.trim();
 
     } catch (error) {

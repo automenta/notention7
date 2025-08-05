@@ -1,7 +1,6 @@
-
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import type { Note, AppSettings } from '../types';
-import { getTextFromHtml } from '../utils/nostr';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import type {AppSettings, Note} from '../types';
+import {getTextFromHtml} from '../utils/nostr';
 
 interface TextareaEditorProps {
     note: Note;
@@ -10,7 +9,7 @@ interface TextareaEditorProps {
     settings: AppSettings;
 }
 
-export const TextareaEditor: React.FC<TextareaEditorProps> = ({ note, onSave, onDelete, settings }) => {
+export const TextareaEditor: React.FC<TextareaEditorProps> = ({note, onSave, onDelete, settings}) => {
     const [content, setContent] = useState(getTextFromHtml(note.content));
     const saveTimeoutRef = useRef<number | null>(null);
 
@@ -21,13 +20,15 @@ export const TextareaEditor: React.FC<TextareaEditorProps> = ({ note, onSave, on
     const debouncedSave = useCallback(() => {
         if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
         saveTimeoutRef.current = window.setTimeout(() => {
-            onSave({ ...note, content, updatedAt: new Date().toISOString() });
+            onSave({...note, content, updatedAt: new Date().toISOString()});
         }, 500);
     }, [note, onSave, content]);
 
     useEffect(() => {
         debouncedSave();
-        return () => { if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current); };
+        return () => {
+            if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+        };
     }, [content, debouncedSave]);
 
     const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

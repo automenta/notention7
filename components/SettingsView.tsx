@@ -1,17 +1,20 @@
-
-import React, { useState, useMemo } from 'react';
-import { nip19, getPublicKey, generateSecretKey } from 'nostr-tools';
-import type { AppSettings } from '../types';
-import { bytesToHex, hexToBytes } from '../utils/nostr';
-import { ClipboardIcon, KeyIcon, SparklesIcon, TrashIcon } from './icons';
-import { isApiKeyAvailable } from '../services/geminiService';
+import React, {useMemo, useState} from 'react';
+import {generateSecretKey, getPublicKey, nip19} from 'nostr-tools';
+import type {AppSettings} from '../types';
+import {bytesToHex, hexToBytes} from '../utils/nostr';
+import {ClipboardIcon, KeyIcon, SparklesIcon, TrashIcon} from './icons';
+import {isApiKeyAvailable} from '../services/geminiService';
 
 interface SettingsViewProps {
     settings: AppSettings;
     setSettings: React.Dispatch<React.SetStateAction<AppSettings>>;
 }
 
-const TabButton: React.FC<{ label: string; isActive: boolean; onClick: () => void; }> = ({ label, isActive, onClick }) => (
+const TabButton: React.FC<{ label: string; isActive: boolean; onClick: () => void; }> = ({
+                                                                                             label,
+                                                                                             isActive,
+                                                                                             onClick
+                                                                                         }) => (
     <button
         onClick={onClick}
         className={`px-4 py-3 text-sm font-medium transition-colors border-b-2 ${
@@ -24,7 +27,11 @@ const TabButton: React.FC<{ label: string; isActive: boolean; onClick: () => voi
     </button>
 );
 
-const CopyableField: React.FC<{ label: string; value: string; isSecret?: boolean }> = ({ label, value, isSecret = false }) => {
+const CopyableField: React.FC<{ label: string; value: string; isSecret?: boolean }> = ({
+                                                                                           label,
+                                                                                           value,
+                                                                                           isSecret = false
+                                                                                       }) => {
     const [copied, setCopied] = useState(false);
     const [visible, setVisible] = useState(!isSecret);
 
@@ -45,41 +52,43 @@ const CopyableField: React.FC<{ label: string; value: string; isSecret?: boolean
                     className="flex-grow p-2 bg-gray-800 rounded-md text-gray-300 font-mono text-xs focus:outline-none"
                 />
                 {isSecret && (
-                     <button onClick={() => setVisible(!visible)} className="p-2 text-gray-400 hover:text-white rounded-md text-xs bg-gray-700 hover:bg-gray-600">
+                    <button onClick={() => setVisible(!visible)}
+                            className="p-2 text-gray-400 hover:text-white rounded-md text-xs bg-gray-700 hover:bg-gray-600">
                         {visible ? 'Hide' : 'Show'}
                     </button>
                 )}
-                <button onClick={handleCopy} className="p-2 bg-gray-600 rounded-md hover:bg-gray-500" title="Copy to clipboard">
-                    <ClipboardIcon className="h-4 w-4" />
+                <button onClick={handleCopy} className="p-2 bg-gray-600 rounded-md hover:bg-gray-500"
+                        title="Copy to clipboard">
+                    <ClipboardIcon className="h-4 w-4"/>
                 </button>
             </div>
-             {copied && <p className="text-xs text-green-400 mt-1">Copied to clipboard!</p>}
+            {copied && <p className="text-xs text-green-400 mt-1">Copied to clipboard!</p>}
         </div>
     );
 };
 
 
-export const SettingsView: React.FC<SettingsViewProps> = ({ settings, setSettings }) => {
+export const SettingsView: React.FC<SettingsViewProps> = ({settings, setSettings}) => {
     const [activeTab, setActiveTab] = useState<'ai' | 'nostr' | 'data'>('ai');
-    
+
     const handleToggleAI = () => {
         if (!isApiKeyAvailable) return;
-        setSettings(prev => ({ ...prev, aiEnabled: !prev.aiEnabled }));
+        setSettings(prev => ({...prev, aiEnabled: !prev.aiEnabled}));
     };
-    
+
     const handleGenerateKeys = () => {
         const newPrivKeyHex = bytesToHex(generateSecretKey());
-        setSettings(prev => ({ ...prev, nostr: { privkey: newPrivKeyHex }}));
+        setSettings(prev => ({...prev, nostr: {privkey: newPrivKeyHex}}));
     };
 
     const handleLogout = () => {
         if (window.confirm("Are you sure? This will remove your Nostr private key from this device. This action cannot be undone.")) {
-            setSettings(prev => ({ ...prev, nostr: { privkey: null }}));
+            setSettings(prev => ({...prev, nostr: {privkey: null}}));
         }
     };
-    
-    const { npub, nsec } = useMemo(() => {
-        if (!settings.nostr.privkey) return { npub: null, nsec: null };
+
+    const {npub, nsec} = useMemo(() => {
+        if (!settings.nostr.privkey) return {npub: null, nsec: null};
         try {
             const pubkey = getPublicKey(hexToBytes(settings.nostr.privkey));
             return {
@@ -88,7 +97,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, setSetting
             };
         } catch (e) {
             console.error("Error encoding keys:", e);
-            return { npub: 'Error', nsec: 'Error' };
+            return {npub: 'Error', nsec: 'Error'};
         }
     }, [settings.nostr.privkey]);
 
@@ -96,28 +105,28 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, setSetting
     return (
         <div className="p-8 h-full overflow-y-auto bg-gray-800/50 rounded-lg">
             <h1 className="text-3xl font-bold text-white mb-2">⚙️ Settings</h1>
-             <p className="text-gray-400 mb-6">Configure application settings and manage your data.</p>
-
             <div className="border-b border-gray-700 mb-6">
                 <nav className="-mb-px flex space-x-4" aria-label="Tabs">
-                    <TabButton label="🤖 AI" isActive={activeTab === 'ai'} onClick={() => setActiveTab('ai')} />
-                    <TabButton label="🔑 Nostr" isActive={activeTab === 'nostr'} onClick={() => setActiveTab('nostr')} />
-                    <TabButton label="📦 Data" isActive={activeTab === 'data'} onClick={() => setActiveTab('data')} />
+                    <TabButton label="🤖 AI" isActive={activeTab === 'ai'} onClick={() => setActiveTab('ai')}/>
+                    <TabButton label="🔑 Nostr" isActive={activeTab === 'nostr'} onClick={() => setActiveTab('nostr')}/>
+                    <TabButton label="📦 Data" isActive={activeTab === 'data'} onClick={() => setActiveTab('data')}/>
                 </nav>
             </div>
 
             <div>
                 {activeTab === 'ai' && (
-                     <div className="bg-gray-900/70 p-6 rounded-lg animate-fade-in">
-                        <h2 className="text-xl font-semibold text-gray-100 mb-4 flex items-center gap-3"><SparklesIcon className="h-6 w-6 text-blue-400"/>AI Enhancements</h2>
+                    <div className="bg-gray-900/70 p-6 rounded-lg animate-fade-in">
+                        <h2 className="text-xl font-semibold text-gray-100 mb-4 flex items-center gap-3"><SparklesIcon
+                            className="h-6 w-6 text-blue-400"/>AI Enhancements</h2>
                         <div className="flex items-center justify-between">
                             <div className="flex-grow">
-                                <label htmlFor="ai-toggle" className="font-medium text-gray-300">Enable AI Features</label>
+                                <label htmlFor="ai-toggle" className="font-medium text-gray-300">Enable AI
+                                    Features</label>
                                 <p className="text-sm text-gray-400 mt-1">
                                     Enables features like note summarization using Google Gemini.
                                 </p>
                             </div>
-                            <div 
+                            <div
                                 className="relative"
                                 title={!isApiKeyAvailable ? "A valid Gemini API key must be configured to enable this feature." : ""}
                             >
@@ -139,41 +148,50 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, setSetting
                             </div>
                         </div>
                         {!isApiKeyAvailable && (
-                            <div className="mt-4 p-3 bg-yellow-900/50 border border-yellow-700 text-yellow-300 text-sm rounded-md">
-                                <strong>Action Required:</strong> A Google Gemini API key is not configured. AI features are disabled. Please set the <code>API_KEY</code> to proceed.
+                            <div
+                                className="mt-4 p-3 bg-yellow-900/50 border border-yellow-700 text-yellow-300 text-sm rounded-md">
+                                <strong>Action Required:</strong> A Google Gemini API key is not configured. AI features
+                                are disabled. Please set the <code>API_KEY</code> to proceed.
                             </div>
                         )}
                     </div>
                 )}
-                
+
                 {activeTab === 'nostr' && (
                     <div className="bg-gray-900/70 p-6 rounded-lg animate-fade-in">
-                         <h2 className="text-xl font-semibold text-gray-100 mb-4 flex items-center gap-3"><KeyIcon className="h-6 w-6 text-yellow-400"/>Nostr Identity</h2>
-                         {settings.nostr.privkey && nsec && npub ? (
+                        <h2 className="text-xl font-semibold text-gray-100 mb-4 flex items-center gap-3"><KeyIcon
+                            className="h-6 w-6 text-yellow-400"/>Nostr Identity</h2>
+                        {settings.nostr.privkey && nsec && npub ? (
                             <div className="space-y-4">
-                                <p className="text-sm text-gray-400">Your keys are stored locally on this device. Keep your private key safe and do not share it.</p>
-                                <CopyableField label="Public Key (npub)" value={npub} />
-                                <CopyableField label="Private Key (nsec)" value={nsec} isSecret />
-                                <button onClick={handleLogout} className="w-full mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center justify-center gap-2">
-                                    <KeyIcon className="h-5 w-5" /> Log Out & Clear Private Key
+                                <p className="text-sm text-gray-400">Your keys are stored locally on this device. Keep
+                                    your private key safe and do not share it.</p>
+                                <CopyableField label="Public Key (npub)" value={npub}/>
+                                <CopyableField label="Private Key (nsec)" value={nsec} isSecret/>
+                                <button onClick={handleLogout}
+                                        className="w-full mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center justify-center gap-2">
+                                    <KeyIcon className="h-5 w-5"/> Log Out & Clear Private Key
                                 </button>
                             </div>
-                         ) : (
+                        ) : (
                             <div className="text-center">
-                                <p className="text-gray-400 mb-4">You don't have a Nostr identity set up on this device yet.</p>
-                                <button onClick={handleGenerateKeys} className="flex items-center justify-center gap-3 mx-auto px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">
-                                    <KeyIcon className="h-5 w-5" /> Generate New Keys
+                                <p className="text-gray-400 mb-4">You don't have a Nostr identity set up on this device
+                                    yet.</p>
+                                <button onClick={handleGenerateKeys}
+                                        className="flex items-center justify-center gap-3 mx-auto px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors">
+                                    <KeyIcon className="h-5 w-5"/> Generate New Keys
                                 </button>
                             </div>
-                         )}
+                        )}
                     </div>
                 )}
 
                 {activeTab === 'data' && (
                     <div className="bg-gray-900/70 p-6 rounded-lg animate-fade-in">
-                        <h2 className="text-xl font-semibold text-gray-100 mb-4 flex items-center gap-3"><TrashIcon className="h-6 w-6 text-red-400"/>Data Management</h2>
-                         <p className="text-sm text-gray-400 mb-4">
-                            Your notes and settings are stored locally in your browser's IndexedDB. Clearing data is irreversible.
+                        <h2 className="text-xl font-semibold text-gray-100 mb-4 flex items-center gap-3"><TrashIcon
+                            className="h-6 w-6 text-red-400"/>Data Management</h2>
+                        <p className="text-sm text-gray-400 mb-4">
+                            Your notes and settings are stored locally in your browser's IndexedDB. Clearing data is
+                            irreversible.
                         </p>
                         <button
                             className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-red-500 flex items-center gap-2"
@@ -185,7 +203,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ settings, setSetting
                                 }
                             }}
                         >
-                            <TrashIcon className="h-5 w-5" /> Clear All Local Data
+                            <TrashIcon className="h-5 w-5"/> Clear All Local Data
                         </button>
                     </div>
                 )}

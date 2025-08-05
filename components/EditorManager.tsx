@@ -1,9 +1,8 @@
-
-import React, { useState } from 'react';
-import { Note, AppSettings } from '../types';
-import { EditorPlugin } from '../types/editor';
-import { TiptapEditor } from './TiptapEditor';
-import { TextareaEditor } from './TextareaEditor';
+import React, {useState} from 'react';
+import {AppSettings, Note} from '../types';
+import {EditorPlugin} from '../types/editor';
+import {TiptapEditor} from './TiptapEditor';
+import {TextareaEditor} from './TextareaEditor';
 
 interface EditorManagerProps {
     note: Note;
@@ -12,7 +11,7 @@ interface EditorManagerProps {
     settings: AppSettings;
 }
 
-export const EditorManager: React.FC<EditorManagerProps> = ({ note, onSave, onDelete, settings }) => {
+export const EditorManager: React.FC<EditorManagerProps> = ({note, onSave, onDelete, settings}) => {
     const editorPlugins: EditorPlugin[] = [
         {
             id: 'tiptap',

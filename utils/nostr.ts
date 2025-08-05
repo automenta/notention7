@@ -7,9 +7,9 @@ export const DEFAULT_RELAYS = [
 ];
 
 export const bytesToHex = (bytes: Uint8Array): string =>
-  Array.from(bytes)
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
+    Array.from(bytes)
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
 
 export const hexToBytes = (hex: string): Uint8Array => {
     if (hex.length % 2 !== 0) {
@@ -31,16 +31,16 @@ export const formatNpub = (npub: string) => `${npub.slice(0, 10)}...${npub.slice
  * @returns A single string containing all the text from the document.
  */
 export function getTextFromHtml(content: any): string {
-  if (!content || typeof content !== 'string') return '';
-  
-  const div = document.createElement('div');
-  div.innerHTML = content;
-  
-  // Add newlines after block elements for better preview readability
-  div.querySelectorAll('p, h1, h2, h3, li, blockquote, pre, div').forEach(el => {
-    const br = document.createElement('br');
-    el.appendChild(br);
-  });
+    if (!content || typeof content !== 'string') return '';
 
-  return div.innerText || '';
+    const div = document.createElement('div');
+    div.innerHTML = content;
+
+    // Add newlines after block elements for better preview readability
+    div.querySelectorAll('p, h1, h2, h3, li, blockquote, pre, div').forEach(el => {
+        const br = document.createElement('br');
+        el.appendChild(br);
+    });
+
+    return div.innerText || '';
 }

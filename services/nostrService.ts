@@ -1,5 +1,4 @@
-
-import { SimplePool } from 'nostr-tools';
+import {SimplePool} from 'nostr-tools';
 
 /**
  * A shared Nostr SimplePool instance to be used across the entire application.

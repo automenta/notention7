@@ -1,7 +1,6 @@
-
-import { useCallback } from 'react';
-import { useLocalForage } from './useLocalForage';
-import type { Note } from '../types';
+import {useCallback} from 'react';
+import {useLocalForage} from './useLocalForage';
+import type {Note} from '../types';
 
 export const useNotes = () => {
     const [notes, setNotes, notesLoading] = useLocalForage<Note[]>('notention-notes', []);
@@ -23,7 +22,7 @@ export const useNotes = () => {
     const updateNote = useCallback((updatedNote: Note) => {
         setNotes(prev => prev.map(n => n.id === updatedNote.id ? updatedNote : n));
     }, [setNotes]);
-    
+
     const deleteNote = useCallback((id: string) => {
         setNotes(prev => prev.filter(note => note.id !== id));
     }, [setNotes]);

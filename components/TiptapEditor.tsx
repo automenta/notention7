@@ -1,21 +1,21 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import type { Note, AppSettings } from '../types';
-import { useNoteSemantics } from '../hooks/useNoteSemantics';
-import { useOntologyIndex } from '../hooks/useOntologyIndex';
-import { Toolbar } from './editor/Toolbar';
-import { EditorHeader } from './editor/EditorHeader';
-import { SemanticInsertModal, type InsertMenuItem } from './editor/SemanticInsertModal';
-import { PropertyEditorPopover } from './editor/PropertyEditorPopover';
-import { getTextFromHtml } from '../utils/nostr';
-import { formatPropertyForDisplay } from '../utils/properties';
-import { getNoteSemantics } from '../utils/noteSemantics';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {AppSettings, Note} from '../types';
+import {useNoteSemantics} from '../hooks/useNoteSemantics';
+import {useOntologyIndex} from '../hooks/useOntologyIndex';
+import {Toolbar} from './editor/Toolbar';
+import {EditorHeader} from './editor/EditorHeader';
+import {type InsertMenuItem, SemanticInsertModal} from './editor/SemanticInsertModal';
+import {PropertyEditorPopover} from './editor/PropertyEditorPopover';
+import {getTextFromHtml} from '../utils/nostr';
+import {formatPropertyForDisplay} from '../utils/properties';
+import {getNoteSemantics} from '../utils/noteSemantics';
 
 // A one-time conversion for legacy note content from plain text to widgets.
 const convertPlainTextToWidgets = (html: string): string => {
     if (!html) return html;
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = html;
-    
+
     // If widgets already exist, assume it's modern format
     if (tempDiv.querySelector('.widget[data-operator]')) return html;
 
@@ -31,12 +31,12 @@ const convertPlainTextToWidgets = (html: string): string => {
         const values = [v];
         return `<span class="widget property" contenteditable="false" data-key="${k}" data-operator="${operator}" data-values='${JSON.stringify(values)}'>${formatPropertyForDisplay(k, operator, values)}</span>`;
     });
-    
+
     widgetizedHtml = widgetizedHtml.replace(tagRegex, (match, tag) => {
         const prefix = match.startsWith(' ') ? ' ' : '';
         return `${prefix}<span class="widget tag" contenteditable="false" data-tag="${tag}">#${tag}</span>`;
     });
-    
+
     return widgetizedHtml;
 };
 
@@ -45,20 +45,22 @@ export const TiptapEditor: React.FC<{
     onSave: (note: Note) => void;
     onDelete: (id: string) => void;
     settings: AppSettings;
-}> = ({ note, onSave, onDelete, settings }) => {
+}> = ({note, onSave, onDelete, settings}) => {
     const [title, setTitle] = useState(note.title);
     const [content, setContent] = useState(convertPlainTextToWidgets(note.content));
     const saveTimeoutRef = useRef<number | null>(null);
     const editorRef = useRef<HTMLDivElement>(null);
 
-    const { tags, properties } = useNoteSemantics(content);
-    const { allTags, allTemplates, propertyTypes } = useOntologyIndex(settings.ontology);
+    const {tags, properties} = useNoteSemantics(content);
+    const {allTags, allTemplates, propertyTypes} = useOntologyIndex(settings.ontology);
 
-    const [insertModalState, setInsertModalState] = useState<{ open: boolean; type: 'tag' | 'template' | null }>({ open: false, type: null });
+    const [insertModalState, setInsertModalState] = useState<{
+        open: boolean;
+        type: 'tag' | 'template' | null
+    }>({open: false, type: null});
     const [editingWidget, setEditingWidget] = useState<HTMLElement | null>(null);
 
-    
-    
+
     useEffect(() => {
         const currentlyEditing = editorRef.current?.querySelector('.is-editing');
         if (currentlyEditing && currentlyEditing !== editingWidget) {
@@ -72,20 +74,28 @@ export const TiptapEditor: React.FC<{
         }
     }, [editingWidget]);
 
-    
 
     const debouncedSave = useCallback(() => {
         if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
         saveTimeoutRef.current = window.setTimeout(() => {
             const currentContent = editorRef.current?.innerHTML || content;
-            const { tags: updatedTags, properties: updatedProperties } = getNoteSemantics(currentContent);
-            onSave({ ...note, title, content: currentContent, tags: updatedTags, properties: updatedProperties, updatedAt: new Date().toISOString() });
+            const {tags: updatedTags, properties: updatedProperties} = getNoteSemantics(currentContent);
+            onSave({
+                ...note,
+                title,
+                content: currentContent,
+                tags: updatedTags,
+                properties: updatedProperties,
+                updatedAt: new Date().toISOString()
+            });
         }, 500);
     }, [note, onSave, title, content]);
 
     useEffect(() => {
         debouncedSave();
-        return () => { if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current); };
+        return () => {
+            if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+        };
     }, [title, content, debouncedSave]);
 
     const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
@@ -103,7 +113,7 @@ export const TiptapEditor: React.FC<{
         if (container.nodeType !== Node.TEXT_NODE) return false;
 
         const textBeforeCaret = container.textContent?.substring(0, range.startOffset) || '';
-        
+
         // Rule: [key:value]
         const propMatch = textBeforeCaret.match(/(\[([^:\]]+?):([^\]]*?)\])$/);
         if (propMatch) {
@@ -114,16 +124,16 @@ export const TiptapEditor: React.FC<{
 
                 range.setStart(container, range.startOffset - offsetToReplace);
                 range.deleteContents();
-                
+
                 const widgetId = `widget-${crypto.randomUUID()}`;
                 const operator = 'is';
                 const values = [value.trim()];
-                
+
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = `<span id="${widgetId}" class="widget property" contenteditable="false" data-key="${key.trim()}" data-operator="${operator}" data-values='${JSON.stringify(values)}'>${formatPropertyForDisplay(key.trim(), operator, values)}</span>&nbsp;`;
 
                 const nodeToInsert = tempDiv.firstChild;
-                if(nodeToInsert) {
+                if (nodeToInsert) {
                     range.insertNode(nodeToInsert);
                     range.setStartAfter(nodeToInsert);
                     range.collapse(true);
@@ -135,11 +145,11 @@ export const TiptapEditor: React.FC<{
         }
         return false;
     }
-    
+
     const handleOpenInsertMenu = (type: 'tag' | 'template') => {
         // Ensure the editor has focus to preserve the caret position for insertion.
         editorRef.current?.focus();
-        setInsertModalState({ open: true, type });
+        setInsertModalState({open: true, type});
     };
 
     const handleSemanticInsert = (item: InsertMenuItem) => {
@@ -147,7 +157,7 @@ export const TiptapEditor: React.FC<{
         const selection = window.getSelection();
 
         if (!editor || !selection || selection.rangeCount === 0) {
-            setInsertModalState({ open: false, type: null });
+            setInsertModalState({open: false, type: null});
             return;
         }
 
@@ -171,16 +181,16 @@ export const TiptapEditor: React.FC<{
                 }).join(' ') + '&nbsp;';
             }
         }
-        
+
         if (!htmlToInsert) {
-            setInsertModalState({ open: false, type: null });
+            setInsertModalState({open: false, type: null});
             return;
         }
 
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = htmlToInsert;
         const nodesToInsert = Array.from(tempDiv.childNodes);
-        
+
         let lastNode: Node | null = null;
         nodesToInsert.forEach(node => {
             range.insertNode(node);
@@ -188,24 +198,24 @@ export const TiptapEditor: React.FC<{
             range.setStartAfter(node);
             range.collapse(true);
         });
-        
-        if(lastNode) {
+
+        if (lastNode) {
             selection.removeAllRanges();
             selection.addRange(range);
         }
 
         setContent(editor.innerHTML);
-        
+
         if (firstWidgetId) {
             setTimeout(() => {
                 const firstWidget = editor.querySelector<HTMLElement>(`#${firstWidgetId}`);
                 if (firstWidget) {
-                   setEditingWidget(firstWidget);
+                    setEditingWidget(firstWidget);
                 }
             }, 50);
         }
-        
-        setInsertModalState({ open: false, type: null });
+
+        setInsertModalState({open: false, type: null});
     };
 
 
@@ -215,7 +225,7 @@ export const TiptapEditor: React.FC<{
         if (widget) {
             e.preventDefault();
             e.stopPropagation();
-            if(editingWidget !== widget) {
+            if (editingWidget !== widget) {
                 if (!widget.id) {
                     widget.id = `widget-${crypto.randomUUID()}`;
                 }
@@ -225,7 +235,7 @@ export const TiptapEditor: React.FC<{
             setEditingWidget(null);
         }
     };
-    
+
     const handleSaveProperty = (widgetId: string, key: string, operator: string, values: string[]) => {
         const editor = editorRef.current;
         const widget = editor?.querySelector<HTMLElement>(`#${widgetId}`);
@@ -233,7 +243,7 @@ export const TiptapEditor: React.FC<{
             widget.dataset.key = key;
             widget.dataset.operator = operator;
             widget.dataset.values = JSON.stringify(values);
-            
+
             widget.innerHTML = formatPropertyForDisplay(key, operator, values);
 
             setContent(editor.innerHTML);
@@ -255,7 +265,7 @@ export const TiptapEditor: React.FC<{
         }
         setEditingWidget(null);
     }
-    
+
     const handleSetLink = useCallback(() => {
         editorRef.current?.focus();
         const url = window.prompt('URL', document.queryCommandValue('createLink'));
@@ -273,10 +283,10 @@ export const TiptapEditor: React.FC<{
 
     const insertModalItems = useMemo(() => {
         if (insertModalState.type === 'tag') {
-            return allTags.map(t => ({ id: t.id, label: t.label, description: t.description }));
+            return allTags.map(t => ({id: t.id, label: t.label, description: t.description}));
         }
         if (insertModalState.type === 'template') {
-            return allTemplates.map(t => ({ id: t.id, label: t.label, description: t.description, template: t }));
+            return allTemplates.map(t => ({id: t.id, label: t.label, description: t.description, template: t}));
         }
         return [];
     }, [insertModalState.type, allTags, allTemplates]);
@@ -284,10 +294,12 @@ export const TiptapEditor: React.FC<{
 
     return (
         <div className="relative flex flex-col h-full bg-gray-800/50 rounded-lg overflow-hidden">
-            <EditorHeader note={note} contentText={useMemo(() => getTextFromHtml(content), [content])} settings={settings} title={title} setTitle={setTitle} onDelete={onDelete} onSave={onSave} onInsertSummary={handleInsertSummary} tags={tags} properties={properties} />
-            <Toolbar 
-                editorRef={editorRef} 
-                onLink={handleSetLink} 
+            <EditorHeader note={note} contentText={useMemo(() => getTextFromHtml(content), [content])}
+                          settings={settings} title={title} setTitle={setTitle} onDelete={onDelete} onSave={onSave}
+                          onInsertSummary={handleInsertSummary} tags={tags} properties={properties}/>
+            <Toolbar
+                editorRef={editorRef}
+                onLink={handleSetLink}
                 onInsertTag={() => handleOpenInsertMenu('tag')}
                 onInsertTemplate={() => handleOpenInsertMenu('template')}
             />
@@ -300,14 +312,14 @@ export const TiptapEditor: React.FC<{
                     onClick={handleEditorClick}
                     suppressContentEditableWarning={true}
                     data-placeholder="Start writing..."
-                    dangerouslySetInnerHTML={{ __html: content }}
+                    dangerouslySetInnerHTML={{__html: content}}
                 />
             </div>
-            
+
             {insertModalState.open && (
                 <SemanticInsertModal
                     isOpen={insertModalState.open}
-                    onClose={() => setInsertModalState({ open: false, type: null })}
+                    onClose={() => setInsertModalState({open: false, type: null})}
                     onSelect={handleSemanticInsert}
                     items={insertModalItems}
                     title={insertModalState.type === 'tag' ? 'Insert Tag' : 'Insert Template'}
@@ -315,7 +327,7 @@ export const TiptapEditor: React.FC<{
             )}
 
             {editingWidget && (
-                <PropertyEditorPopover 
+                <PropertyEditorPopover
                     widgetEl={editingWidget}
                     onSave={handleSaveProperty}
                     onDelete={handleDeleteProperty}

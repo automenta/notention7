@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { Note, AppSettings } from './index'; // Assuming index.ts exports these
+import {AppSettings, Note} from './index'; // Assuming index.ts exports these
 
 export interface EditorPlugin {
     id: string;

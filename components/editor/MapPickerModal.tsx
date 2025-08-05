@@ -1,5 +1,4 @@
-
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import L from 'leaflet';
 
 interface MapPickerModalProps {
@@ -9,7 +8,7 @@ interface MapPickerModalProps {
     initialValue?: string;
 }
 
-export const MapPickerModal: React.FC<MapPickerModalProps> = ({ isOpen, onClose, onLocationSelect, initialValue }) => {
+export const MapPickerModal: React.FC<MapPickerModalProps> = ({isOpen, onClose, onLocationSelect, initialValue}) => {
     const mapRef = useRef<L.Map | null>(null);
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const markerRef = useRef<L.Marker | null>(null);
@@ -72,7 +71,7 @@ export const MapPickerModal: React.FC<MapPickerModalProps> = ({ isOpen, onClose,
             map.panTo(selectedCoords);
         }
     }, [selectedCoords]);
-    
+
     const handleSave = () => {
         if (selectedCoords) {
             onLocationSelect(`${selectedCoords.lat.toFixed(6)},${selectedCoords.lng.toFixed(6)}`);
@@ -83,7 +82,8 @@ export const MapPickerModal: React.FC<MapPickerModalProps> = ({ isOpen, onClose,
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[100] animate-fade-in" onMouseDown={onClose}>
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[100] animate-fade-in"
+             onMouseDown={onClose}>
             <div
                 className="bg-gray-800 rounded-lg shadow-2xl w-full max-w-4xl h-[80vh] flex flex-col p-4 border border-gray-600"
                 onMouseDown={e => e.stopPropagation()}
@@ -92,15 +92,18 @@ export const MapPickerModal: React.FC<MapPickerModalProps> = ({ isOpen, onClose,
                     <h2 className="text-xl font-bold text-white">Select a Location</h2>
                     <p className="text-sm text-gray-400">Click on the map to place a pin.</p>
                 </div>
-                <div ref={mapContainerRef} className="flex-grow w-full rounded-md" />
-                 <div className="flex justify-end items-center gap-4 mt-4 flex-shrink-0">
+                <div ref={mapContainerRef} className="flex-grow w-full rounded-md"/>
+                <div className="flex justify-end items-center gap-4 mt-4 flex-shrink-0">
                     {selectedCoords && (
                         <p className="text-sm text-gray-300 font-mono bg-gray-700 px-3 py-1.5 rounded-md">
-                           {selectedCoords.lat.toFixed(4)}, {selectedCoords.lng.toFixed(4)}
+                            {selectedCoords.lat.toFixed(4)}, {selectedCoords.lng.toFixed(4)}
                         </p>
                     )}
-                    <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-600 rounded-md hover:bg-gray-500 transition-colors">Cancel</button>
-                    <button type="button" disabled={!selectedCoords} onClick={handleSave} className="px-4 py-2 bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed transition-colors">
+                    <button type="button" onClick={onClose}
+                            className="px-4 py-2 bg-gray-600 rounded-md hover:bg-gray-500 transition-colors">Cancel
+                    </button>
+                    <button type="button" disabled={!selectedCoords} onClick={handleSave}
+                            className="px-4 py-2 bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed transition-colors">
                         Save Location
                     </button>
                 </div>

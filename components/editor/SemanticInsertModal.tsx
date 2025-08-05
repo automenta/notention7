@@ -1,7 +1,6 @@
-
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import type { OntologyNode } from '@/types.ts';
-import { SearchIcon, PlusCircleIcon, TagIcon } from '../icons';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import type {OntologyNode} from '@/types.ts';
+import {PlusCircleIcon, SearchIcon, TagIcon} from '../icons';
 
 export interface InsertMenuItem {
     id: string;
@@ -18,14 +17,14 @@ interface SemanticInsertModalProps {
     title: string;
 }
 
-export const SemanticInsertModal: React.FC<SemanticInsertModalProps> = ({ isOpen, items, onSelect, onClose, title }) => {
+export const SemanticInsertModal: React.FC<SemanticInsertModalProps> = ({isOpen, items, onSelect, onClose, title}) => {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [query, setQuery] = useState('');
     const listRef = useRef<HTMLUListElement>(null);
     const searchInputRef = useRef<HTMLInputElement>(null);
 
     const filteredItems = useMemo(() => items.filter(item =>
-        item.label.toLowerCase().includes(query.toLowerCase()) || 
+        item.label.toLowerCase().includes(query.toLowerCase()) ||
         item.description?.toLowerCase().includes(query.toLowerCase())
     ), [items, query]);
 
@@ -77,7 +76,8 @@ export const SemanticInsertModal: React.FC<SemanticInsertModalProps> = ({ isOpen
     }
 
     return (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 animate-fade-in" onMouseDown={onClose}>
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 animate-fade-in"
+             onMouseDown={onClose}>
             <div
                 className="bg-gray-800 border border-gray-600 rounded-lg shadow-2xl w-full max-w-lg flex flex-col"
                 onMouseDown={e => e.stopPropagation()}
@@ -86,7 +86,7 @@ export const SemanticInsertModal: React.FC<SemanticInsertModalProps> = ({ isOpen
                     <h2 className="text-lg font-semibold text-white">{title}</h2>
                     <div className="relative mt-2">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <SearchIcon className="h-5 w-5 text-gray-400" />
+                            <SearchIcon className="h-5 w-5 text-gray-400"/>
                         </div>
                         <input
                             ref={searchInputRef}
@@ -98,7 +98,7 @@ export const SemanticInsertModal: React.FC<SemanticInsertModalProps> = ({ isOpen
                         />
                     </div>
                 </div>
-                
+
                 <ul ref={listRef} role="listbox" className="p-2 space-y-1 overflow-y-auto" style={{maxHeight: '60vh'}}>
                     {filteredItems.length > 0 ? filteredItems.map((item, index) => (
                         <li
@@ -111,12 +111,15 @@ export const SemanticInsertModal: React.FC<SemanticInsertModalProps> = ({ isOpen
                             onClick={() => onSelect(item)}
                             onMouseEnter={() => setSelectedIndex(index)}
                         >
-                            <div className="flex-shrink-0 h-8 w-8 rounded-md bg-gray-700 flex items-center justify-center">
-                                {item.template ? <PlusCircleIcon className="h-5 w-5 text-green-400" /> : <TagIcon className="h-5 w-5 text-blue-400" />}
+                            <div
+                                className="flex-shrink-0 h-8 w-8 rounded-md bg-gray-700 flex items-center justify-center">
+                                {item.template ? <PlusCircleIcon className="h-5 w-5 text-green-400"/> :
+                                    <TagIcon className="h-5 w-5 text-blue-400"/>}
                             </div>
                             <div className="overflow-hidden">
-                               <p className="font-semibold truncate">{item.label}</p>
-                               {item.description && <p className="text-sm text-gray-400 truncate">{item.description}</p>}
+                                <p className="font-semibold truncate">{item.label}</p>
+                                {item.description &&
+                                    <p className="text-sm text-gray-400 truncate">{item.description}</p>}
                             </div>
                         </li>
                     )) : (
@@ -125,7 +128,9 @@ export const SemanticInsertModal: React.FC<SemanticInsertModalProps> = ({ isOpen
                 </ul>
 
                 <div className="p-2 border-t border-gray-700 flex-shrink-0 text-right">
-                    <button onClick={onClose} className="px-4 py-2 text-sm bg-gray-600 rounded-md hover:bg-gray-500">Close</button>
+                    <button onClick={onClose}
+                            className="px-4 py-2 text-sm bg-gray-600 rounded-md hover:bg-gray-500">Close
+                    </button>
                 </div>
             </div>
         </div>

@@ -1,16 +1,16 @@
 import React from 'react';
-import { SearchIcon, XCircleIcon } from '../icons';
+import {SearchIcon, XCircleIcon} from '../icons';
 
 interface SearchProps {
     searchTerm: string;
     setSearchTerm: (term: string) => void;
 }
 
-export const Search: React.FC<SearchProps> = ({ searchTerm, setSearchTerm }) => {
+export const Search: React.FC<SearchProps> = ({searchTerm, setSearchTerm}) => {
     return (
         <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <SearchIcon className="h-5 w-5 text-gray-400" />
+                <SearchIcon className="h-5 w-5 text-gray-400"/>
             </div>
             <input
                 type="text"
@@ -26,7 +26,7 @@ export const Search: React.FC<SearchProps> = ({ searchTerm, setSearchTerm }) => 
                         className="text-gray-500 hover:text-white"
                         title="Clear search"
                     >
-                        <XCircleIcon className="h-5 w-5" />
+                        <XCircleIcon className="h-5 w-5"/>
                     </button>
                 </div>
             )}

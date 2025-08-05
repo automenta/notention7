@@ -1,9 +1,9 @@
-import type { Property } from '../types';
+import type {Property} from '../types';
 
 export const getNoteSemantics = (htmlContent: string) => {
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = htmlContent;
-    
+
     const foundTags = Array.from(tempDiv.querySelectorAll<HTMLElement>('.widget.tag'))
         .map(el => el.dataset.tag || '')
         .filter(Boolean);
@@ -19,7 +19,7 @@ export const getNoteSemantics = (htmlContent: string) => {
             } catch {
                 values = []; // Default to empty array on parsing error
             }
-            
+
             return {
                 key: el.dataset.key || '',
                 operator: el.dataset.operator || 'is',
@@ -31,6 +31,6 @@ export const getNoteSemantics = (htmlContent: string) => {
 
     // An imaginary property is one whose operator is not 'is'.
     const isImaginary = foundProperties.some(p => p.operator !== 'is');
-    
-    return { tags, properties, isImaginary };
+
+    return {tags, properties, isImaginary};
 };

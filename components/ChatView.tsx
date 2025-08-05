@@ -1,16 +1,15 @@
-
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { nip04, getPublicKey } from 'nostr-tools';
-import type { AppSettings, NostrEvent, Contact } from '../types';
-import { DEFAULT_RELAYS, hexToBytes } from '../utils/nostr';
-import { pool } from '../services/nostrService';
-import { ContactList } from './chat/ContactList';
-import { ChatWindow } from './chat/ChatWindow';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {getPublicKey, nip04} from 'nostr-tools';
+import type {AppSettings, Contact, NostrEvent} from '../types';
+import {DEFAULT_RELAYS, hexToBytes} from '../utils/nostr';
+import {pool} from '../services/nostrService';
+import {ContactList} from './chat/ContactList';
+import {ChatWindow} from './chat/ChatWindow';
 
 export const ChatView: React.FC<{
     settings: AppSettings;
     setSettings: React.Dispatch<React.SetStateAction<AppSettings>>;
-}> = ({ settings }) => {
+}> = ({settings}) => {
     const privkey = settings.nostr.privkey;
     const pubkey = useMemo(() => (privkey ? getPublicKey(hexToBytes(privkey)) : null), [privkey]);
 
@@ -23,9 +22,9 @@ export const ChatView: React.FC<{
         setMessages(prev => {
             const existing = prev[peerPubkey] || [];
             if (existing.some(m => m.id === event.id)) return prev;
-            const newMessages = [...existing, { ...event, content: decryptedContent }];
+            const newMessages = [...existing, {...event, content: decryptedContent}];
             newMessages.sort((a, b) => a.created_at - b.created_at);
-            return { ...prev, [peerPubkey]: newMessages.slice(-100) };
+            return {...prev, [peerPubkey]: newMessages.slice(-100)};
         });
     }, []);
 
@@ -34,34 +33,34 @@ export const ChatView: React.FC<{
         try {
             const peerPubkey = event.pubkey === pubkey ? event.tags.find(t => t[0] === 'p')?.[1] : event.pubkey;
             if (!peerPubkey) return;
-            
+
             const decryptedContent = nip04.decrypt(privkey, peerPubkey, event.content);
             addMessage(peerPubkey, event, decryptedContent);
         } catch (e) {
             // Decryption errors are expected if a message is not intended for the user, so they are suppressed.
         }
     }, [privkey, pubkey, addMessage]);
-    
+
     // Fetch initial contact list (kind: 3)
     useEffect(() => {
         if (!pubkey) {
-             setIsLoading(false);
-             return;
+            setIsLoading(false);
+            return;
         }
 
-        const sub = pool.subscribeMany(DEFAULT_RELAYS, [{ kinds: [3], authors: [pubkey], limit: 1 }], {
+        const sub = pool.subscribeMany(DEFAULT_RELAYS, [{kinds: [3], authors: [pubkey], limit: 1}], {
             onevent: (event) => {
                 const newContacts: Contact[] = event.tags
                     .filter(tag => tag[0] === 'p' && tag[1])
-                    .map(tag => ({ pubkey: tag[1] }));
+                    .map(tag => ({pubkey: tag[1]}));
                 setContacts(newContacts);
                 setIsLoading(false);
             },
             onclose: () => setIsLoading(false),
         });
-        
-        const timer = setTimeout(() => { 
-            if(contacts.length === 0) setIsLoading(false);
+
+        const timer = setTimeout(() => {
+            if (contacts.length === 0) setIsLoading(false);
             sub.close();
         }, 3000);
 
@@ -70,29 +69,30 @@ export const ChatView: React.FC<{
             sub.close();
         };
     }, [pubkey]);
-    
+
     // Subscribe to messages for the selected contact
     useEffect(() => {
         if (!selectedContact || !pubkey || !privkey) return;
-        
+
         const sub = pool.subscribeMany(DEFAULT_RELAYS, [
-            { kinds: [4], authors: [pubkey], '#p': [selectedContact.pubkey] },
-            { kinds: [4], authors: [selectedContact.pubkey], '#p': [pubkey] }
-        ], { onevent: handleDecryption });
+            {kinds: [4], authors: [pubkey], '#p': [selectedContact.pubkey]},
+            {kinds: [4], authors: [selectedContact.pubkey], '#p': [pubkey]}
+        ], {onevent: handleDecryption});
 
         return () => sub.close();
 
     }, [selectedContact, pubkey, privkey, handleDecryption]);
-    
+
     if (!privkey || !pubkey) {
         return (
             <div className="flex flex-col items-center justify-center h-full text-center bg-gray-800/50 rounded-lg p-8">
-                 <h2 className="text-3xl font-bold text-gray-400">Chat Requires Nostr Account</h2>
-                 <p className="text-gray-500 mt-2">Please create or configure your Nostr account in the "Network" tab.</p>
+                <h2 className="text-3xl font-bold text-gray-400">Chat Requires Nostr Account</h2>
+                <p className="text-gray-500 mt-2">Please create or configure your Nostr account in the "Network"
+                    tab.</p>
             </div>
         );
     }
-    
+
     return (
         <div className="flex h-full bg-gray-800/50 rounded-lg overflow-hidden">
             <div className={`w-full md:w-1/3 md:flex-shrink-0 ${selectedContact ? 'hidden md:block' : 'block'}`}>

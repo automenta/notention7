@@ -1,8 +1,7 @@
-
-import { useState, useEffect } from 'react';
-import { pool } from '../services/nostrService';
-import { DEFAULT_RELAYS } from '../utils/nostr';
-import type { NostrProfile, NostrEvent } from '../types';
+import {useEffect, useState} from 'react';
+import {pool} from '../services/nostrService';
+import {DEFAULT_RELAYS} from '../utils/nostr';
+import type {NostrEvent, NostrProfile} from '../types';
 
 const profileCache = new Map<string, NostrProfile>();
 const requestedPubkeys = new Set<string>();
@@ -20,7 +19,7 @@ export const useNostrProfile = (pubkeys: string[]): Record<string, NostrProfile>
 
     useEffect(() => {
         const pubkeysToFetch = pubkeys.filter(pk => !profileCache.has(pk) && !requestedPubkeys.has(pk));
-        
+
         if (pubkeysToFetch.length === 0) {
             // Ensure local state is up-to-date with global cache even if not fetching
             setProfiles(currentProfiles => {
@@ -49,10 +48,11 @@ export const useNostrProfile = (pubkeys: string[]): Record<string, NostrProfile>
                 const profile = JSON.parse(event.content) as NostrProfile;
                 profileCache.set(event.pubkey, profile);
                 setProfiles(prev => ({...prev, [event.pubkey]: profile}));
-            } catch {}
+            } catch {
+            }
         };
-        
-        const sub = pool.subscribeMany(DEFAULT_RELAYS, [{ kinds: [0], authors: pubkeysToFetch }], {
+
+        const sub = pool.subscribeMany(DEFAULT_RELAYS, [{kinds: [0], authors: pubkeysToFetch}], {
             onevent: handleEvent,
         });
 

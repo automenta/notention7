@@ -1,16 +1,13 @@
-import React, { useState } from 'react';
-import { finalizeEvent } from 'nostr-tools';
+import React, {useState} from 'react';
+import {finalizeEvent} from 'nostr-tools';
 
-import type { Note, AppSettings, Property } from '@/types.ts';
-import {
-    SparklesIcon, TrashIcon, LoadingSpinner, WorldIcon,
-    CubeIcon, CodeBracketsIcon, XCircleIcon
-} from '../icons';
-import { summarizeText } from '@/services/geminiService.ts';
-import { pool } from '@/services/nostrService.ts';
-import { hexToBytes, DEFAULT_RELAYS } from '@/utils/nostr.ts';
-import { SemanticsModal } from './SemanticsModal';
-import { SummaryModal } from './SummaryModal';
+import type {AppSettings, Note, Property} from '@/types.ts';
+import {CodeBracketsIcon, CubeIcon, LoadingSpinner, SparklesIcon, TrashIcon, WorldIcon, XCircleIcon} from '../icons';
+import {summarizeText} from '@/services/geminiService.ts';
+import {pool} from '@/services/nostrService.ts';
+import {DEFAULT_RELAYS, hexToBytes} from '@/utils/nostr.ts';
+import {SemanticsModal} from './SemanticsModal';
+import {SummaryModal} from './SummaryModal';
 
 interface EditorHeaderProps {
     note: Note;
@@ -26,15 +23,24 @@ interface EditorHeaderProps {
 }
 
 export const EditorHeader: React.FC<EditorHeaderProps> = ({
-    note, contentText, settings, title, setTitle, onDelete, onSave, onInsertSummary, tags, properties
-}) => {
+                                                              note,
+                                                              contentText,
+                                                              settings,
+                                                              title,
+                                                              setTitle,
+                                                              onDelete,
+                                                              onSave,
+                                                              onInsertSummary,
+                                                              tags,
+                                                              properties
+                                                          }) => {
     const [isSummarizing, setIsSummarizing] = useState(false);
     const [isPublishing, setIsPublishing] = useState(false);
     const [summaryResult, setSummaryResult] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     const [isSemanticsModalOpen, setIsSemanticsModalOpen] = useState(false);
-    
+
     const handleSummarize = async () => {
         const textToSummarize = contentText;
         if (!textToSummarize.trim()) return;
@@ -50,7 +56,7 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
             setIsSummarizing(false);
         }
     };
-    
+
     const handlePublish = async () => {
         if (!settings.nostr.privkey) {
             setError("Nostr private key not set. Cannot publish.");
@@ -72,14 +78,14 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
 
             const signedEvent = finalizeEvent(eventTemplate, privkeyBytes);
             const pubs = await Promise.all(pool.publish(DEFAULT_RELAYS, signedEvent));
-            
+
             if (pubs.length === 0) {
                 throw new Error("Failed to publish to any relays.");
             }
 
-            const updatedNote = { 
-                ...note, 
-                nostrEventId: signedEvent.id, 
+            const updatedNote = {
+                ...note,
+                nostrEventId: signedEvent.id,
                 publishedAt: new Date(signedEvent.created_at * 1000).toISOString(),
             };
             onSave(updatedNote);
@@ -91,16 +97,18 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
             setIsPublishing(false);
         }
     };
-    
+
     const isPublished = !!note.nostrEventId;
 
     return (
         <>
             {error && (
-                <div className="absolute top-4 right-4 z-50 bg-red-800 border border-red-600 text-white p-4 rounded-lg shadow-lg max-w-sm">
+                <div
+                    className="absolute top-4 right-4 z-50 bg-red-800 border border-red-600 text-white p-4 rounded-lg shadow-lg max-w-sm">
                     <div className="flex justify-between items-center">
                         <h4 className="font-bold">Error</h4>
-                        <button onClick={() => setError(null)} className="p-1 -mr-2 -mt-2 rounded-full hover:bg-red-700">
+                        <button onClick={() => setError(null)}
+                                className="p-1 -mr-2 -mt-2 rounded-full hover:bg-red-700">
                             <XCircleIcon className="h-6 w-6"/>
                         </button>
                     </div>
@@ -113,35 +121,39 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
                         <span title="This note contains structured data.">
                             <CubeIcon className="h-6 w-6 text-gray-300"/>
                         </span>
-                        <button onClick={() => setIsSemanticsModalOpen(true)} className="flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-gray-500">
-                            <CodeBracketsIcon className="h-4 w-4" /> View Semantics
+                        <button onClick={() => setIsSemanticsModalOpen(true)}
+                                className="flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-gray-500">
+                            <CodeBracketsIcon className="h-4 w-4"/> View Semantics
                         </button>
                     </div>
                     <div className="flex items-center gap-2">
-                         <button
+                        <button
                             onClick={handlePublish}
                             disabled={isPublishing || isPublished}
                             className="flex items-center gap-2 px-3 py-1.5 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
                             title={isPublished ? "Note already published" : "Publish to Nostr"}
                         >
-                            {isPublishing ? <LoadingSpinner className="h-4 w-4" /> : <WorldIcon className="h-4 w-4" />}
+                            {isPublishing ? <LoadingSpinner className="h-4 w-4"/> : <WorldIcon className="h-4 w-4"/>}
                             <span>{isPublished ? 'Published' : 'Publish'}</span>
                         </button>
-                         <button
+                        <button
                             onClick={handleSummarize}
                             disabled={!settings.aiEnabled || isSummarizing || !contentText.trim()}
                             className="flex items-center gap-2 px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
                             title={!settings.aiEnabled ? "Enable AI in settings" : "Generate a summary"}
                         >
-                            {isSummarizing ? <LoadingSpinner className="h-4 w-4" /> : <SparklesIcon className="h-4 w-4" />}
+                            {isSummarizing ? <LoadingSpinner className="h-4 w-4"/> :
+                                <SparklesIcon className="h-4 w-4"/>}
                             <span>Summarize</span>
                         </button>
-                        <button onClick={() => onDelete(note.id)} className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-900/50 rounded-md" title="Delete note">
-                            <TrashIcon className="h-5 w-5" />
+                        <button onClick={() => onDelete(note.id)}
+                                className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-900/50 rounded-md"
+                                title="Delete note">
+                            <TrashIcon className="h-5 w-5"/>
                         </button>
                     </div>
                 </div>
-                 <input
+                <input
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
@@ -151,7 +163,7 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
             </div>
 
             {isSemanticsModalOpen && (
-                <SemanticsModal tags={tags} properties={properties} onClose={() => setIsSemanticsModalOpen(false)} />
+                <SemanticsModal tags={tags} properties={properties} onClose={() => setIsSemanticsModalOpen(false)}/>
             )}
             {summaryResult && (
                 <SummaryModal
