@@ -1,5 +1,5 @@
 import React from 'react';
-import {useNotesContext as useNotes} from '../contexts/NotesContext';
+import {useNotes} from '../contexts/NotesContext';
 import {useView} from '../contexts/ViewContext';
 import {useSettings} from '../contexts/SettingsContext';
 import {EditorManager} from '../EditorManager';
@@ -24,12 +24,12 @@ const PlaceholderView: React.FC<PlaceholderViewProps> = ({icon, title, message})
 
 export const NotesView: React.FC = () => {
     const {notes, updateNote, deleteNote} = useNotes();
-    const {selectedNoteId} = useView();
+    const {selectedNoteId, setSelectedNoteId} = useView();
     const {settings} = useSettings();
     const selectedNote = notes.find(note => note.id === selectedNoteId);
 
     const handleDeleteNote = (id: string) => {
-        deleteNote(id);
+        deleteNote(id, selectedNoteId, setSelectedNoteId);
     };
 
     if (!selectedNote) {

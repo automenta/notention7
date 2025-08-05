@@ -1,7 +1,7 @@
 import React from 'react';
 import {useView} from './contexts/ViewContext';
 import {useSettings} from './contexts/SettingsContext';
-import {useNotesContext as useNotes} from './contexts/NotesContext';
+import {useNotes} from './contexts/NotesContext';
 import {LoadingSpinner} from './icons';
 import {NotesView} from './views/NotesView';
 import {OntologyView} from './views/OntologyView';
@@ -11,14 +11,9 @@ import {ChatView} from './views/ChatView';
 import {SettingsView} from './views/SettingsView';
 
 export const MainView: React.FC = () => {
-    const {activeView, setActiveView, setSelectedNoteId} = useView();
-    const {settings, setSettings, settingsLoading} = useSettings();
-    const {notes, notesLoading} = useNotes();
-
-    const handleSelectNoteFromOtherView = (id: string) => {
-        setActiveView('notes');
-        setSelectedNoteId(id);
-    }
+    const {activeView} = useView();
+    const {settingsLoading} = useSettings();
+    const {notesLoading} = useNotes();
 
     if (notesLoading || settingsLoading) {
         return <div className="flex justify-center items-center h-full"><LoadingSpinner className="h-12 w-12"/></div>;

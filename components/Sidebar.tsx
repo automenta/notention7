@@ -3,7 +3,7 @@ import type {Note} from '../types';
 import {TrashIcon, WorldIcon} from './icons';
 import {getTextFromHtml} from '../utils/nostr';
 import {Search} from './sidebar/Search';
-import {useNotesContext as useNotes} from './contexts/NotesContext';
+import {useNotes} from './contexts/NotesContext';
 import {useView} from './contexts/ViewContext';
 
 type SortOrder = 'updatedAt_desc' | 'updatedAt_asc' | 'createdAt_desc' | 'createdAt_asc' | 'title_asc' | 'title_desc';
@@ -147,7 +147,7 @@ export const Sidebar: React.FC = () => {
                                 note={note}
                                 isSelected={selectedNoteId === note.id}
                                 onSelect={() => setSelectedNoteId(note.id)}
-                                onDelete={() => deleteNote(note.id)}
+                                onDelete={() => deleteNote(note.id, selectedNoteId, setSelectedNoteId)}
                             />
                         ))
                 ) : (

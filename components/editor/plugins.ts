@@ -1,12 +1,12 @@
 import {EditorPlugin} from '@/types/editor.ts';
-import {RichTextEditor} from '../RichTextEditor';
+import {RichTextEditorV2} from '../RichTextEditorV2';
 import {TextareaEditor} from '../TextareaEditor';
 
 export const editorPlugins: EditorPlugin[] = [
     {
         id: 'rich-text',
         name: 'Rich Text Editor',
-        component: RichTextEditor,
+        component: RichTextEditorV2,
     },
     {
         id: 'textarea',

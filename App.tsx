@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import {Header} from './components/Header';
 import {Sidebar} from './components/Sidebar';
 import {MainView} from './components/MainView';
-import {useNotesContext as useNotes} from './components/contexts/NotesContext';
+import {useNotes} from './components/contexts/NotesContext';
 import {useView} from './components/contexts/ViewContext';
 
 const App: React.FC = () => {
@@ -24,12 +24,7 @@ const App: React.FC = () => {
     };
 
     const handleDeleteNote = (id: string) => {
-        deleteNote(id);
-        if (selectedNoteId === id) {
-            const remainingNotes = notes.filter(n => n.id !== id);
-            const sortedNotes = remainingNotes.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-            setSelectedNoteId(sortedNotes.length > 0 ? sortedNotes[0].id : null);
-        }
+        deleteNote(id, selectedNoteId, setSelectedNoteId);
     };
 
     return (

@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo, useRef} from 'react';
 import L from 'leaflet';
-import {useNotesContext as useNotes} from '../contexts/NotesContext';
+import {useNotes} from '../contexts/NotesContext';
 import {useView} from '../contexts/ViewContext';
 
 interface GeoPoint {
