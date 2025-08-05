@@ -40,7 +40,7 @@ const convertPlainTextToWidgets = (html: string): string => {
     return widgetizedHtml;
 };
 
-export const TiptapEditor: React.FC<{
+export const RichTextEditor: React.FC<{
     note: Note;
     onSave: (note: Note) => void;
     onDelete: (id: string) => void;

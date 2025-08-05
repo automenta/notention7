@@ -1,8 +1,7 @@
 import React, {useState} from 'react';
 import {AppSettings, Note} from '../types';
 import {EditorPlugin} from '../types/editor';
-import {TiptapEditor} from './TiptapEditor';
-import {TextareaEditor} from './TextareaEditor';
+import { editorPlugins } from './editor/plugins';
 
 interface EditorManagerProps {
     note: Note;
@@ -12,20 +11,7 @@ interface EditorManagerProps {
 }
 
 export const EditorManager: React.FC<EditorManagerProps> = ({note, onSave, onDelete, settings}) => {
-    const editorPlugins: EditorPlugin[] = [
-        {
-            id: 'tiptap',
-            name: 'Rich Text Editor',
-            component: TiptapEditor,
-        },
-        {
-            id: 'textarea',
-            name: 'Plain Text Editor',
-            component: TextareaEditor,
-        },
-    ];
-
-    const [selectedEditorId, setSelectedEditorId] = useState<string>('tiptap'); // Default to Tiptap editor
+    const [selectedEditorId, setSelectedEditorId] = useState<string>('rich-text'); // Default to Rich Text editor
 
     const SelectedEditorComponent = editorPlugins.find(plugin => plugin.id === selectedEditorId)?.component;
 

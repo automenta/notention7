@@ -2,7 +2,7 @@ import React, {useEffect, useMemo, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
 import {MapPinIcon, TrashIcon} from '../icons';
 import type {OntologyAttribute} from '@/types.ts';
-import {MapPickerModal} from './MapPickerModal';
+import {MapPickerModal} from '../map/MapPickerModal';
 
 interface PropertyEditorPopoverProps {
     widgetEl: HTMLElement;
