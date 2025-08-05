@@ -1,7 +1,6 @@
 import React, {useState} from 'react';
 import {AppSettings, Note} from '../types';
-import {EditorPlugin} from '../types/editor';
-import { editorPlugins } from './editor/plugins';
+import {editorPlugins} from './editor/plugins';
 
 interface EditorManagerProps {
     note: Note;

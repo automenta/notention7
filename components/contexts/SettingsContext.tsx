@@ -1,7 +1,7 @@
-import React, {createContext, useContext, ReactNode, useEffect} from 'react';
-import {useLocalForage} from '../../hooks/useLocalForage';
-import {AppSettings} from '../../types';
-import {DEFAULT_ONTOLOGY} from '../../utils/ontology.default';
+import React, {createContext, ReactNode, useContext, useEffect} from 'react';
+import {useLocalForage} from '@/hooks/useLocalForage.ts';
+import {AppSettings} from '@/types.ts';
+import {DEFAULT_ONTOLOGY} from '@/utils/ontology.default.ts';
 
 interface SettingsContextType {
     settings: AppSettings;

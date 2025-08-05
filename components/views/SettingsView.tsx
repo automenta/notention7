@@ -1,8 +1,8 @@
 import React, {useMemo, useState} from 'react';
 import {generateSecretKey, getPublicKey, nip19} from 'nostr-tools';
-import {bytesToHex, hexToBytes} from '../../utils/nostr';
+import {bytesToHex, hexToBytes} from '@/utils/nostr.ts';
 import {ClipboardIcon, KeyIcon, SparklesIcon, TrashIcon} from '../icons';
-import {isApiKeyAvailable} from '../../services/geminiService';
+import {isApiKeyAvailable} from '@/services/geminiService.ts';
 import {useSettings} from '../contexts/SettingsContext';
 
 const TabButton: React.FC<{ label: string; isActive: boolean; onClick: () => void; }> = ({

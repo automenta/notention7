@@ -1,6 +1,6 @@
-import { EditorPlugin } from '../../types/editor';
-import { RichTextEditor } from '../RichTextEditor';
-import { TextareaEditor } from '../TextareaEditor';
+import {EditorPlugin} from '@/types/editor.ts';
+import {RichTextEditor} from '../RichTextEditor';
+import {TextareaEditor} from '../TextareaEditor';
 
 export const editorPlugins: EditorPlugin[] = [
     {

@@ -1,10 +1,10 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {getPublicKey, nip19} from 'nostr-tools';
-import type {NostrEvent, NostrProfile} from '../../types';
+import type {NostrEvent, NostrProfile} from '@/types.ts';
 import {KeyIcon, LoadingSpinner, SettingsIcon} from '../icons';
-import {DEFAULT_RELAYS, formatNpub, hexToBytes} from '../../utils/nostr';
-import {pool} from '../../services/nostrService';
-import {useNostrProfile} from '../../hooks/useNostrProfile';
+import {DEFAULT_RELAYS, formatNpub, hexToBytes} from '@/utils/nostr.ts';
+import {pool} from '@/services/nostrService.ts';
+import {useNostrProfile} from '@/hooks/useNostrProfile.ts';
 import {ProfileHeader} from '../network/ProfileHeader';
 import {useSettings} from '../contexts/SettingsContext';
 import {useView} from '../contexts/ViewContext';

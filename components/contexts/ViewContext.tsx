@@ -1,5 +1,5 @@
-import React, {createContext, useContext, useState, ReactNode} from 'react';
-import {View} from '../../types';
+import React, {createContext, ReactNode, useContext, useState} from 'react';
+import {View} from '@/types.ts';
 
 interface ViewContextType {
     activeView: View;
