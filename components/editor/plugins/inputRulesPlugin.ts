@@ -13,6 +13,18 @@ const processInputRules = (editorApi: EditorApi): boolean => {
   const textBeforeCaret =
     container.textContent?.substring(0, range.startOffset) || '';
 
+  // Rule: [[ to open insert menu
+  const menuMatch = textBeforeCaret.match(/(\[\[)$/);
+  if (menuMatch) {
+    const [fullMatch] = menuMatch;
+    const offsetToReplace = fullMatch.length;
+    range.setStart(container, range.startOffset - offsetToReplace);
+    range.deleteContents();
+
+    editorApi.plugins['insert-menu'].open();
+    return true;
+  }
+
   // Rule: [key:value]
   const propMatch = textBeforeCaret.match(/(\[([^:\]]+?):([^\]]*?)\])$/);
   if (propMatch) {

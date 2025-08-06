@@ -14,19 +14,11 @@ import { AppSettings, Note } from '../types';
 
 interface EditorState {
   content: string;
-  semanticModal: {
-    open: boolean;
-    type: 'tag' | 'template' | null;
-  };
   editingWidget: HTMLElement | null;
 }
 
 type EditorAction =
   | { type: 'SET_CONTENT'; payload: string }
-  | {
-      type: 'TOGGLE_SEMANTIC_MODAL';
-      payload: { open: boolean; type?: 'tag' | 'template' | null };
-    }
   | { type: 'SET_EDITING_WIDGET'; payload: HTMLElement | null };
 
 const editorReducer = (
@@ -36,11 +28,6 @@ const editorReducer = (
   switch (action.type) {
     case 'SET_CONTENT':
       return { ...state, content: action.payload };
-    case 'TOGGLE_SEMANTIC_MODAL':
-      return {
-        ...state,
-        semanticModal: { ...state.semanticModal, ...action.payload },
-      };
     case 'SET_EDITING_WIDGET':
       return { ...state, editingWidget: action.payload };
     default:
@@ -57,7 +44,8 @@ const createEditorApi = (
   note: Note,
   settings: AppSettings,
   onSave: (note: Note) => void,
-  onDelete: (id: string) => void
+  onDelete: (id: string) => void,
+  plugins: EditorPlugin[]
 ): EditorApi => {
   const focus = () => editorRef.current?.focus();
 
@@ -78,7 +66,7 @@ const createEditorApi = (
     }
   };
 
-  const insertHtml = (html: string) => {
+  const insertHtml = (html: string, callback?: () => void) => {
     focus();
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) return;
@@ -98,6 +86,9 @@ const createEditorApi = (
     selection.removeAllRanges();
     selection.addRange(range);
     updateContent();
+    if (callback) {
+      callback();
+    }
   };
 
   const updateNote = (updatedFields: Partial<Note>) => {
@@ -110,20 +101,19 @@ const createEditorApi = (
     onSave(updatedNote);
   };
 
+  const pluginApis = plugins.reduce((acc, plugin) => {
+    if (plugin.api) {
+      acc[plugin.id] = plugin.api;
+    }
+    return acc;
+  }, {} as { [pluginId: string]: any });
+
   return {
     editorRef,
     execCommand,
     toggleBlock,
     queryCommandState: Commands.queryCommandState,
     getSelectionParent: Commands.getSelectionParent,
-    openSemanticInsertModal: (type: 'tag' | 'template') =>
-      dispatch({
-        type: 'TOGGLE_SEMANTIC_MODAL',
-        payload: { open: true, type },
-      }),
-    closeSemanticInsertModal: () =>
-      dispatch({ type: 'TOGGLE_SEMANTIC_MODAL', payload: { open: false } }),
-    getSemanticModalState: () => state.semanticModal,
     insertHtml,
     getNote: () => note,
     getSettings: () => settings,
@@ -133,6 +123,7 @@ const createEditorApi = (
     updateContent,
     updateNote,
     deleteNote: () => onDelete(note.id),
+    plugins: pluginApis,
   };
 };
 
@@ -147,7 +138,6 @@ export const useEditor = (
 
   const initialState: EditorState = {
     content: note.content,
-    semanticModal: { open: false, type: null },
     editingWidget: null,
   };
 
@@ -181,9 +171,10 @@ export const useEditor = (
         note,
         settings,
         onSave,
-        onDelete
+        onDelete,
+        plugins
       ),
-    [dispatch, state, note, settings, onSave, onDelete]
+    [dispatch, state, note, settings, onSave, onDelete, plugins]
   );
 
   const handleInput = useCallback(

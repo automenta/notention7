@@ -7,14 +7,7 @@ export interface EditorApi {
   toggleBlock: (tag: string) => void;
   queryCommandState: (command: string) => boolean;
   getSelectionParent: () => HTMLElement | null;
-  // For semantic insert modal
-  openSemanticInsertModal: (type: 'tag' | 'template') => void;
-  closeSemanticInsertModal: () => void;
-  getSemanticModalState: () => {
-    open: boolean;
-    type: 'tag' | 'template' | null;
-  };
-  insertHtml: (html: string) => void;
+  insertHtml: (html: string, callback?: () => void) => void;
   getNote: () => Note;
   getSettings: () => AppSettings;
   // For property editor popover
@@ -24,6 +17,11 @@ export interface EditorApi {
   // For header plugin
   updateNote: (updatedFields: Partial<Note>) => void;
   deleteNote: () => void;
+
+  // Extensible plugin API container
+  plugins: {
+    [pluginId: string]: any;
+  };
 }
 
 /**
@@ -34,6 +32,12 @@ export interface EditorApi {
 export interface EditorPlugin {
   id: string;
   name: string;
+
+  /**
+   * Optional: An object containing functions that can be called from other plugins
+   * or the main editor. The core editor will aggregate these APIs.
+   */
+  api?: any;
 
   /**
    * Optional: A React component to be rendered above the editor, in the header area.

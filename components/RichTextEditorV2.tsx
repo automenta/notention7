@@ -9,6 +9,9 @@ import { semanticInsertPlugin } from './editor/plugins/SemanticInsertPlugin';
 import { propertyEditorPlugin } from './editor/plugins/PropertyEditorPlugin';
 import { inputRulesPlugin } from './editor/plugins/inputRulesPlugin';
 import { editorHeaderPlugin } from './editor/plugins/EditorHeaderPlugin';
+import { insertMenuPlugin } from './editor/plugins/InsertMenuPlugin';
+
+import { selectionToolbarPlugin } from './editor/plugins/SelectionToolbarPlugin';
 
 const editorPlugins: EditorPlugin[] = [
   editorHeaderPlugin,
@@ -16,6 +19,8 @@ const editorPlugins: EditorPlugin[] = [
   semanticInsertPlugin,
   propertyEditorPlugin,
   inputRulesPlugin,
+  insertMenuPlugin,
+  selectionToolbarPlugin,
 ];
 
 export const RichTextEditorV2: React.FC<{

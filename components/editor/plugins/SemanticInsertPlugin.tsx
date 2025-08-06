@@ -1,10 +1,10 @@
 import React, { useMemo } from 'react';
 import { EditorApi, EditorPlugin } from '@/types/editor.ts';
-import { DocumentDuplicateIcon, TagIcon } from '../../icons';
 import {
-  InsertMenuItem,
-  SemanticInsertModal,
-} from '../../editor/SemanticInsertModal';
+  DocumentDuplicateIcon,
+  PlusIcon,
+  TagIcon,
+} from '../../icons';
 import { useOntologyIndex } from '@/hooks/useOntologyIndex.ts';
 
 const buttonClass = `p-2 rounded-md transition-colors hover:bg-gray-700/80 text-gray-400 hover:text-gray-200`;
@@ -12,101 +12,21 @@ const buttonClass = `p-2 rounded-md transition-colors hover:bg-gray-700/80 text-
 export const SemanticInsertToolbar: React.FC<{ editorApi: EditorApi }> = ({
   editorApi,
 }) => {
+  const handleInsertClick = () => {
+    editorApi.plugins['insert-menu'].open();
+  };
+
   return (
     <>
       <div className="w-px h-6 bg-gray-700 mx-1"></div>
       <button
-        onClick={() => editorApi.openSemanticInsertModal('tag')}
+        onClick={handleInsertClick}
         className={buttonClass}
-        title="Insert Tag"
+        title="Insert semantic content"
       >
-        <TagIcon className="h-5 w-5" />
-      </button>
-      <button
-        onClick={() => editorApi.openSemanticInsertModal('template')}
-        className={buttonClass}
-        title="Insert Template"
-      >
-        <DocumentDuplicateIcon className="h-5 w-5" />
+        <PlusIcon className="h-5 w-5" />
       </button>
     </>
-  );
-};
-
-export const SemanticInsertModalProvider: React.FC<{
-  editorApi: EditorApi;
-}> = ({ editorApi }) => {
-  const settings = editorApi.getSettings();
-  const { allTags, allTemplates } = useOntologyIndex(settings.ontology);
-  const modalState = editorApi.getSemanticModalState();
-
-  const insertModalItems = useMemo(() => {
-    if (modalState.type === 'tag') {
-      return allTags.map((t) => ({
-        id: t.id,
-        label: t.label,
-        description: t.description,
-      }));
-    }
-    if (modalState.type === 'template') {
-      return allTemplates.map((t) => ({
-        id: t.id,
-        label: t.label,
-        description: t.description,
-        template: t,
-      }));
-    }
-    return [];
-  }, [modalState.type, allTags, allTemplates]);
-
-  const handleSelect = (item: InsertMenuItem) => {
-    let htmlToInsert = '';
-    if (modalState.type === 'tag') {
-      htmlToInsert = `<span class="widget tag" contenteditable="false" data-tag="${item.label}">#${item.label}</span>&nbsp;`;
-      if (htmlToInsert) {
-        editorApi.insertHtml(htmlToInsert);
-      }
-    } else if (modalState.type === 'template') {
-      const template = item.template;
-      if (template && template.attributes) {
-        const firstWidgetId = `widget-${crypto.randomUUID()}`;
-        htmlToInsert =
-          Object.keys(template.attributes)
-            .map((key, index) => {
-              const k = key.trim();
-              const v = [''];
-              const op = 'is';
-              const id = index === 0 ? `id="${firstWidgetId}"` : '';
-              return `<span ${id} class="widget property" contenteditable="false" data-key="${k}" data-operator="${op}" data-values='${JSON.stringify(v)}'>[${k}:is:""]</span>`;
-            })
-            .join(' ') + '&nbsp;';
-
-        if (htmlToInsert) {
-          editorApi.insertHtml(htmlToInsert, () => {
-            // After the HTML is inserted, find the first new widget and open the editor for it.
-            const editor = editorApi.editorRef.current;
-            if (editor) {
-              const firstWidget = editor.querySelector<HTMLElement>(`#${firstWidgetId}`);
-              if (firstWidget) {
-                editorApi.setEditingWidget(firstWidget);
-              }
-            }
-          });
-        }
-      }
-    }
-
-    editorApi.closeSemanticInsertModal();
-  };
-
-  return (
-    <SemanticInsertModal
-      isOpen={modalState.open}
-      onClose={editorApi.closeSemanticInsertModal}
-      onSelect={handleSelect}
-      items={insertModalItems}
-      title={modalState.type === 'tag' ? 'Insert Tag' : 'Insert Template'}
-    />
   );
 };
 
@@ -114,5 +34,4 @@ export const semanticInsertPlugin: EditorPlugin = {
   id: 'semantic-insert',
   name: 'Semantic Insert',
   ToolbarComponent: SemanticInsertToolbar,
-  Modal: SemanticInsertModalProvider,
 };
