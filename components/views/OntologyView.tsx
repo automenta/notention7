@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { OntologyNode } from '@/types.ts';
+import type { OntologyNode } from '../../types';
 import { ChevronDownIcon } from '../icons';
 import { useSettings } from '../contexts/SettingsContext';
 

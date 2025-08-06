@@ -1,5 +1,5 @@
 import React from 'react';
-import { EditorApi, EditorPlugin } from '@/types/editor.ts';
+import type { EditorApi, EditorPlugin } from '../../../types';
 import { CubeIcon, TrashIcon } from '../../icons';
 
 export const EditorHeaderComponent: React.FC<{ editorApi: EditorApi }> = ({

@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { useEditor } from '@/hooks/useEditor.ts';
-import { AppSettings, Note } from '@/types.ts';
+import { useEditor } from '../../hooks/useEditor';
+import type { AppSettings, Note } from '../../types';
 
 // Mock the command utilities
 vi.mock('../../utils/editorCommands', () => ({
@@ -37,15 +37,20 @@ Object.defineProperty(window, 'getSelection', {
 describe('useEditor hook', () => {
   const mockNote: Note = {
     id: '1',
+    title: 'Test Note',
     content: '<p>Initial content</p>',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     tags: [],
-    properties: {},
+    properties: [],
   };
   const mockSettings: AppSettings = {
-    geminiApiKey: '',
-    ontology: { tags: {}, properties: {} },
+    aiEnabled: false,
+    theme: 'dark',
+    nostr: {
+      privkey: null,
+    },
+    ontology: [],
   };
   const mockOnSave = vi.fn();
   const mockOnDelete = vi.fn();

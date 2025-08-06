@@ -5,50 +5,100 @@ import React, {
   useReducer,
   useRef,
 } from 'react';
-import { EditorApi, EditorPlugin } from '../types/editor';
 import { sanitizeHTML } from '../utils/sanitize';
 import * as Commands from '../utils/editorCommands';
-import { AppSettings, Note } from '../types';
+import type { AppSettings, Note, EditorApi, EditorPlugin } from '../types';
+import {
+  editorReducer,
+  type EditorState,
+  type EditorAction,
+} from './reducers/editorReducer';
+import { useEditorEvents } from './useEditorEvents';
 
-// --- State Management with useReducer ---
-
-interface EditorState {
-  content: string;
-  semanticModal: {
-    open: boolean;
-    type: 'tag' | 'template' | null;
-  };
-  editingWidget: HTMLElement | null;
-}
-
-type EditorAction =
-  | { type: 'SET_CONTENT'; payload: string }
-  | {
-      type: 'TOGGLE_SEMANTIC_MODAL';
-      payload: { open: boolean; type?: 'tag' | 'template' | null };
-    }
-  | { type: 'SET_EDITING_WIDGET'; payload: HTMLElement | null };
-
-const editorReducer = (
-  state: EditorState,
-  action: EditorAction
-): EditorState => {
-  switch (action.type) {
-    case 'SET_CONTENT':
-      return { ...state, content: action.payload };
-    case 'TOGGLE_SEMANTIC_MODAL':
-      return {
-        ...state,
-        semanticModal: { ...state.semanticModal, ...action.payload },
-      };
-    case 'SET_EDITING_WIDGET':
-      return { ...state, editingWidget: action.payload };
-    default:
-      return state;
-  }
-};
+const AUTO_SAVE_DEBOUNCE_MS = 1000;
 
 // --- API Creation ---
+
+const createCommandApi = (focus: () => void) => ({
+  execCommand: (command: string, value?: string) => {
+    focus();
+    Commands.execCommand(command, value);
+  },
+  toggleBlock: (tag: string) => {
+    focus();
+    Commands.toggleBlock(tag);
+  },
+  queryCommandState: Commands.queryCommandState,
+});
+
+const createContentApi = (
+  focus: () => void,
+  editorRef: React.RefObject<HTMLDivElement>,
+  dispatch: React.Dispatch<EditorAction>
+) => {
+  const updateContent = () => {
+    if (editorRef.current) {
+      const sanitizedContent = sanitizeHTML(editorRef.current.innerHTML);
+      dispatch({ type: 'SET_CONTENT', payload: sanitizedContent });
+    }
+  };
+
+  return {
+    updateContent,
+    insertHtml: (html: string, callback?: () => void) => {
+      focus();
+      const selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0) return;
+      const range = selection.getRangeAt(0);
+      range.deleteContents();
+
+      const sanitizedHtml = sanitizeHTML(html);
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = sanitizedHtml;
+
+      const nodesToInsert = Array.from(tempDiv.childNodes);
+      nodesToInsert.forEach((node) => {
+        range.insertNode(node);
+        range.setStartAfter(node);
+        range.collapse(true);
+      });
+      selection.removeAllRanges();
+      selection.addRange(range);
+      updateContent();
+      if (callback) {
+        callback();
+      }
+    },
+  };
+};
+
+const createNoteApi = (
+  note: Note,
+  state: EditorState,
+  onSave: (note: Note) => void,
+  onDelete: (id: string) => void
+) => ({
+  getNote: () => note,
+  updateNote: (updatedFields: Partial<Note>) => {
+    const updatedNote = {
+      ...note,
+      content: state.content,
+      ...updatedFields,
+      updatedAt: new Date().toISOString(),
+    };
+    onSave(updatedNote);
+  },
+  deleteNote: () => onDelete(note.id),
+});
+
+const createWidgetApi = (
+  dispatch: React.Dispatch<EditorAction>,
+  state: EditorState
+) => ({
+  setEditingWidget: (widget: HTMLElement | null) =>
+    dispatch({ type: 'SET_EDITING_WIDGET', payload: widget }),
+  getEditingWidget: () => state.editingWidget,
+});
 
 const createEditorApi = (
   editorRef: React.RefObject<HTMLDivElement>,
@@ -57,82 +107,27 @@ const createEditorApi = (
   note: Note,
   settings: AppSettings,
   onSave: (note: Note) => void,
-  onDelete: (id: string) => void
+  onDelete: (id: string) => void,
+  plugins: EditorPlugin[]
 ): EditorApi => {
   const focus = () => editorRef.current?.focus();
 
-  const execCommand = (command: string, value?: string) => {
-    focus();
-    Commands.execCommand(command, value);
-  };
-
-  const toggleBlock = (tag: string) => {
-    focus();
-    Commands.toggleBlock(tag);
-  };
-
-  const updateContent = () => {
-    if (editorRef.current) {
-      const sanitizedContent = sanitizeHTML(editorRef.current.innerHTML);
-      dispatch({ type: 'SET_CONTENT', payload: sanitizedContent });
+  const pluginApis = plugins.reduce((acc, plugin) => {
+    if (plugin.api) {
+      acc[plugin.id] = plugin.api;
     }
-  };
-
-  const insertHtml = (html: string) => {
-    focus();
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) return;
-    const range = selection.getRangeAt(0);
-    range.deleteContents();
-
-    const sanitizedHtml = sanitizeHTML(html);
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = sanitizedHtml;
-
-    const nodesToInsert = Array.from(tempDiv.childNodes);
-    nodesToInsert.forEach((node) => {
-      range.insertNode(node);
-      range.setStartAfter(node);
-      range.collapse(true);
-    });
-    selection.removeAllRanges();
-    selection.addRange(range);
-    updateContent();
-  };
-
-  const updateNote = (updatedFields: Partial<Note>) => {
-    const updatedNote = {
-      ...note,
-      content: state.content, // Ensure latest content is saved
-      ...updatedFields,
-      updatedAt: new Date().toISOString(),
-    };
-    onSave(updatedNote);
-  };
+    return acc;
+  }, {} as { [pluginId: string]: unknown });
 
   return {
     editorRef,
-    execCommand,
-    toggleBlock,
-    queryCommandState: Commands.queryCommandState,
-    getSelectionParent: Commands.getSelectionParent,
-    openSemanticInsertModal: (type: 'tag' | 'template') =>
-      dispatch({
-        type: 'TOGGLE_SEMANTIC_MODAL',
-        payload: { open: true, type },
-      }),
-    closeSemanticInsertModal: () =>
-      dispatch({ type: 'TOGGLE_SEMANTIC_MODAL', payload: { open: false } }),
-    getSemanticModalState: () => state.semanticModal,
-    insertHtml,
-    getNote: () => note,
+    ...createCommandApi(focus),
+    ...createContentApi(focus, editorRef, dispatch),
+    ...createNoteApi(note, state, onSave, onDelete),
+    ...createWidgetApi(dispatch, state),
     getSettings: () => settings,
-    setEditingWidget: (widget) =>
-      dispatch({ type: 'SET_EDITING_WIDGET', payload: widget }),
-    getEditingWidget: () => state.editingWidget,
-    updateContent,
-    updateNote,
-    deleteNote: () => onDelete(note.id),
+    getSelectionParent: Commands.getSelectionParent,
+    plugins: pluginApis,
   };
 };
 
@@ -147,7 +142,6 @@ export const useEditor = (
 
   const initialState: EditorState = {
     content: note.content,
-    semanticModal: { open: false, type: null },
     editingWidget: null,
   };
 
@@ -165,7 +159,7 @@ export const useEditor = (
         content: state.content,
         updatedAt: new Date().toISOString(),
       });
-    }, 1000); // 1-second debounce
+    }, AUTO_SAVE_DEBOUNCE_MS);
 
     return () => {
       clearTimeout(handler);
@@ -181,55 +175,17 @@ export const useEditor = (
         note,
         settings,
         onSave,
-        onDelete
+        onDelete,
+        plugins
       ),
-    [dispatch, state, note, settings, onSave, onDelete]
+    [dispatch, state, note, settings, onSave, onDelete, plugins]
   );
 
-  const handleInput = useCallback(
-    (event: React.FormEvent<HTMLDivElement>) => {
-      for (const plugin of plugins) {
-        if (plugin.onInput?.(event, editorApi)) {
-          return;
-        }
-      }
-      const sanitizedContent = sanitizeHTML(event.currentTarget.innerHTML);
-      dispatch({ type: 'SET_CONTENT', payload: sanitizedContent });
-    },
-    [plugins, editorApi, dispatch]
-  );
-
-  const handleClick = useCallback(
-    (event: React.MouseEvent<HTMLDivElement>) => {
-      for (const plugin of plugins) {
-        if (plugin.onClick?.(event, editorApi)) {
-          return;
-        }
-      }
-    },
-    [plugins, editorApi]
-  );
-
-  const handleKeyDown = useCallback(
-    (event: React.KeyboardEvent<HTMLDivElement>) => {
-      // If a widget is being edited, prevent typing in the main editor.
-      // Allow navigation keys for accessibility.
-      if (state.editingWidget) {
-        if (
-          ![
-            'ArrowUp',
-            'ArrowDown',
-            'ArrowLeft',
-            'ArrowRight',
-            'Escape',
-            'Tab',
-          ].includes(event.key)
-        ) {
-          event.preventDefault();
-        }
-      }
-    },
-    [state.editingWidget]
+  const { handleInput, handleClick, handleKeyDown } = useEditorEvents(
+    plugins,
+    editorApi,
+    state,
+    dispatch
   );
 
   const toolbarComponents = useMemo(

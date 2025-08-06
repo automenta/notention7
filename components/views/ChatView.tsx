@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { getPublicKey, nip04 } from 'nostr-tools';
-import type { Contact, NostrEvent } from '@/types.ts';
-import { DEFAULT_RELAYS, hexToBytes } from '@/utils/nostr.ts';
-import { pool } from '@/services/nostrService.ts';
+import type { Contact, NostrEvent } from '../../types';
+import { DEFAULT_RELAYS, hexToBytes } from '../../utils/nostr';
+import { pool } from '../../services/nostrService';
 import { ContactList } from '../chat/ContactList';
 import { ChatWindow } from '../chat/ChatWindow';
 import { useSettings } from '../contexts/SettingsContext';

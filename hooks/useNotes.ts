@@ -1,4 +1,4 @@
-import { useLocalForage } from '../hooks/useLocalForage';
+import { useLocalForage } from './useLocalForage';
 import type { Note } from '../types';
 
 export const useNotes = () => {

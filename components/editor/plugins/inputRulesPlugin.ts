@@ -1,5 +1,5 @@
-import { EditorApi } from '@/types/editor.ts';
-import { formatPropertyForDisplay } from '@/utils/properties.ts';
+import type { EditorApi } from '../../../types';
+import { formatPropertyForDisplay } from '../../../utils/properties';
 
 const processInputRules = (editorApi: EditorApi): boolean => {
   const selection = window.getSelection();
@@ -12,6 +12,18 @@ const processInputRules = (editorApi: EditorApi): boolean => {
 
   const textBeforeCaret =
     container.textContent?.substring(0, range.startOffset) || '';
+
+  // Rule: [[ to open insert menu
+  const menuMatch = textBeforeCaret.match(/(\[\[)$/);
+  if (menuMatch) {
+    const [fullMatch] = menuMatch;
+    const offsetToReplace = fullMatch.length;
+    range.setStart(container, range.startOffset - offsetToReplace);
+    range.deleteContents();
+
+    editorApi.plugins['insert-menu'].open();
+    return true;
+  }
 
   // Rule: [key:value]
   const propMatch = textBeforeCaret.match(/(\[([^:\]]+?):([^\]]*?)\])$/);

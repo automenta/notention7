@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { EditorApi, EditorPlugin } from '@/types/editor.ts';
+import type { EditorApi, EditorPlugin } from '../../../types';
 import {
   BoldIcon,
   CodeBlockIcon,

@@ -1,35 +1,35 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ToolbarComponent } from '@/components/editor/plugins/ToolbarPlugin.tsx';
-import type { EditorApi } from '@/types/editor.ts';
+import { ToolbarComponent } from '../../../../components/editor/plugins/ToolbarPlugin';
+import type { EditorApi } from '../../../../types';
 
-// A comprehensive mock for the EditorApi
-const createMockEditorApi = (): EditorApi => {
-  const editorRef = { current: document.createElement('div') };
-  const selectionParent = document.createElement('p');
-  editorRef.current.appendChild(selectionParent);
-
-  return {
-    editorRef,
-    getSelectionParent: vi.fn(() => selectionParent),
-    queryCommandState: vi.fn(() => false),
-    execCommand: vi.fn(),
-    toggleBlock: vi.fn(),
-    getEditingWidget: vi.fn(() => null),
-    setEditingWidget: vi.fn(),
-    // Add any other methods from EditorApi that are used or might be used
-    // to ensure the mock is complete.
-    getNote: vi.fn(),
-    saveNote: vi.fn(),
-    deleteNote: vi.fn(),
-    showSemanticInsert: vi.fn(),
-    showSummary: vi.fn(),
-    insertContent: vi.fn(),
-    focus: vi.fn(),
-    settings: {},
-  };
-};
+const createMockEditorApi = (): EditorApi => ({
+  editorRef: { current: document.createElement('div') },
+  execCommand: vi.fn(),
+  toggleBlock: vi.fn(),
+  queryCommandState: vi.fn(),
+  getSelectionParent: vi.fn(),
+  insertHtml: vi.fn(),
+  getNote: vi.fn(),
+  getSettings: vi.fn(() => ({
+    aiEnabled: false,
+    theme: 'dark',
+    nostr: { privkey: null },
+    ontology: [],
+  })),
+  setEditingWidget: vi.fn(),
+  getEditingWidget: vi.fn(() => null),
+  updateContent: vi.fn(),
+  updateNote: vi.fn(),
+  deleteNote: vi.fn(),
+  plugins: {
+    'insert-menu': {
+      open: vi.fn(),
+      close: vi.fn(),
+    },
+  },
+});
 
 describe('ToolbarComponent', () => {
   let mockEditorApi: EditorApi;
