@@ -18,10 +18,8 @@ const TypeIcon = ({ type }: { type: InsertMenuItem['type'] }) => {
 export const InsertMenu: React.FC<{
   items: InsertMenuItem[];
   onSelect: (item: InsertMenuItem) => void;
-  onClose: () => void;
-}> = ({ items, onSelect, onClose }) => {
+}> = ({ items, onSelect }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedIndex, setSelectedIndex] = useState(0);
 
   const filteredItems = useMemo(() => {
     if (!searchTerm) return items;
@@ -46,13 +44,11 @@ export const InsertMenu: React.FC<{
       </div>
       <div className="max-h-80 overflow-y-auto">
         {filteredItems.length > 0 ? (
-          filteredItems.map((item, index) => (
+          filteredItems.map((item) => (
             <div
               key={item.id}
               onClick={() => onSelect(item)}
-              className={`flex items-center gap-3 px-3 py-2 cursor-pointer ${
-                index === selectedIndex ? 'bg-gray-700' : 'hover:bg-gray-700/50'
-              }`}
+              className={`flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-gray-700/50`}
             >
               <TypeIcon type={item.type} />
               <div className="flex-grow">

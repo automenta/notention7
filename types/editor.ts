@@ -20,7 +20,7 @@ export interface EditorApi {
 
   // Extensible plugin API container
   plugins: {
-    [pluginId: string]: any;
+    [pluginId:string]: unknown;
   };
 }
 
@@ -37,7 +37,7 @@ export interface EditorPlugin {
    * Optional: An object containing functions that can be called from other plugins
    * or the main editor. The core editor will aggregate these APIs.
    */
-  api?: any;
+  api?: unknown;
 
   /**
    * Optional: A React component to be rendered above the editor, in the header area.

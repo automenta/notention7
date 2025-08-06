@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Template } from '@/types';
 import { Property } from '@/types';
-import { PropertyEditor } from '@/components/editor/PropertyEditor';
 
 export const TemplateEditor: React.FC<{
   template: Template;

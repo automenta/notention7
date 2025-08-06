@@ -106,7 +106,7 @@ const createEditorApi = (
       acc[plugin.id] = plugin.api;
     }
     return acc;
-  }, {} as { [pluginId: string]: any });
+  }, {} as { [pluginId: string]: unknown });
 
   return {
     editorRef,
