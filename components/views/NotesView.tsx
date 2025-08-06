@@ -1,54 +1,57 @@
 import React from 'react';
-import {useNotes} from '../contexts/NotesContext';
-import {useView} from '../contexts/ViewContext';
-import {useSettings} from '../contexts/SettingsContext';
-import {EditorManager} from '../EditorManager';
-import {CubeTransparentIcon} from '../icons';
+import { useNotes } from '../contexts/NotesContext';
+import { useView } from '../contexts/ViewContext';
+import { useSettings } from '../contexts/SettingsContext';
+import { EditorManager } from '../EditorManager';
+import { CubeTransparentIcon } from '../icons';
 
 interface PlaceholderViewProps {
-    icon: React.ReactElement<{ className?: string }>;
-    title: string;
-    message: string;
+  icon: React.ReactElement<{ className?: string }>;
+  title: string;
+  message: string;
 }
 
-const PlaceholderView: React.FC<PlaceholderViewProps> = ({icon, title, message}) => (
-    <div
-        className="flex flex-col items-center justify-center h-full text-center bg-gray-800/50 rounded-lg p-8 text-gray-400">
-        <div className="text-blue-500 mb-6">
-            {React.cloneElement(icon, {className: 'h-24 w-24'})}
-        </div>
-        <h2 className="text-4xl font-bold text-white mb-3">{title}</h2>
-        <p className="max-w-md">{message}</p>
+const PlaceholderView: React.FC<PlaceholderViewProps> = ({
+  icon,
+  title,
+  message,
+}) => (
+  <div className="flex flex-col items-center justify-center h-full text-center bg-gray-800/50 rounded-lg p-8 text-gray-400">
+    <div className="text-blue-500 mb-6">
+      {React.cloneElement(icon, { className: 'h-24 w-24' })}
     </div>
+    <h2 className="text-4xl font-bold text-white mb-3">{title}</h2>
+    <p className="max-w-md">{message}</p>
+  </div>
 );
 
 export const NotesView: React.FC = () => {
-    const {notes, updateNote, deleteNote} = useNotes();
-    const {selectedNoteId, setSelectedNoteId} = useView();
-    const {settings} = useSettings();
-    const selectedNote = notes.find(note => note.id === selectedNoteId);
+  const { notes, updateNote, deleteNote } = useNotes();
+  const { selectedNoteId, setSelectedNoteId } = useView();
+  const { settings } = useSettings();
+  const selectedNote = notes.find((note) => note.id === selectedNoteId);
 
-    const handleDeleteNote = (id: string) => {
-        deleteNote(id, selectedNoteId, setSelectedNoteId);
-    };
+  const handleDeleteNote = (id: string) => {
+    deleteNote(id, selectedNoteId, setSelectedNoteId);
+  };
 
-    if (!selectedNote) {
-        return (
-            <PlaceholderView
-                icon={<CubeTransparentIcon/>}
-                title="No Note Selected"
-                message="Create a new note or select one from the list to get started."
-            />
-        );
-    }
-
+  if (!selectedNote) {
     return (
-        <EditorManager
-            key={selectedNote.id}
-            note={selectedNote}
-            onSave={updateNote}
-            onDelete={handleDeleteNote}
-            settings={settings}
-        />
+      <PlaceholderView
+        icon={<CubeTransparentIcon />}
+        title="No Note Selected"
+        message="Create a new note or select one from the list to get started."
+      />
     );
+  }
+
+  return (
+    <EditorManager
+      key={selectedNote.id}
+      note={selectedNote}
+      onSave={updateNote}
+      onDelete={handleDeleteNote}
+      settings={settings}
+    />
+  );
 };
