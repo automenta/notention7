@@ -24,7 +24,12 @@ export const useOntologyIndex = (ontology: OntologyNode[]) => {
         if (node.attributes) {
           Object.entries(node.attributes).forEach(([attrKey, attrValue]) => {
             if (!propertyTypes.has(attrKey)) {
-              propertyTypes.set(attrKey, attrValue);
+              // Defensively add operators if they are missing
+              const validatedAttrValue = {
+                ...attrValue,
+                operators: attrValue.operators || { real: [], imaginary: [] },
+              };
+              propertyTypes.set(attrKey, validatedAttrValue);
             }
           });
         }
