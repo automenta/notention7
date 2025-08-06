@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import './index.css';
 import { SettingsProvider } from './components/contexts/SettingsContext';
 import { NotesProvider } from './components/contexts/NotesContext';
 import { ViewProvider } from './components/contexts/ViewContext';

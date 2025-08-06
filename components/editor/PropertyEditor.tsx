@@ -32,10 +32,31 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
   const [operator, setOperator] = useState(property?.operator || 'is');
   const [values, setValues] = useState<string[]>(property?.values || ['']);
 
-  const attributeType = useMemo(
-    () => propertyTypes.get(key.trim()),
-    [key, propertyTypes]
-  );
+  const attributeType = useMemo(() => {
+    const trimmedKey = key.trim();
+    if (!trimmedKey) {
+      return undefined;
+    }
+
+    const foundAttribute = propertyTypes.get(trimmedKey);
+    if (foundAttribute) {
+      // Ensure the operators property is always an object
+      return {
+        ...foundAttribute,
+        operators: foundAttribute.operators || { real: [], imaginary: [] },
+      };
+    }
+
+    // If the key is not in the ontology, default to a string type
+    // with basic operators.
+    return {
+      type: 'string',
+      operators: {
+        real: ['is', 'is not', 'contains', 'does not contain'],
+        imaginary: ['exists', 'does not exist'],
+      },
+    };
+  }, [key, propertyTypes]);
 
   // Reset operator and values if key/type changes
   useEffect(() => {
