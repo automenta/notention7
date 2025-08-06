@@ -42,9 +42,7 @@ describe('SemanticInsertPlugin', () => {
     mockEditorApi = createMockEditorApi();
     // Provide a default mock implementation for the hook
     vi.mocked(OntologyIndexHook.useOntologyIndex).mockReturnValue({
-      allTags: [
-        { id: 'tag1', label: 'TestTag', description: 'A test tag' },
-      ],
+      allTags: [{ id: 'tag1', label: 'TestTag', description: 'A test tag' }],
       allTemplates: [
         {
           id: 'template1',
@@ -73,7 +71,9 @@ describe('SemanticInsertPlugin', () => {
     it('calls openSemanticInsertModal with "template" when template button is clicked', () => {
       render(<SemanticInsertToolbar editorApi={mockEditorApi} />);
       fireEvent.click(screen.getByTitle('Insert Template'));
-      expect(mockEditorApi.openSemanticInsertModal).toHaveBeenCalledWith('template');
+      expect(mockEditorApi.openSemanticInsertModal).toHaveBeenCalledWith(
+        'template'
+      );
     });
   });
 
@@ -109,17 +109,17 @@ describe('SemanticInsertPlugin', () => {
     });
 
     it('calls insertHtml with correct template markup on selection', () => {
-        mockEditorApi.getSemanticModalState = vi.fn(() => ({
-          open: true,
-          type: 'template',
-        }));
-        render(<SemanticInsertModalProvider editorApi={mockEditorApi} />);
+      mockEditorApi.getSemanticModalState = vi.fn(() => ({
+        open: true,
+        type: 'template',
+      }));
+      render(<SemanticInsertModalProvider editorApi={mockEditorApi} />);
 
-        fireEvent.click(screen.getByText('TestTemplate'));
+      fireEvent.click(screen.getByText('TestTemplate'));
 
-        const expectedHtml = `<span class="widget property" contenteditable="false" data-key="prop1" data-operator="is" data-values='[""]'>[prop1:is:""]</span>&nbsp;`;
-        expect(mockEditorApi.insertHtml).toHaveBeenCalledWith(expectedHtml);
-        expect(mockEditorApi.closeSemanticInsertModal).toHaveBeenCalled();
-      });
+      const expectedHtml = `<span class="widget property" contenteditable="false" data-key="prop1" data-operator="is" data-values='[""]'>[prop1:is:""]</span>&nbsp;`;
+      expect(mockEditorApi.insertHtml).toHaveBeenCalledWith(expectedHtml);
+      expect(mockEditorApi.closeSemanticInsertModal).toHaveBeenCalled();
+    });
   });
 });

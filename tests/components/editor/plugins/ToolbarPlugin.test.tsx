@@ -68,7 +68,7 @@ describe('ToolbarComponent', () => {
 
   it('updates button active state based on queryCommandState', () => {
     // Mock that 'bold' is active
-    mockEditorApi.queryCommandState = vi.fn(cmd => cmd === 'bold');
+    mockEditorApi.queryCommandState = vi.fn((cmd) => cmd === 'bold');
     render(<ToolbarComponent editorApi={mockEditorApi} />);
 
     // To trigger the state update, we need to simulate a selection change

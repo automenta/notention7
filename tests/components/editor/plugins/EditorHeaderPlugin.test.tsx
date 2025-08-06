@@ -51,7 +51,9 @@ describe('EditorHeaderComponent', () => {
 
   it('renders the note title', () => {
     render(<EditorHeaderComponent editorApi={mockEditorApi} />);
-    const titleInput = screen.getByPlaceholderText('Note Title') as HTMLInputElement;
+    const titleInput = screen.getByPlaceholderText(
+      'Note Title'
+    ) as HTMLInputElement;
     expect(titleInput.value).toBe('Initial Title');
   });
 
@@ -59,14 +61,18 @@ describe('EditorHeaderComponent', () => {
     render(<EditorHeaderComponent editorApi={mockEditorApi} />);
     const titleInput = screen.getByPlaceholderText('Note Title');
     fireEvent.change(titleInput, { target: { value: 'New Title' } });
-    expect(mockEditorApi.updateNote).toHaveBeenCalledWith({ title: 'New Title' });
+    expect(mockEditorApi.updateNote).toHaveBeenCalledWith({
+      title: 'New Title',
+    });
   });
 
   it('calls deleteNote when delete button is clicked and confirmed', () => {
     render(<EditorHeaderComponent editorApi={mockEditorApi} />);
     const deleteButton = screen.getByTitle('Delete note');
     fireEvent.click(deleteButton);
-    expect(window.confirm).toHaveBeenCalledWith('Are you sure you want to delete this note?');
+    expect(window.confirm).toHaveBeenCalledWith(
+      'Are you sure you want to delete this note?'
+    );
     expect(mockEditorApi.deleteNote).toHaveBeenCalled();
   });
 
@@ -75,7 +81,9 @@ describe('EditorHeaderComponent', () => {
     render(<EditorHeaderComponent editorApi={mockEditorApi} />);
     const deleteButton = screen.getByTitle('Delete note');
     fireEvent.click(deleteButton);
-    expect(window.confirm).toHaveBeenCalledWith('Are you sure you want to delete this note?');
+    expect(window.confirm).toHaveBeenCalledWith(
+      'Are you sure you want to delete this note?'
+    );
     expect(mockEditorApi.deleteNote).not.toHaveBeenCalled();
   });
 });

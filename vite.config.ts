@@ -20,6 +20,10 @@ export default defineConfig(({ mode }) => {
       environment: 'jsdom',
       setupFiles: './tests/setup.ts',
       exclude: [...configDefaults.exclude, '**/node_modules/**', '**/dist/**'],
+      coverage: {
+        provider: 'v8',
+        reporter: ['text', 'json', 'html'],
+      },
     },
   };
 });
