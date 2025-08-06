@@ -1,12 +1,19 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
-import { EditorApi, EditorPlugin } from '@/types/editor.ts';
 import { InsertMenu } from '../InsertMenu';
-import { useInsertMenuItems, InsertMenuMode } from '@/hooks/useInsertMenuItems';
-import { useOntologyIndex } from '@/hooks/useOntologyIndex';
-import { TemplateEditor } from '@/components/editor/TemplateEditor';
-import { Template, Property } from '@/types';
-import { formatPropertyForDisplay } from '@/utils/properties';
+import {
+  useInsertMenuItems,
+  InsertMenuMode,
+} from '../../../hooks/useInsertMenuItems';
+import { useOntologyIndex } from '../../../hooks/useOntologyIndex';
+import { TemplateEditor } from '../TemplateEditor';
+import { formatPropertyForDisplay } from '../../../utils/properties';
+import type {
+  EditorApi,
+  EditorPlugin,
+  OntologyNode,
+  Property,
+} from '../../../types';
 
 type OpenMenuContext = {
   mode: InsertMenuMode;
@@ -30,13 +37,15 @@ const InsertMenuProvider: React.FC<{ editorApi: EditorApi }> = ({ editorApi }) =
     null
   );
   const [isTemplateEditorOpen, setTemplateEditorOpen] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<OntologyNode | null>(
+    null
+  );
   const [context, setContext] = useState<OpenMenuContext>({ mode: 'all' });
 
   const settings = editorApi.getSettings();
   const { ontology } = settings;
-  const { allTemplates } = useOntologyIndex(ontology);
-  const items = useInsertMenuItems(ontology, context.mode);
+  const indexedOntology = useOntologyIndex(ontology);
+  const items = useInsertMenuItems(indexedOntology, context.mode);
 
   const openMenu = useCallback(
     (pos?: { top: number; left: number }, newContext?: OpenMenuContext) => {
@@ -112,7 +121,9 @@ const InsertMenuProvider: React.FC<{ editorApi: EditorApi }> = ({ editorApi }) =
         });
       }
     } else if (item.type === 'template') {
-      const template = allTemplates.find((t) => t.id === item.id.replace('template-',''));
+      const template = indexedOntology.allTemplates.find(
+        (t) => t.id === item.id.replace('template-', '')
+      );
       if (template) {
         setSelectedTemplate(template);
         setTemplateEditorOpen(true);

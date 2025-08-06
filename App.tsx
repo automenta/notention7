@@ -4,16 +4,8 @@ import { Sidebar } from './components/Sidebar';
 import { MainView } from './components/MainView';
 import { useNotes } from './components/contexts/NotesContext';
 import { useView } from './components/contexts/ViewContext';
-import { Note } from './types';
-
-const sortNotesByDate = (notes: Note[]) => {
-  return notes
-    .slice()
-    .sort(
-      (a, b) =>
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-    );
-};
+import type { Note } from './types';
+import { sortNotesByDate } from './utils/notes';
 
 const App: React.FC = () => {
   const { notes, addNote, notesLoading } = useNotes();

@@ -1,10 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { EditorApi, EditorPlugin } from '@/types/editor.ts';
-import { PropertyEditor as NewPropertyEditor } from '../../editor/PropertyEditor';
-import { useOntologyIndex } from '@/hooks/useOntologyIndex.ts';
-import { formatPropertyForDisplay } from '@/utils/properties.ts';
-import type { Property } from '@/types.ts';
+import { PropertyEditor as NewPropertyEditor } from '../PropertyEditor';
+import { useOntologyIndex } from '../../../hooks/useOntologyIndex';
+import { formatPropertyForDisplay } from '../../../utils/properties';
+import type { EditorApi, EditorPlugin, Property } from '../../../types';
 
 // This function will be the `onClick` handler provided by the plugin.
 export const handleWidgetClick = (

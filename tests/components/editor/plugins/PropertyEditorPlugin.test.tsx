@@ -4,9 +4,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   handleWidgetClick,
   PropertyEditor,
-} from '@/components/editor/plugins/PropertyEditorPlugin';
-import type { EditorApi } from '@/types/editor';
-import { useOntologyIndex } from '@/hooks/useOntologyIndex';
+} from '../../../../components/editor/plugins/PropertyEditorPlugin';
+import type { EditorApi } from '../../../../types';
+import { useOntologyIndex } from '../../../../hooks/useOntologyIndex';
 
 // Mock dependencies
 vi.mock('@/hooks/useOntologyIndex');
@@ -24,15 +24,25 @@ const createMockEditorApi = (editingWidget: HTMLElement | null): EditorApi => {
     editorDiv.appendChild(editingWidget);
   }
   return {
-    getEditingWidget: () => editingWidget,
+    editorRef: { current: editorDiv },
+    execCommand: vi.fn(),
+    toggleBlock: vi.fn(),
+    queryCommandState: vi.fn(),
+    getSelectionParent: vi.fn(),
+    insertHtml: vi.fn(),
+    getNote: vi.fn(),
+    getSettings: vi.fn(() => ({
+      aiEnabled: false,
+      theme: 'dark',
+      nostr: { privkey: null },
+      ontology: [],
+    })),
     setEditingWidget: mockSetEditingWidget,
+    getEditingWidget: () => editingWidget,
     updateContent: mockUpdateContent,
-    getSettings: () => ({
-      ontology: { attributes: [], tags: [] },
-    }),
-    editorRef: {
-      current: editorDiv,
-    },
+    updateNote: vi.fn(),
+    deleteNote: vi.fn(),
+    plugins: {},
   };
 };
 

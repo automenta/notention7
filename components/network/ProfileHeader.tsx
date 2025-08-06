@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { finalizeEvent, nip19 } from 'nostr-tools';
-import type { AppSettings, NostrProfile } from '@/types.ts';
+import type { AppSettings, NostrProfile } from '../../types';
 import { EditIcon, LoadingSpinner } from '../icons';
-import { DEFAULT_RELAYS, formatNpub, hexToBytes } from '@/utils/nostr.ts';
-import { pool } from '@/services/nostrService.ts';
+import { DEFAULT_RELAYS, formatNpub, hexToBytes } from '../../utils/nostr';
+import { pool } from '../../services/nostrService';
 
 const ProfileEditorModal: React.FC<{
   isOpen: boolean;

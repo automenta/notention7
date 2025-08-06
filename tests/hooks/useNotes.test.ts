@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
-import { useNotes } from '@/services/notes.ts';
-import { useLocalForage } from '@/hooks/useLocalForage.ts';
-import { Note } from '@/types.ts';
+import { useNotes } from '../../hooks/useNotes';
+import { useLocalForage } from '../../hooks/useLocalForage';
+import type { Note } from '../../types';
 
 // Mock the useLocalForage hook
 vi.mock('../../hooks/useLocalForage');

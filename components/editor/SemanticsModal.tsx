@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Property } from '@/types.ts';
+import type { Property } from '../../types';
 
 export const SemanticsModal: React.FC<{
   tags: string[];

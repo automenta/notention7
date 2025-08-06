@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { OntologyAttribute } from '@/types';
+import type { OntologyAttribute } from '../../types';
 
 interface KeySelectorProps {
   value: string;

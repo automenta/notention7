@@ -1,9 +1,8 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { EditorHeaderComponent } from '@/components/editor/plugins/EditorHeaderPlugin.tsx';
-import type { EditorApi } from '@/types/editor.ts';
-import type { Note } from '@/types.ts';
+import { EditorHeaderComponent } from '../../../../components/editor/plugins/EditorHeaderPlugin';
+import type { EditorApi, Note } from '../../../../types';
 
 const createMockEditorApi = (note: Note): EditorApi => ({
   getNote: vi.fn(() => note),

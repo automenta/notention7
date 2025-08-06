@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Template } from '@/types';
-import { Property } from '@/types';
+import type { OntologyNode, Property } from '../../types';
 
 export const TemplateEditor: React.FC<{
-  template: Template;
+  template: OntologyNode;
   isOpen: boolean;
   onClose: () => void;
   onSave: (properties: Property[]) => void;

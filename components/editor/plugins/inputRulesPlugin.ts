@@ -1,5 +1,5 @@
-import { EditorApi } from '@/types/editor.ts';
-import { formatPropertyForDisplay } from '@/utils/properties.ts';
+import type { EditorApi } from '../../../types';
+import { formatPropertyForDisplay } from '../../../utils/properties';
 
 const processInputRules = (editorApi: EditorApi): boolean => {
   const selection = window.getSelection();

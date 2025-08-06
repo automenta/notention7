@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { AppSettings, Note } from '../types';
-import { editorPlugins } from './editor/plugins';
+import type { AppSettings, Note } from '../types';
+import { availableEditors } from './editor/editors';
 
 interface EditorManagerProps {
   note: Note;
@@ -17,7 +17,7 @@ export const EditorManager: React.FC<EditorManagerProps> = ({
 }) => {
   const [selectedEditorId, setSelectedEditorId] = useState<string>('rich-text'); // Default to Rich Text editor
 
-  const SelectedEditorComponent = editorPlugins.find(
+  const SelectedEditorComponent = availableEditors.find(
     (plugin) => plugin.id === selectedEditorId
   )?.component;
 
@@ -36,7 +36,7 @@ export const EditorManager: React.FC<EditorManagerProps> = ({
           value={selectedEditorId}
           onChange={(e) => setSelectedEditorId(e.target.value)}
         >
-          {editorPlugins.map((plugin) => (
+          {availableEditors.map((plugin) => (
             <option key={plugin.id} value={plugin.id}>
               {plugin.name}
             </option>

@@ -1,6 +1,6 @@
 import React, { createContext, ReactNode, useContext } from 'react';
-import { useNotes as useNotesService } from '../../services/notes';
-import { Note } from '@/types.ts';
+import { useNotes as useNotesService } from '../../hooks/useNotes';
+import type { Note } from '../../types';
 
 interface NotesContextType {
   notes: Note[];

@@ -1,11 +1,21 @@
-import React, { useMemo } from 'react';
-import { EditorApi, EditorPlugin } from '@/types/editor.ts';
+import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import { DocumentDuplicateIcon, TagIcon } from '../../icons';
-import { useOntologyIndex } from '@/hooks/useOntologyIndex.ts';
-import { InsertMenu } from '../InsertMenu.tsx';
-import { InsertMenuItem } from '@/hooks/useInsertMenuItems.ts';
+import { useOntologyIndex } from '../../../hooks/useOntologyIndex';
+import { InsertMenu } from '../InsertMenu';
+import type { InsertMenuItem } from '../../../hooks/useInsertMenuItems';
+import type { EditorApi, EditorPlugin } from '../../../types';
 
 const buttonClass = `p-2 rounded-md transition-colors hover:bg-gray-700/80 text-gray-400 hover:text-gray-200`;
+
+type ModalType = 'tag' | 'template';
+
+const api: {
+  open: (type: ModalType) => void;
+  close: () => void;
+} = {
+  open: () => {},
+  close: () => {},
+};
 
 export const SemanticInsertToolbar: React.FC<{ editorApi: EditorApi }> = ({
   editorApi,
@@ -14,14 +24,14 @@ export const SemanticInsertToolbar: React.FC<{ editorApi: EditorApi }> = ({
     <>
       <div className="w-px h-6 bg-gray-700 mx-1"></div>
       <button
-        onClick={() => (editorApi as any).openSemanticInsertModal('tag')}
+        onClick={() => editorApi.plugins['semantic-insert'].open('tag')}
         className={buttonClass}
         title="Insert Tag"
       >
         <TagIcon className="h-5 w-5" />
       </button>
       <button
-        onClick={() => (editorApi as any).openSemanticInsertModal('template')}
+        onClick={() => editorApi.plugins['semantic-insert'].open('template')}
         className={buttonClass}
         title="Insert Template"
       >
@@ -34,13 +44,34 @@ export const SemanticInsertToolbar: React.FC<{ editorApi: EditorApi }> = ({
 export const SemanticInsertModalProvider: React.FC<{ editorApi: EditorApi }> = ({
   editorApi,
 }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [modalType, setModalType] = useState<ModalType | null>(null);
+
   const { allTags, allTemplates } = useOntologyIndex(
     editorApi.getSettings().ontology
   );
-  const state = (editorApi as any).getSemanticModalState();
+
+  const openModal = useCallback((type: ModalType) => {
+    setModalType(type);
+    setIsOpen(true);
+  }, []);
+
+  const closeModal = useCallback(() => {
+    setIsOpen(false);
+    setModalType(null);
+  }, []);
+
+  useEffect(() => {
+    api.open = openModal;
+    api.close = closeModal;
+    return () => {
+      api.open = () => {};
+      api.close = () => {};
+    };
+  }, [openModal, closeModal]);
 
   const items: InsertMenuItem[] = useMemo(() => {
-    if (state.type === 'tag') {
+    if (modalType === 'tag') {
       return allTags.map((t) => ({
         id: t.id,
         label: t.label,
@@ -52,19 +83,19 @@ export const SemanticInsertModalProvider: React.FC<{ editorApi: EditorApi }> = (
         },
       }));
     }
-    if (state.type === 'template') {
+    if (modalType === 'template') {
       return allTemplates.map((t) => ({
         id: t.id,
         label: t.label,
         description: t.description,
         type: 'template',
         action: () => {
-          const propertiesHtml = Object.keys(t.attributes)
+          const propertiesHtml = Object.keys(t.attributes || {})
             .map((key) => {
               const id = `widget-${Date.now()}-${Math.random()
                 .toString(36)
                 .slice(2, 9)}`;
-              return `<span id="${id}" class="widget property" contenteditable="false" data-key="${key}" data-operator="is" data-value="">[${key}:is:]</span>`;
+              return `<span id="${id}" class="widget property" contenteditable="false" data-key="${key}" data-operator="is" data-values='[""]'>[${key}:is:""]</span>`;
             })
             .join('&nbsp;');
           const html = `<div>${propertiesHtml}</div>`;
@@ -73,15 +104,15 @@ export const SemanticInsertModalProvider: React.FC<{ editorApi: EditorApi }> = (
       }));
     }
     return [];
-  }, [state.type, allTags, allTemplates, editorApi]);
+  }, [modalType, allTags, allTemplates, editorApi]);
 
-  if (!state.open) {
+  if (!isOpen) {
     return null;
   }
 
   const handleSelect = (item: InsertMenuItem) => {
     item.action();
-    (editorApi as any).closeSemanticInsertModal();
+    closeModal();
   };
 
   return (
@@ -89,15 +120,16 @@ export const SemanticInsertModalProvider: React.FC<{ editorApi: EditorApi }> = (
       className="fixed inset-0 bg-black bg-opacity-50 z-40 flex justify-center items-center"
       role="dialog"
       aria-modal="true"
+      onClick={closeModal}
     >
       <div
         className="w-full max-w-md"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-lg font-bold text-white text-center mb-4">
-          Insert {state.type === 'tag' ? 'Tag' : 'Template'}
+          Insert {modalType === 'tag' ? 'Tag' : 'Template'}
         </h2>
-        <InsertMenu items={items} onSelect={handleSelect} />
+        <InsertMenu items={items} onSelect={handleSelect} onClose={closeModal} />
       </div>
     </div>
   );
@@ -109,4 +141,5 @@ export const semanticInsertPlugin: EditorPlugin = {
   name: 'Semantic Insert',
   ToolbarComponent: SemanticInsertToolbar,
   Modal: SemanticInsertModalProvider,
+  api: api,
 };

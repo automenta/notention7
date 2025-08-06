@@ -1,27 +1,8 @@
 import React from 'react';
 import { useEditor } from '../hooks/useEditor';
 import { sanitizeHTML } from '../utils/sanitize';
-import { EditorPlugin } from '../types/editor';
 import type { AppSettings, Note } from '../types';
-
-import { toolbarPlugin } from './editor/plugins/ToolbarPlugin';
-import { semanticInsertPlugin } from './editor/plugins/SemanticInsertPlugin';
-import { propertyEditorPlugin } from './editor/plugins/PropertyEditorPlugin';
-import { inputRulesPlugin } from './editor/plugins/inputRulesPlugin';
-import { editorHeaderPlugin } from './editor/plugins/EditorHeaderPlugin';
-import { insertMenuPlugin } from './editor/plugins/InsertMenuPlugin';
-
-import { selectionToolbarPlugin } from './editor/plugins/SelectionToolbarPlugin';
-
-const editorPlugins: EditorPlugin[] = [
-  editorHeaderPlugin,
-  toolbarPlugin,
-  semanticInsertPlugin,
-  propertyEditorPlugin,
-  inputRulesPlugin,
-  insertMenuPlugin,
-  selectionToolbarPlugin,
-];
+import { editorPlugins } from './editor/plugins';
 
 export const RichTextEditorV2: React.FC<{
   note: Note;

@@ -1,35 +1,38 @@
 import { useMemo } from 'react';
-import { Ontology } from '@/types';
+import { useOntologyIndex } from './useOntologyIndex';
 
-export type InsertMenuItem = {
+export interface InsertMenuItem {
   id: string;
   type: 'tag' | 'template' | 'property';
   label: string;
   description?: string;
-};
+}
 
 export type InsertMenuMode = 'all' | 'property';
 
+// This hook now accepts the output of `useOntologyIndex`
 export const useInsertMenuItems = (
-  ontology: Ontology,
+  indexedOntology: ReturnType<typeof useOntologyIndex>,
   mode: InsertMenuMode = 'all'
 ): InsertMenuItem[] => {
+  const { allTags, allTemplates, allProperties } = indexedOntology;
+
   return useMemo(() => {
     let items: InsertMenuItem[] = [];
 
     if (mode === 'all') {
       // Add tags
-      ontology.tags.forEach((tag) => {
+      allTags.forEach((tag) => {
         items.push({
           id: `tag-${tag.id}`,
           type: 'tag',
-          label: tag.id,
+          label: tag.label,
           description: tag.description || 'Tag',
         });
       });
 
       // Add templates
-      ontology.templates.forEach((template) => {
+      allTemplates.forEach((template) => {
         items.push({
           id: `template-${template.id}`,
           type: 'template',
@@ -40,11 +43,11 @@ export const useInsertMenuItems = (
     }
 
     // Add property keys (in both modes)
-    ontology.properties.forEach((prop) => {
+    allProperties.forEach((prop) => {
       items.push({
         id: `property-${prop.id}`,
         type: 'property',
-        label: prop.id,
+        label: prop.label,
         description: prop.description || 'Property',
       });
     });
@@ -52,7 +55,7 @@ export const useInsertMenuItems = (
     // If in 'all' mode, filter out properties that are part of templates already shown
     if (mode === 'all') {
       const templateProps = new Set(
-        ontology.templates.flatMap((t) => Object.keys(t.attributes))
+        allTemplates.flatMap((t) => (t.attributes ? Object.keys(t.attributes) : []))
       );
       items = items.filter(
         (item) => item.type !== 'property' || !templateProps.has(item.label)
@@ -61,5 +64,5 @@ export const useInsertMenuItems = (
 
     // Sort alphabetically by label for consistent ordering
     return items.sort((a, b) => a.label.localeCompare(b.label));
-  }, [ontology, mode]);
+  }, [allTags, allTemplates, allProperties, mode]);
 };

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import ReactDOM from 'react-dom';
-import { EditorApi, EditorPlugin } from '@/types/editor.ts';
-import { PlusCircleIcon } from '@/components/icons';
+import type { EditorApi, EditorPlugin } from '../../../types';
+import { PlusCircleIcon } from '../../icons';
 
 const SelectionToolbar: React.FC<{ editorApi: EditorApi }> = ({ editorApi }) => {
   const [isVisible, setIsVisible] = useState(false);

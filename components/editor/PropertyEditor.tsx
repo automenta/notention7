@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import type { OntologyAttribute, Property } from '@/types';
+import type { OntologyAttribute, Property } from '../../types';
 import { StringInput } from './inputs/StringInput';
 import { NumberInput } from './inputs/NumberInput';
 import { DateInput } from './inputs/DateInput';
