@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { InsertMenuItem } from '@/hooks/useInsertMenuItems';
-import { TagIcon, DocumentDuplicateIcon, Bars3BottomLeftIcon } from '../icons';
+import { TagIcon, DocumentDuplicateIcon, ListUlIcon } from '../icons';
 
 const TypeIcon = ({ type }: { type: InsertMenuItem['type'] }) => {
   switch (type) {
@@ -9,7 +9,7 @@ const TypeIcon = ({ type }: { type: InsertMenuItem['type'] }) => {
     case 'template':
       return <DocumentDuplicateIcon className="h-5 w-5 text-purple-400" />;
     case 'property':
-      return <Bars3BottomLeftIcon className="h-5 w-5 text-amber-400" />;
+      return <ListUlIcon className="h-5 w-5 text-amber-400" />;
     default:
       return null;
   }
