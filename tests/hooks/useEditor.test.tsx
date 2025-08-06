@@ -41,7 +41,7 @@ describe('useEditor hook', () => {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     tags: [],
-    properties: {},
+    properties: [],
   };
   const mockSettings: AppSettings = {
     geminiApiKey: '',
