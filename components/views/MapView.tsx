@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import L from 'leaflet';
 import { useNotes } from '../contexts/NotesContext';
 import { useView } from '../contexts/ViewContext';
