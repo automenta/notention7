@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { PropertyEditor as NewPropertyEditor } from '../PropertyEditor';
+import { PropertyEditor as PropertyEditorForm } from '../PropertyEditor';
 import { useOntologyIndex } from '../../../hooks/useOntologyIndex';
 import { formatPropertyForDisplay } from '../../../utils/properties';
 import type { EditorApi, EditorPlugin, Property } from '../../../types';
@@ -29,7 +29,7 @@ export const handleWidgetClick = (
   }
 };
 
-export const PropertyEditor: React.FC<{ editorApi: EditorApi }> = ({
+export const PropertyEditorPopover: React.FC<{ editorApi: EditorApi }> = ({
   editorApi,
 }) => {
   const settings = editorApi.getSettings();
@@ -76,7 +76,7 @@ export const PropertyEditor: React.FC<{ editorApi: EditorApi }> = ({
 
   return ReactDOM.createPortal(
     <div style={popoverStyle}>
-      <NewPropertyEditor
+      <PropertyEditorForm
         property={initialProperty}
         propertyTypes={propertyTypes}
         onSave={handleSave}
@@ -92,5 +92,5 @@ export const propertyEditorPlugin: EditorPlugin = {
   id: 'property-editor',
   name: 'Property Editor',
   onClick: handleWidgetClick,
-  Popover: PropertyEditor,
+  Popover: PropertyEditorPopover,
 };

@@ -8,6 +8,15 @@ import { EnumInput } from './inputs/EnumInput';
 import { GeoInput } from './inputs/GeoInput';
 import { KeySelector } from './KeySelector';
 
+const InputComponentMap = {
+  string: StringInput,
+  number: NumberInput,
+  date: DateInput,
+  datetime: DateTimeInput,
+  enum: EnumInput,
+  geo: GeoInput,
+};
+
 const inputClass =
   'w-full p-2 bg-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm';
 const labelClass =
@@ -37,7 +46,9 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
     [key, propertyTypes]
   );
 
-  // Reset operator and values if key/type changes
+  // When the selected key (and thus its type) changes, we need to ensure the
+  // currently selected operator is still valid. If not, we reset the operator
+  // to the first available one for the new type, but we preserve the value.
   useEffect(() => {
     if (attributeType) {
       const allOperators = [
@@ -45,11 +56,10 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
         ...attributeType.operators.imaginary,
       ];
       if (!allOperators.includes(operator)) {
-        setOperator(allOperators[0] || '');
-        setValues(['']);
+        setOperator(allOperators[0] || 'is');
       }
     }
-  }, [attributeType, operator]);
+  }, [attributeType]);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,65 +80,23 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
 
     return Array.from({ length: numInputs }).map((_, index) => {
       const value = values[index] || '';
+      const InputComponent =
+        InputComponentMap[type as keyof typeof InputComponentMap] ||
+        StringInput;
 
-      switch (type) {
-        case 'number':
-          return (
-            <NumberInput
-              key={index}
-              value={value}
-              onChange={(val) => handleValueChange(index, val)}
-              autoFocus={index === 0}
-            />
-          );
-        case 'date':
-          return (
-            <DateInput
-              key={index}
-              value={value}
-              onChange={(val) => handleValueChange(index, val)}
-              autoFocus={index === 0}
-            />
-          );
-        case 'datetime':
-          return (
-            <DateTimeInput
-              key={index}
-              value={value}
-              onChange={(val) => handleValueChange(index, val)}
-              autoFocus={index === 0}
-            />
-          );
-        case 'enum':
-          return (
-            <EnumInput
-              key={index}
-              value={value}
-              onChange={(val) => handleValueChange(index, val)}
-              options={attributeType.options || []}
-              autoFocus={index === 0}
-            />
-          );
-        case 'geo':
-          return (
-            <GeoInput
-              key={index}
-              value={value}
-              onChange={(val) => handleValueChange(index, val)}
-              onOpenMap={() => alert('Geo map picker not implemented yet.')}
-              autoFocus={index === 0}
-            />
-          );
-        default: // string
-          return (
-            <StringInput
-              key={index}
-              value={value}
-              onChange={(val) => handleValueChange(index, val)}
-              autoFocus={index === 0}
-            />
-          );
-      }
+      return (
+        <InputComponent
+          key={index}
+          value={value}
+          onChange={(val: string) => handleValueChange(index, val)}
+          autoFocus={index === 0}
+          // Pass type-specific props
+          {...(type === 'enum' && { options: attributeType.options || [] })}
+          {...(type === 'geo' && {
+            onOpenMap: () => alert('Geo map picker not implemented yet.'),
+          })}
+        />
+      );
     });
   };
 
