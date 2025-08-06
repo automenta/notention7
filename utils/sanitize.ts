@@ -1,5 +1,5 @@
 import DOMPurify from 'dompurify';
 
 export const sanitizeHTML = (dirty: string): string => {
-    return DOMPurify.sanitize(dirty);
+  return DOMPurify.sanitize(dirty);
 };
