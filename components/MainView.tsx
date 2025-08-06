@@ -10,6 +10,17 @@ import { NetworkView } from './views/NetworkView';
 import { ChatView } from './views/ChatView';
 import { SettingsView } from './views/SettingsView';
 
+import { View } from '../types';
+
+const viewMap: Record<View, React.ComponentType> = {
+  notes: NotesView,
+  ontology: OntologyView,
+  map: MapView,
+  network: NetworkView,
+  chat: ChatView,
+  settings: SettingsView,
+};
+
 export const MainView: React.FC = () => {
   const { activeView } = useView();
   const { settingsLoading } = useSettings();
@@ -23,20 +34,7 @@ export const MainView: React.FC = () => {
     );
   }
 
-  switch (activeView) {
-    case 'notes':
-      return <NotesView />;
-    case 'ontology':
-      return <OntologyView />;
-    case 'map':
-      return <MapView />;
-    case 'network':
-      return <NetworkView />;
-    case 'chat':
-      return <ChatView />;
-    case 'settings':
-      return <SettingsView />;
-    default:
-      return null;
-  }
+  const ActiveViewComponent = viewMap[activeView] ?? null;
+
+  return ActiveViewComponent ? <ActiveViewComponent /> : null;
 };

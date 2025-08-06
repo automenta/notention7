@@ -86,3 +86,32 @@ export interface EditorPlugin {
     editorApi: EditorApi
   ) => boolean | void;
 }
+
+// --- Types for useEditor hook ---
+
+export interface EditorState {
+  content: string;
+  semanticModal: {
+    open: boolean;
+    type: 'tag' | 'template' | null;
+  };
+  editingWidget: HTMLElement | null;
+}
+
+export type EditorAction =
+  | { type: 'SET_CONTENT'; payload: string }
+  | {
+      type: 'TOGGLE_SEMANTIC_MODAL';
+      payload: { open: boolean; type?: 'tag' | 'template' | null };
+    }
+  | { type: 'SET_EDITING_WIDGET'; payload: HTMLElement | null };
+
+export interface CreateEditorApiProps {
+  editorRef: React.RefObject<HTMLDivElement>;
+  dispatch: React.Dispatch<EditorAction>;
+  state: EditorState;
+  note: Note;
+  settings: AppSettings;
+  onSave: (note: Note) => void;
+  onDelete: (id: string) => void;
+}

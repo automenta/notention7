@@ -5,30 +5,25 @@ import React, {
   useReducer,
   useRef,
 } from 'react';
-import { EditorApi, EditorPlugin } from '../types/editor';
+import {
+  EditorApi,
+  EditorPlugin,
+  EditorState,
+  EditorAction,
+  CreateEditorApiProps,
+} from '../types/editor';
 import { sanitizeHTML } from '../utils/sanitize';
 import * as Commands from '../utils/editorCommands';
 import { AppSettings, Note } from '../types';
 
 // --- State Management with useReducer ---
 
-interface EditorState {
-  content: string;
-  semanticModal: {
-    open: boolean;
-    type: 'tag' | 'template' | null;
-  };
-  editingWidget: HTMLElement | null;
-}
-
-type EditorAction =
-  | { type: 'SET_CONTENT'; payload: string }
-  | {
-      type: 'TOGGLE_SEMANTIC_MODAL';
-      payload: { open: boolean; type?: 'tag' | 'template' | null };
-    }
-  | { type: 'SET_EDITING_WIDGET'; payload: HTMLElement | null };
-
+/**
+ * Reducer for managing the editor's internal state.
+ * @param state - The current editor state.
+ * @param action - The dispatched action.
+ * @returns The new editor state.
+ */
 const editorReducer = (
   state: EditorState,
   action: EditorAction
@@ -50,15 +45,22 @@ const editorReducer = (
 
 // --- API Creation ---
 
-const createEditorApi = (
-  editorRef: React.RefObject<HTMLDivElement>,
-  dispatch: React.Dispatch<EditorAction>,
-  state: EditorState,
-  note: Note,
-  settings: AppSettings,
-  onSave: (note: Note) => void,
-  onDelete: (id: string) => void
-): EditorApi => {
+/**
+ * Creates the Editor API object that is passed to plugins and components.
+ * This API provides a stable interface for interacting with the editor,
+ * abstracting away the internal state management.
+ * @param props - An object containing all necessary dependencies for the API.
+ * @returns An `EditorApi` object.
+ */
+const createEditorApi = ({
+  editorRef,
+  dispatch,
+  state,
+  note,
+  settings,
+  onSave,
+  onDelete,
+}: CreateEditorApiProps): EditorApi => {
   const focus = () => editorRef.current?.focus();
 
   const execCommand = (command: string, value?: string) => {
@@ -136,6 +138,16 @@ const createEditorApi = (
   };
 };
 
+/**
+ * A comprehensive hook for managing a rich text editor with a plugin-based architecture.
+ *
+ * @param plugins - An array of `EditorPlugin` objects that extend the editor's functionality.
+ * @param note - The note object to be edited.
+ * @param settings - The application settings.
+ * @param onSave - Callback function to save the note.
+ * @param onDelete - Callback function to delete the note.
+ * @returns An object containing the editor ref, state, event handlers, and components rendered by plugins.
+ */
 export const useEditor = (
   plugins: EditorPlugin[],
   note: Note,
@@ -153,9 +165,9 @@ export const useEditor = (
 
   const [state, dispatch] = useReducer(editorReducer, initialState);
 
-  // Auto-save content changes with debounce
+  // Auto-save content changes with a debounce to avoid excessive writes.
   useEffect(() => {
-    // Prevent saving on initial mount or if content is unchanged
+    // Prevent saving on initial mount or if content is unchanged.
     if (state.content === note.content) {
       return;
     }
@@ -174,15 +186,15 @@ export const useEditor = (
 
   const editorApi: EditorApi = useMemo(
     () =>
-      createEditorApi(
+      createEditorApi({
         editorRef,
         dispatch,
         state,
         note,
         settings,
         onSave,
-        onDelete
-      ),
+        onDelete,
+      }),
     [dispatch, state, note, settings, onSave, onDelete]
   );
 
@@ -212,8 +224,10 @@ export const useEditor = (
 
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
-      // If a widget is being edited, prevent typing in the main editor.
-      // Allow navigation keys for accessibility.
+      // When a widget's popover is active (e.g., editing a property),
+      // we want to prevent keyboard input from affecting the main editor body.
+      // However, we still allow navigation keys like arrows, tab, and escape
+      // for accessibility and to allow the user to move away from the widget.
       if (state.editingWidget) {
         if (
           ![
