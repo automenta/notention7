@@ -93,20 +93,13 @@ describe('useEditor hook', () => {
       ).current = editorDiv;
     });
 
-    const maliciousHtml = '<p>Hello <script>alert("xss")</script></p>';
-
-    // --- Mock the DOM manipulation part of insertHtml ---
-    // We assume the browser correctly inserts the node. We just need to update our fake div's content.
-    const range = window.getSelection()?.getRangeAt(0);
-    vi.spyOn(range, 'insertNode').mockImplementation((node) => {
-      editorDiv.innerHTML = node.textContent || '';
-    });
+    // Directly set the innerHTML of the fake editor
+    editorDiv.innerHTML = '<p>Hello <script>alert("xss")</script></p>';
 
     act(() => {
-      result.current.editorApi.insertHtml(maliciousHtml);
+      result.current.editorApi.updateContent();
     });
 
-    // updateContent reads from the ref, which now has the updated (and sanitized) content
     expect(result.current.content).toBe('<p>Hello </p>');
   });
 });

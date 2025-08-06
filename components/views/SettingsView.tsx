@@ -220,7 +220,8 @@ export const SettingsView: React.FC = () => {
             ) : (
               <div className="text-center">
                 <p className="text-gray-400 mb-4">
-                  You don&apos;t have a Nostr identity set up on this device yet.
+                  You don&apos;t have a Nostr identity set up on this device
+                  yet.
                 </p>
                 <button
                   onClick={handleGenerateKeys}

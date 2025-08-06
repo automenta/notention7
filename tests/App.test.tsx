@@ -2,6 +2,7 @@ import { render } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import App from '../App';
 import { NotesProvider } from '../components/contexts/NotesContext';
+import { SettingsProvider } from '../components/contexts/SettingsContext';
 import { ViewProvider } from '../components/contexts/ViewContext';
 
 // Mock the context providers to avoid side effects
@@ -37,11 +38,13 @@ describe('App component', () => {
     // We don't need to assert anything about the output for a simple smoke test.
     expect(() =>
       render(
-        <NotesProvider>
-          <ViewProvider>
-            <App />
-          </ViewProvider>
-        </NotesProvider>
+        <SettingsProvider>
+          <NotesProvider>
+            <ViewProvider>
+              <App />
+            </ViewProvider>
+          </NotesProvider>
+        </SettingsProvider>
       )
     ).not.toThrow();
   });

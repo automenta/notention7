@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { EditorApi } from '../../../types/editor';
+import { EditorApi, EditorPlugin } from '../../../types/editor';
 import { TagIcon, DocumentDuplicateIcon } from '../../icons';
 import {
   SemanticInsertModal,
@@ -95,4 +95,11 @@ export const SemanticInsertModalProvider: React.FC<{
       title={modalState.type === 'tag' ? 'Insert Tag' : 'Insert Template'}
     />
   );
+};
+
+export const semanticInsertPlugin: EditorPlugin = {
+  id: 'semantic-insert',
+  name: 'Semantic Insert',
+  ToolbarComponent: SemanticInsertToolbar,
+  Modal: SemanticInsertModalProvider,
 };

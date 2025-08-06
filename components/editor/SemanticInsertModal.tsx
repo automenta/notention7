@@ -94,13 +94,16 @@ export const SemanticInsertModal: React.FC<SemanticInsertModalProps> = ({
     <div
       className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 animate-fade-in"
       onMouseDown={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="dialog-title"
     >
       <div
         className="bg-gray-800 border border-gray-600 rounded-lg shadow-2xl w-full max-w-lg flex flex-col"
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="p-4 border-b border-gray-700 flex-shrink-0">
-          <h2 className="text-lg font-semibold text-white">{title}</h2>
+          <h2 id="dialog-title" className="text-lg font-semibold text-white">{title}</h2>
           <div className="relative mt-2">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <SearchIcon className="h-5 w-5 text-gray-400" />

@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { EditorApi } from '../../../types/editor';
+import { EditorApi, EditorPlugin } from '../../../types/editor';
 import {
   BoldIcon,
   ItalicIcon,
@@ -153,4 +153,10 @@ export const ToolbarComponent: React.FC<ToolbarPluginProps> = ({
       </button>
     </div>
   );
+};
+
+export const toolbarPlugin: EditorPlugin = {
+  id: 'toolbar',
+  name: 'Toolbar',
+  ToolbarComponent: ToolbarComponent,
 };

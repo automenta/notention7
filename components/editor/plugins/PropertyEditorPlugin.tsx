@@ -1,5 +1,5 @@
 import React from 'react';
-import { EditorApi } from '../../../types/editor';
+import { EditorApi, EditorPlugin } from '../../../types/editor';
 import { PropertyEditorPopover } from '../../editor/PropertyEditorPopover';
 import { useOntologyIndex } from '../../../hooks/useOntologyIndex';
 import { formatPropertyForDisplay } from '../../../utils/properties';
@@ -76,4 +76,11 @@ export const PropertyEditor: React.FC<{ editorApi: EditorApi }> = ({
       propertyTypes={propertyTypes}
     />
   );
+};
+
+export const propertyEditorPlugin: EditorPlugin = {
+  id: 'property-editor',
+  name: 'Property Editor',
+  onClick: handleWidgetClick,
+  Popover: PropertyEditor,
 };

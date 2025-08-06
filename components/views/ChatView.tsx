@@ -117,7 +117,8 @@ export const ChatView: React.FC = () => {
           Chat Requires Nostr Account
         </h2>
         <p className="text-gray-500 mt-2">
-          Please create or configure your Nostr account in the &quot;Network&quot; tab.
+          Please create or configure your Nostr account in the
+          &quot;Network&quot; tab.
         </p>
       </div>
     );
