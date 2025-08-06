@@ -1,8 +1,10 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import { EditorApi, EditorPlugin } from '@/types/editor.ts';
-import { PropertyEditorPopover } from '../../editor/PropertyEditorPopover';
+import { PropertyEditor as NewPropertyEditor } from '../../editor/PropertyEditor';
 import { useOntologyIndex } from '@/hooks/useOntologyIndex.ts';
 import { formatPropertyForDisplay } from '@/utils/properties.ts';
+import type { Property } from '@/types.ts';
 
 // This function will be the `onClick` handler provided by the plugin.
 export const handleWidgetClick = (
@@ -39,42 +41,51 @@ export const PropertyEditor: React.FC<{ editorApi: EditorApi }> = ({
     return null;
   }
 
-  const handleSave = (
-    widgetId: string,
-    key: string,
-    operator: string,
-    values: string[]
-  ) => {
-    const editor = editorApi.editorRef.current;
-    const widget = editor?.querySelector<HTMLElement>(`#${widgetId}`);
-    if (widget) {
-      widget.dataset.key = key;
-      widget.dataset.operator = operator;
-      widget.dataset.values = JSON.stringify(values);
-      widget.innerHTML = formatPropertyForDisplay(key, operator, values);
-      editorApi.updateContent();
-    }
+  // The new editor is not a popover, so we need to render it in a portal
+  // and position it correctly. For now, let's just render it in a portal.
+  // We can refine positioning later. This is a big simplification from the
+  // old popover's internal logic.
+  const rect = editingWidget.getBoundingClientRect();
+  const popoverStyle: React.CSSProperties = {
+    position: 'fixed',
+    top: `${rect.bottom + 8}px`,
+    left: `${rect.left}px`,
+    zIndex: 50,
+  };
+
+  const initialProperty: Property = {
+    key: editingWidget.dataset.key || '',
+    operator: editingWidget.dataset.operator || 'is',
+    values: JSON.parse(editingWidget.dataset.values || '[""]'),
+  };
+
+  const handleSave = (property: Property) => {
+    const { key, operator, values } = property;
+    editingWidget.dataset.key = key;
+    editingWidget.dataset.operator = operator;
+    editingWidget.dataset.values = JSON.stringify(values);
+    editingWidget.innerHTML = formatPropertyForDisplay(key, operator, values);
+    editorApi.updateContent();
     editorApi.setEditingWidget(null);
   };
 
-  const handleDelete = (widgetId: string) => {
-    const editor = editorApi.editorRef.current;
-    const widget = editor?.querySelector(`#${widgetId}`);
-    if (widget) {
-      widget.remove();
-      editorApi.updateContent();
-    }
+  const handleDelete = () => {
+    editingWidget.remove();
+    editorApi.updateContent();
     editorApi.setEditingWidget(null);
   };
 
-  return (
-    <PropertyEditorPopover
-      widgetEl={editingWidget}
-      onSave={handleSave}
-      onDelete={handleDelete}
-      onClose={() => editorApi.setEditingWidget(null)}
-      propertyTypes={propertyTypes}
-    />
+  return ReactDOM.createPortal(
+    <div style={popoverStyle}>
+      <NewPropertyEditor
+        property={initialProperty}
+        propertyTypes={propertyTypes}
+        onSave={handleSave}
+        onDelete={handleDelete}
+        onCancel={() => editorApi.setEditingWidget(null)}
+      />
+    </div>,
+    document.body
   );
 };
 

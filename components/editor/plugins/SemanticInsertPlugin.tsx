@@ -63,26 +63,39 @@ export const SemanticInsertModalProvider: React.FC<{
     let htmlToInsert = '';
     if (modalState.type === 'tag') {
       htmlToInsert = `<span class="widget tag" contenteditable="false" data-tag="${item.label}">#${item.label}</span>&nbsp;`;
+      if (htmlToInsert) {
+        editorApi.insertHtml(htmlToInsert);
+      }
     } else if (modalState.type === 'template') {
       const template = item.template;
       if (template && template.attributes) {
+        const firstWidgetId = `widget-${crypto.randomUUID()}`;
         htmlToInsert =
           Object.keys(template.attributes)
-            .map((key) => {
+            .map((key, index) => {
               const k = key.trim();
               const v = [''];
               const op = 'is';
-              // Note: We're losing the auto-focus-on-first-widget functionality for now.
-              // This can be re-added later with a more advanced EditorApi.
-              return `<span class="widget property" contenteditable="false" data-key="${k}" data-operator="${op}" data-values='${JSON.stringify(v)}'>[${k}:is:""]</span>`;
+              const id = index === 0 ? `id="${firstWidgetId}"` : '';
+              return `<span ${id} class="widget property" contenteditable="false" data-key="${k}" data-operator="${op}" data-values='${JSON.stringify(v)}'>[${k}:is:""]</span>`;
             })
             .join(' ') + '&nbsp;';
+
+        if (htmlToInsert) {
+          editorApi.insertHtml(htmlToInsert, () => {
+            // After the HTML is inserted, find the first new widget and open the editor for it.
+            const editor = editorApi.editorRef.current;
+            if (editor) {
+              const firstWidget = editor.querySelector<HTMLElement>(`#${firstWidgetId}`);
+              if (firstWidget) {
+                editorApi.setEditingWidget(firstWidget);
+              }
+            }
+          });
+        }
       }
     }
 
-    if (htmlToInsert) {
-      editorApi.insertHtml(htmlToInsert);
-    }
     editorApi.closeSemanticInsertModal();
   };
 
