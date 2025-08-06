@@ -32,7 +32,21 @@ export const NotesView: React.FC = () => {
   const selectedNote = notes.find((note) => note.id === selectedNoteId);
 
   const handleDeleteNote = (id: string) => {
-    deleteNote(id, selectedNoteId, setSelectedNoteId);
+    // The selection logic needs to be here, not in the service
+    if (selectedNoteId === id) {
+      const remainingNotes = notes.filter((n) => n.id !== id);
+      if (remainingNotes.length > 0) {
+        // As per original logic, select the most recently updated note
+        const mostRecentNote = remainingNotes.sort(
+          (a, b) =>
+            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+        )[0];
+        setSelectedNoteId(mostRecentNote.id);
+      } else {
+        setSelectedNoteId(null);
+      }
+    }
+    deleteNote(id);
   };
 
   if (!selectedNote) {

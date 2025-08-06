@@ -68,6 +68,23 @@ export const Sidebar: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState<SortOrder>('updatedAt_desc');
 
+  const handleDeleteNote = (noteIdToDelete: string) => {
+    if (selectedNoteId === noteIdToDelete) {
+      const remainingNotes = notes.filter((n) => n.id !== noteIdToDelete);
+      if (remainingNotes.length > 0) {
+        // Select the most recently updated note
+        const mostRecentNote = remainingNotes.sort(
+          (a, b) =>
+            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+        )[0];
+        setSelectedNoteId(mostRecentNote.id);
+      } else {
+        setSelectedNoteId(null);
+      }
+    }
+    deleteNote(noteIdToDelete);
+  };
+
   const filteredNotes = useMemo(() => {
     if (!searchTerm.trim()) {
       return notes;
@@ -172,9 +189,7 @@ export const Sidebar: React.FC = () => {
               note={note}
               isSelected={selectedNoteId === note.id}
               onSelect={() => setSelectedNoteId(note.id)}
-              onDelete={() =>
-                deleteNote(note.id, selectedNoteId, setSelectedNoteId)
-              }
+              onDelete={() => handleDeleteNote(note.id)}
             />
           ))
         ) : (

@@ -102,4 +102,113 @@ describe('useEditor hook', () => {
 
     expect(result.current.content).toBe('<p>Hello </p>');
   });
+
+  describe('debounced auto-save', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      mockOnSave.mockClear();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('should not save on initial render', () => {
+      renderHook(() =>
+        useEditor([], mockNote, mockSettings, mockOnSave, mockOnDelete)
+      );
+      expect(mockOnSave).not.toHaveBeenCalled();
+    });
+
+    it('should save when content changes after debounce period', () => {
+      const { result } = renderHook(() =>
+        useEditor([], mockNote, mockSettings, mockOnSave, mockOnDelete)
+      );
+
+      const mockEvent = {
+        currentTarget: { innerHTML: '<p>New content</p>' },
+      } as unknown as React.FormEvent<HTMLDivElement>;
+
+      act(() => {
+        result.current.handleInput(mockEvent);
+      });
+
+      // Should not have saved yet
+      expect(mockOnSave).not.toHaveBeenCalled();
+
+      // Advance time by 1.5s
+      act(() => {
+        vi.advanceTimersByTime(1500);
+      });
+
+      expect(mockOnSave).toHaveBeenCalledTimes(1);
+      expect(mockOnSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          content: '<p>New content</p>',
+        })
+      );
+    });
+  });
+
+  describe('handleKeyDown', () => {
+    it('should prevent default action if a widget is being edited', () => {
+      const { result } = renderHook(() =>
+        useEditor([], mockNote, mockSettings, mockOnSave, mockOnDelete)
+      );
+
+      // Simulate a widget being edited
+      act(() => {
+        result.current.editorApi.setEditingWidget(document.createElement('div'));
+      });
+
+      const mockEvent = {
+        key: 'a',
+        preventDefault: vi.fn(),
+      } as unknown as React.KeyboardEvent<HTMLDivElement>;
+
+      act(() => {
+        result.current.handleKeyDown(mockEvent);
+      });
+
+      expect(mockEvent.preventDefault).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not prevent default for navigation keys', () => {
+      const { result } = renderHook(() =>
+        useEditor([], mockNote, mockSettings, mockOnSave, mockOnDelete)
+      );
+
+      act(() => {
+        result.current.editorApi.setEditingWidget(document.createElement('div'));
+      });
+
+      const mockEvent = {
+        key: 'ArrowLeft',
+        preventDefault: vi.fn(),
+      } as unknown as React.KeyboardEvent<HTMLDivElement>;
+
+      act(() => {
+        result.current.handleKeyDown(mockEvent);
+      });
+
+      expect(mockEvent.preventDefault).not.toHaveBeenCalled();
+    });
+
+    it('should not prevent default if no widget is being edited', () => {
+      const { result } = renderHook(() =>
+        useEditor([], mockNote, mockSettings, mockOnSave, mockOnDelete)
+      );
+
+      const mockEvent = {
+        key: 'a',
+        preventDefault: vi.fn(),
+      } as unknown as React.KeyboardEvent<HTMLDivElement>;
+
+      act(() => {
+        result.current.handleKeyDown(mockEvent);
+      });
+
+      expect(mockEvent.preventDefault).not.toHaveBeenCalled();
+    });
+  });
 });

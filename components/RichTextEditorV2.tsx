@@ -28,6 +28,7 @@ export const RichTextEditorV2: React.FC<{
     editorRef,
     handleInput,
     handleClick,
+    handleKeyDown,
     headerComponents,
     toolbarComponents,
     modalComponents,
@@ -48,9 +49,10 @@ export const RichTextEditorV2: React.FC<{
         <div
           ref={editorRef}
           className="ProseMirror"
-          contentEditable={!editorApi.getEditingWidget()} // Disable editing when popover is open
+          contentEditable={true}
           onInput={handleInput}
           onClick={handleClick}
+          onKeyDown={handleKeyDown}
           suppressContentEditableWarning={true}
           data-placeholder="Start writing..."
           dangerouslySetInnerHTML={{ __html: sanitizeHTML(note.content) }}

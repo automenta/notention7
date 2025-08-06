@@ -27,26 +27,8 @@ export const useNotes = () => {
     );
   };
 
-  const deleteNote = (
-    id: string,
-    currentSelectedId: string | null,
-    setSelectedNoteId: (id: string | null) => void
-  ) => {
-    // First, find the notes that will remain after deletion
-    const remainingNotes = notes ? notes.filter((note) => note.id !== id) : [];
-
-    // Update the persisted notes
-    setNotes(remainingNotes);
-
-    // Then, handle the selection logic
-    if (currentSelectedId === id) {
-      const sortedNotes = remainingNotes.sort(
-        (a, b) =>
-          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-      );
-      const newSelectedId = sortedNotes.length > 0 ? sortedNotes[0].id : null;
-      setSelectedNoteId(newSelectedId);
-    }
+  const deleteNote = (id: string) => {
+    setNotes((prev) => prev.filter((note) => note.id !== id));
   };
 
   return {

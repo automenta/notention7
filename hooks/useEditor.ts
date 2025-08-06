@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useReducer } from 'react';
+import React, {
+  useCallback,
+  useMemo,
+  useRef,
+  useReducer,
+  useEffect,
+} from 'react';
 import { EditorPlugin, EditorApi } from '../types/editor';
 import { sanitizeHTML } from '../utils/sanitize';
 import * as Commands from '../utils/editorCommands';
@@ -96,6 +102,7 @@ const createEditorApi = (
   const updateNote = (updatedFields: Partial<Note>) => {
     const updatedNote = {
       ...note,
+      content: state.content, // Ensure latest content is saved
       ...updatedFields,
       updatedAt: new Date().toISOString(),
     };
@@ -147,6 +154,25 @@ export const useEditor = (
 
   const [state, dispatch] = useReducer(editorReducer, initialState);
 
+  // Auto-save content changes with debounce
+  useEffect(() => {
+    // Prevent saving on initial mount or if content is unchanged
+    if (state.content === note.content) {
+      return;
+    }
+    const handler = setTimeout(() => {
+      onSave({
+        ...note,
+        content: state.content,
+        updatedAt: new Date().toISOString(),
+      });
+    }, 1000); // 1-second debounce
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [state.content, note, onSave]);
+
   const editorApi: EditorApi = useMemo(
     () =>
       createEditorApi(
@@ -185,6 +211,23 @@ export const useEditor = (
     [plugins, editorApi]
   );
 
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
+      // If a widget is being edited, prevent typing in the main editor.
+      // Allow navigation keys for accessibility.
+      if (state.editingWidget) {
+        if (
+          !['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Escape', 'Tab'].includes(
+            event.key
+          )
+        ) {
+          event.preventDefault();
+        }
+      }
+    },
+    [state.editingWidget]
+  );
+
   const toolbarComponents = useMemo(
     () => plugins.map((p) => p.ToolbarComponent).filter(Boolean),
     [plugins]
@@ -207,6 +250,7 @@ export const useEditor = (
     content: state.content,
     handleInput,
     handleClick,
+    handleKeyDown,
     toolbarComponents,
     modalComponents,
     popoverComponents,

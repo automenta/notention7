@@ -6,11 +6,7 @@ interface NotesContextType {
   notes: Note[];
   addNote: () => Note;
   updateNote: (note: Note) => void;
-  deleteNote: (
-    id: string,
-    currentSelectedId: string | null,
-    setSelectedNoteId: (id: string | null) => void
-  ) => void;
+  deleteNote: (id: string) => void;
   notesLoading: boolean;
 }
 

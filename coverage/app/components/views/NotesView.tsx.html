@@ -23,9 +23,9 @@
         <div class='clearfix'>
 
             <div class='fl pad1y space-right2'>
-                <span class="strong">18.6% </span>
+                <span class="strong">14.54% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>8/43</span>
+                <span class='fraction'>8/55</span>
             </div>
 
 
@@ -44,9 +44,9 @@
 
 
             <div class='fl pad1y space-right2'>
-                <span class="strong">18.6% </span>
+                <span class="strong">14.54% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>8/43</span>
+                <span class='fraction'>8/55</span>
             </div>
 
 
@@ -120,7 +120,21 @@
 <a name='L55'></a><a href='#L55'>55</a>
 <a name='L56'></a><a href='#L56'>56</a>
 <a name='L57'></a><a href='#L57'>57</a>
-<a name='L58'></a><a href='#L58'>58</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -153,6 +167,20 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -211,7 +239,21 @@ export const NotesView: React.FC = <span class="fstat-no" title="function not co
 <span class="cstat-no" title="statement not covered" >  const selectedNote = notes.find((note) =&gt; note.id === selectedNoteId);</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  const handleDeleteNote = (id: string) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    deleteNote(id, selectedNoteId, setSelectedNoteId);</span>
+    // The selection logic needs to be here, not in the service
+<span class="cstat-no" title="statement not covered" >    if (selectedNoteId === id) {</span>
+<span class="cstat-no" title="statement not covered" >      const remainingNotes = notes.filter((n) =&gt; n.id !== id);</span>
+<span class="cstat-no" title="statement not covered" >      if (remainingNotes.length &gt; 0) {</span>
+        // As per original logic, select the most recently updated note
+<span class="cstat-no" title="statement not covered" >        const mostRecentNote = remainingNotes.sort(</span>
+<span class="cstat-no" title="statement not covered" >          (a, b) =&gt;</span>
+<span class="cstat-no" title="statement not covered" >            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),</span>
+<span class="cstat-no" title="statement not covered" >        )[0];</span>
+<span class="cstat-no" title="statement not covered" >        setSelectedNoteId(mostRecentNote.id);</span>
+<span class="cstat-no" title="statement not covered" >      } else {</span>
+<span class="cstat-no" title="statement not covered" >        setSelectedNoteId(null);</span>
+<span class="cstat-no" title="statement not covered" >      }</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >    deleteNote(id);</span>
 <span class="cstat-no" title="statement not covered" >  };</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >  if (!selectedNote) {</span>
@@ -241,7 +283,7 @@ export const NotesView: React.FC = <span class="fstat-no" title="function not co
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-08-06T16:01:48.323Z
+                at 2025-08-06T16:39:53.149Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

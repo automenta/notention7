@@ -1,14 +1,26 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { MainView } from './components/MainView';
 import { useNotes } from './components/contexts/NotesContext';
 import { useView } from './components/contexts/ViewContext';
+import { Note } from './types';
+
+const sortNotesByDate = (notes: Note[]) => {
+  return notes
+    .slice()
+    .sort(
+      (a, b) =>
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+    );
+};
 
 const App: React.FC = () => {
   const { notes, addNote, notesLoading } = useNotes();
   const { activeView, setActiveView, selectedNoteId, setSelectedNoteId } =
     useView();
+
+  const sortedNotes = useMemo(() => sortNotesByDate(notes), [notes]);
 
   // Auto-select the most recent note on load or when switching to 'notes' view
   useEffect(() => {
@@ -16,17 +28,17 @@ const App: React.FC = () => {
       activeView === 'notes' &&
       !notesLoading &&
       selectedNoteId === null &&
-      notes.length > 0
+      sortedNotes.length > 0
     ) {
-      const sortedNotes = notes
-        .slice()
-        .sort(
-          (a, b) =>
-            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-        );
       setSelectedNoteId(sortedNotes[0].id);
     }
-  }, [notesLoading, notes, selectedNoteId, activeView, setSelectedNoteId]);
+  }, [
+    notesLoading,
+    sortedNotes,
+    selectedNoteId,
+    activeView,
+    setSelectedNoteId,
+  ]);
 
   const handleNewNote = () => {
     const newNote = addNote();
