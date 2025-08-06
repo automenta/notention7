@@ -1,145 +1,151 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import {
-  PropertyEditor,
-  handleWidgetClick,
-} from '@/components/editor/plugins/PropertyEditorPlugin';
-import type { EditorApi } from '@/types/editor';
-import { useOntologyIndex } from '@/hooks/useOntologyIndex';
+import {fireEvent, render, screen} from '@testing-library/react';
+import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {handleWidgetClick, PropertyEditor,} from '@/components/editor/plugins/PropertyEditorPlugin';
+import type {EditorApi} from '@/types/editor';
+import {useOntologyIndex} from '@/hooks/useOntologyIndex';
 
 // Mock dependencies
 vi.mock('@/hooks/useOntologyIndex');
 vi.mock('@/utils/properties', () => ({
-  formatPropertyForDisplay: (key: string, op: string, vals: string[]) =>
-    `[${key}:${op}:${vals.join(',')}]`,
+    formatPropertyForDisplay: (key: string, op: string, vals: string[]) =>
+        `[${key}:${op}:${vals.join(',')}]`,
 }));
 
 const mockSetEditingWidget = vi.fn();
 const mockUpdateContent = vi.fn();
 
 const createMockEditorApi = (editingWidget: HTMLElement | null): EditorApi => {
-  const editorDiv = document.createElement('div');
-  if (editingWidget) {
-    editorDiv.appendChild(editingWidget);
-  }
-  return {
-    getEditingWidget: () => editingWidget,
-    setEditingWidget: mockSetEditingWidget,
-    updateContent: mockUpdateContent,
-    getSettings: () => ({
-      ontology: { attributes: [], tags: [] },
-    }),
-    editorRef: {
-      current: editorDiv,
-    },
-  };
+    const editorDiv = document.createElement('div');
+    if (editingWidget) {
+        editorDiv.appendChild(editingWidget);
+    }
+    return {
+        getEditingWidget: () => editingWidget,
+        setEditingWidget: mockSetEditingWidget,
+        updateContent: mockUpdateContent,
+        getSettings: () => ({
+            ontology: {attributes: [], tags: []},
+        }),
+        editorRef: {
+            current: editorDiv,
+        },
+    };
 };
 
 describe('PropertyEditorPlugin', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    // Mock the return value for the hook
-    (useOntologyIndex as vi.Mock).mockReturnValue({
-      propertyTypes: new Map(),
-      tagTree: { children: {} },
-    });
-  });
-
-  describe('handleWidgetClick', () => {
-    it('should set editing widget when a property widget is clicked', () => {
-      const widget = document.createElement('span');
-      widget.className = 'widget property';
-      const event = {
-        target: widget,
-        preventDefault: vi.fn(),
-        stopPropagation: vi.fn(),
-      } as unknown as React.MouseEvent<HTMLDivElement>;
-      const api = createMockEditorApi(null);
-
-      const handled = handleWidgetClick(event, api);
-
-      expect(event.preventDefault).toHaveBeenCalled();
-      expect(event.stopPropagation).toHaveBeenCalled();
-      expect(mockSetEditingWidget).toHaveBeenCalledWith(widget);
-      expect(widget.id).toMatch(/^widget-/);
-      expect(handled).toBe(true);
+    beforeEach(() => {
+        vi.clearAllMocks();
+        // Mock the return value for the hook
+        (useOntologyIndex as vi.Mock).mockReturnValue({
+            propertyTypes: new Map(),
+            tagTree: {children: {}},
+        });
     });
 
-    it('should clear editing widget when clicking outside while editing', () => {
-      const editingWidget = document.createElement('span');
-      editingWidget.className = 'widget property';
-      const outsideElement = document.createElement('p');
-      const event = {
-        target: outsideElement,
-        preventDefault: vi.fn(),
-        stopPropagation: vi.fn(),
-      } as unknown as React.MouseEvent<HTMLDivElement>;
-      const api = createMockEditorApi(editingWidget);
+    describe('handleWidgetClick', () => {
+        it('should set editing widget when a property widget is clicked', () => {
+            const widget = document.createElement('span');
+            widget.className = 'widget property';
+            const event = {
+                target: widget,
+                preventDefault: vi.fn(),
+                stopPropagation: vi.fn(),
+            } as unknown as React.MouseEvent<HTMLDivElement>;
+            const api = createMockEditorApi(null);
 
-      handleWidgetClick(event, api);
+            const handled = handleWidgetClick(event, api);
 
-      expect(mockSetEditingWidget).toHaveBeenCalledWith(null);
-    });
-  });
+            expect(event.preventDefault).toHaveBeenCalled();
+            expect(event.stopPropagation).toHaveBeenCalled();
+            expect(mockSetEditingWidget).toHaveBeenCalledWith(widget);
+            expect(widget.id).toMatch(/^widget-/);
+            expect(handled).toBe(true);
+        });
 
-  describe('PropertyEditor Component', () => {
-    it('should render null if no widget is being edited', () => {
-      const api = createMockEditorApi(null);
-      const { container } = render(<PropertyEditor editorApi={api} />);
-      expect(container.firstChild).toBeNull();
-    });
+        it('should clear editing widget when clicking outside while editing', () => {
+            const editingWidget = document.createElement('span');
+            editingWidget.className = 'widget property';
+            const outsideElement = document.createElement('p');
+            const event = {
+                target: outsideElement,
+                preventDefault: vi.fn(),
+                stopPropagation: vi.fn(),
+            } as unknown as React.MouseEvent<HTMLDivElement>;
+            const api = createMockEditorApi(editingWidget);
 
-    it('should render PropertyEditorPopover when a widget is being edited', () => {
-      const widget = document.createElement('div');
-      widget.dataset.key = 'test';
-      widget.getBoundingClientRect = vi.fn().mockReturnValue({ top: 0, left: 0, bottom: 0, right: 0, width: 0, height: 0, x: 0, y: 0 });
-      const api = createMockEditorApi(widget);
+            handleWidgetClick(event, api);
 
-      render(<PropertyEditor editorApi={api} />);
-
-      // The popover is complex, so we check for a key element we know it renders, like the "Save" button.
-      expect(screen.getByText('Save')).toBeInTheDocument();
-    });
-
-    // NOTE: Testing the save/delete handlers directly is difficult because they are defined inside the component.
-    // A full integration test would be better. However, for now, we can assert on the side effects we can observe.
-    it('handleSave updates the widget in the DOM', () => {
-        const widget = document.createElement('div');
-        widget.id = 'widget-to-save';
-        widget.dataset.key = 'old-key';
-        widget.innerHTML = 'old';
-        widget.getBoundingClientRect = vi.fn().mockReturnValue({});
-        const api = createMockEditorApi(widget);
-
-        render(<PropertyEditor editorApi={api} />);
-
-        // To test handleSave, we need to get it from the props of the rendered popover.
-        // Since we can't do that easily, we'll simulate the user action that triggers it.
-        fireEvent.click(screen.getByText('Save')); // This calls onSave with the current state
-
-        expect(widget.dataset.key).toBe('old-key'); // It saves the initial state
-        expect(widget.dataset.operator).toBe('is');
-        expect(widget.dataset.values).toBe('[""]');
-        expect(widget.innerHTML).toBe('[old-key:is:]');
-        expect(mockUpdateContent).toHaveBeenCalled();
-        expect(mockSetEditingWidget).toHaveBeenCalledWith(null);
+            expect(mockSetEditingWidget).toHaveBeenCalledWith(null);
+        });
     });
 
-    it('handleDelete removes the widget from the DOM', () => {
-        const widget = document.createElement('div');
-        widget.id = 'widget-to-delete';
-        widget.getBoundingClientRect = vi.fn().mockReturnValue({});
-        const api = createMockEditorApi(widget);
+    describe('PropertyEditor Component', () => {
+        it('should render null if no widget is being edited', () => {
+            const api = createMockEditorApi(null);
+            const {container} = render(<PropertyEditor editorApi={api}/>);
+            expect(container.firstChild).toBeNull();
+        });
 
-        render(<PropertyEditor editorApi={api} />);
+        it('should render PropertyEditorPopover when a widget is being edited', () => {
+            const widget = document.createElement('div');
+            widget.dataset.key = 'test';
+            widget.getBoundingClientRect = vi.fn().mockReturnValue({
+                top: 0,
+                left: 0,
+                bottom: 0,
+                right: 0,
+                width: 0,
+                height: 0,
+                x: 0,
+                y: 0
+            });
+            const api = createMockEditorApi(widget);
 
-        fireEvent.click(screen.getByTitle('Delete Property'));
+            render(<PropertyEditor editorApi={api}/>);
 
-        expect(api.editorRef.current.contains(widget)).toBe(false);
-        expect(mockUpdateContent).toHaveBeenCalled();
-        expect(mockSetEditingWidget).toHaveBeenCalledWith(null);
+            // The popover is complex, so we check for a key element we know it renders, like the "Save" button.
+            expect(screen.getByText('Save')).toBeInTheDocument();
+        });
+
+        // NOTE: Testing the save/delete handlers directly is difficult because they are defined inside the component.
+        // A full integration test would be better. However, for now, we can assert on the side effects we can observe.
+        it('handleSave updates the widget in the DOM', () => {
+            const widget = document.createElement('div');
+            widget.id = 'widget-to-save';
+            widget.dataset.key = 'old-key';
+            widget.innerHTML = 'old';
+            widget.getBoundingClientRect = vi.fn().mockReturnValue({});
+            const api = createMockEditorApi(widget);
+
+            render(<PropertyEditor editorApi={api}/>);
+
+            // To test handleSave, we need to get it from the props of the rendered popover.
+            // Since we can't do that easily, we'll simulate the user action that triggers it.
+            fireEvent.click(screen.getByText('Save')); // This calls onSave with the current state
+
+            expect(widget.dataset.key).toBe('old-key'); // It saves the initial state
+            expect(widget.dataset.operator).toBe('is');
+            expect(widget.dataset.values).toBe('[""]');
+            expect(widget.innerHTML).toBe('[old-key:is:]');
+            expect(mockUpdateContent).toHaveBeenCalled();
+            expect(mockSetEditingWidget).toHaveBeenCalledWith(null);
+        });
+
+        it('handleDelete removes the widget from the DOM', () => {
+            const widget = document.createElement('div');
+            widget.id = 'widget-to-delete';
+            widget.getBoundingClientRect = vi.fn().mockReturnValue({});
+            const api = createMockEditorApi(widget);
+
+            render(<PropertyEditor editorApi={api}/>);
+
+            fireEvent.click(screen.getByTitle('Delete Property'));
+
+            expect(api.editorRef.current.contains(widget)).toBe(false);
+            expect(mockUpdateContent).toHaveBeenCalled();
+            expect(mockSetEditingWidget).toHaveBeenCalledWith(null);
+        });
+
     });
-
-  });
 });
