@@ -1,194 +1,120 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { vi } from 'vitest';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { DiscoveryView } from '../../../components/views/DiscoveryView';
 import * as nostrService from '../../../services/nostrService';
-import { Note, NostrEvent } from '../../../types';
+import * as ontologyHook from '../../../hooks/useOntologyIndex';
+import type { Note, NostrEvent, OntologyAttribute } from '../../../types';
 import { NotesContext } from '../../../components/contexts/notes';
-import { ViewContext } from '../../../components/contexts/view';
 import * as useNostrProfile from '../../../hooks/useNostrProfile';
 
-// Mock nostrService
-vi.mock('../../../services/nostrService', () => ({
-  findMatchingNotes: vi.fn(),
-  NOTENTION_KIND: 30019,
-}));
-
-// Mock useNostrProfile hook
+// Mocks
+vi.mock('../../../services/nostrService');
+vi.mock('../../../hooks/useOntologyIndex');
 vi.mock('../../../hooks/useNostrProfile');
 
-const findMatchingNotesSpy = nostrService.findMatchingNotes as jest.Mock;
-const useNostrProfileSpy = useNostrProfile.useNostrProfile as jest.Mock;
+const mockOntologyIndex = new Map<string, OntologyAttribute>([
+  ['looking-for', { type: 'string', operators: { real: [], imaginary: ['is'] } }],
+  ['service', { type: 'string', operators: { real: ['is'], imaginary: [] } }],
+  ['budget', { type: 'number', operators: { real: [], imaginary: ['less than'] } }],
+  ['rate', { type: 'number', operators: { real: ['is'], imaginary: [] } }],
+]);
 
-const mockNotes: Note[] = [
-  {
-    id: 'note1',
-    title: 'Looking for a web developer',
-    content: '<p>Some content</p>',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    tags: [],
-    properties: [
-      { key: 'looking-for', op: 'is', values: ['Web Development'] },
-      { key: 'budget', op: 'is', values: ['4000'] },
-    ],
-  },
-  {
-    id: 'note2',
-    title: 'My Freelance Services',
-    content: '<p>Some content</p>',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    tags: [],
-    properties: [{ key: 'service', op: 'is', values: ['Web Development'] }],
-  },
-  {
-    id: 'note3',
-    title: 'Looking for cheap services',
-    content: '<p>Some content</p>',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    tags: [],
-    properties: [{ key: 'budget', op: 'less than', values: ['5000'] }],
-  },
-];
+const mockQueryNote: Note = {
+  id: 'note1',
+  title: 'Looking for a web developer',
+  content: '',
+  createdAt: '2024-01-01T00:00:00.000Z',
+  updatedAt: '2024-01-01T00:00:00.000Z',
+  tags: [],
+  properties: [{ key: 'looking-for', operator: 'is', values: ['web-dev'] }],
+};
 
-const mockEvent: NostrEvent = {
+const matchingEvent: NostrEvent = {
   id: 'event1',
-  pubkey: 'a2fdef39a25ee7e2861d12a1491579a8af841a39038051016629471c7b8566a5',
-  created_at: Math.floor(Date.now() / 1000),
+  pubkey: 'a'.repeat(64), // Valid 64-char hex pubkey mock
   kind: 30019,
-  tags: [
-    ['d', 'remote-note-1'],
-    ['p', 'service', 'is', 'Web Development'],
-    ['p', 'price', 'is', '4000'],
-  ],
-  content: JSON.stringify({
-    title: 'Web Developer Available',
-    content: '<p>I am a web developer</p>',
-  }),
   sig: 'sig1',
+  created_at: 0,
+  tags: [['p', 'service', 'is', 'web-dev']],
+  content: JSON.stringify({ title: 'Web Dev Available', content: 'I am a dev' }),
 };
 
-const mockEvent2: NostrEvent = {
+const nonMatchingEvent: NostrEvent = {
   id: 'event2',
-  pubkey: 'b2fdef39a25ee7e2861d12a1491579a8af841a39038051016629471c7b8566a5',
-  created_at: Math.floor(Date.now() / 1000),
+  pubkey: 'b'.repeat(64), // Valid 64-char hex pubkey mock
   kind: 30019,
-  tags: [['d', 'remote-note-2'], ['p', 'price', 'is', '4500']],
-  content: JSON.stringify({
-    title: 'My Cheap Service',
-    content: '<p>A cheap service</p>',
-  }),
   sig: 'sig2',
+  created_at: 0,
+  tags: [['p', 'service', 'is', 'mobile-dev']],
+  content: JSON.stringify({ title: 'Mobile Dev Available', content: '...' }),
 };
 
-
-// A test wrapper to provide the necessary contexts
-const DiscoveryViewTestWrapper: React.FC<{notes?: Note[]}> = ({notes = mockNotes}) => {
-  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
-  return (
-    <NotesContext.Provider value={{ notes } as any}>
-      <ViewContext.Provider value={{ selectedNoteId, setSelectedNoteId } as any}>
-        <DiscoveryView />
-      </ViewContext.Provider>
-    </NotesContext.Provider>
-  );
-};
+const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <NotesContext.Provider value={{ notes: [mockQueryNote] } as any}>
+    {children}
+  </NotesContext.Provider>
+);
 
 describe('DiscoveryView', () => {
   beforeEach(() => {
-    findMatchingNotesSpy.mockResolvedValue([mockEvent]);
-    useNostrProfileSpy.mockReturnValue({});
+    vi.mocked(ontologyHook.useOntologyIndex).mockReturnValue({
+      ontologyIndex: mockOntologyIndex,
+    } as any);
+    vi.mocked(useNostrProfile.useNostrProfile).mockReturnValue({});
+    vi.mocked(nostrService.findMatchingNotes).mockResolvedValue([
+      matchingEvent,
+      nonMatchingEvent,
+    ]);
+  });
+
+  afterEach(() => {
     vi.clearAllMocks();
   });
 
-  it('renders the note list initially', () => {
-    render(<DiscoveryViewTestWrapper />);
-    expect(
-      screen.getByText('Select one of your notes to find semantically related notes from the network.')
-    ).toBeInTheDocument();
+  it('renders the note list and allows selection', async () => {
+    render(<DiscoveryView />, { wrapper: TestWrapper });
     expect(screen.getByText('Looking for a web developer')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Looking for a web developer'));
+    expect(
+      await screen.findByText(/Finding notes related to/),
+    ).toBeInTheDocument();
   });
 
-  it('shows search criteria when a note is selected', async () => {
-    render(<DiscoveryViewTestWrapper />);
-
-    // Simulate selecting a note
+  it('displays search criteria and allows searching', async () => {
+    render(<DiscoveryView />, { wrapper: TestWrapper });
     fireEvent.click(screen.getByText('Looking for a web developer'));
 
-    expect(await screen.findByText('Search Criteria')).toBeInTheDocument();
+    const searchButton = await screen.findByRole('button', {
+      name: /Find Matching Notes/i,
+    });
+    expect(searchButton).not.toBeDisabled();
+
+    // Check that the summary is rendered, using the mapped key 'service'
     expect(screen.getByText('service')).toBeInTheDocument();
-    expect(screen.getAllByText('is')).toHaveLength(2);
-    expect(screen.getByText('Web Development')).toBeInTheDocument();
+    expect(screen.getByText('is')).toBeInTheDocument();
+    expect(screen.getByText('web-dev')).toBeInTheDocument();
+
+    fireEvent.click(searchButton);
+    expect(screen.getByText('Searching...')).toBeInTheDocument();
   });
 
-  it('calls findMatchingNotes with the correct filter', async () => {
-    render(<DiscoveryViewTestWrapper />);
-
+  it('displays correctly filtered results after searching', async () => {
+    render(<DiscoveryView />, { wrapper: TestWrapper });
     fireEvent.click(screen.getByText('Looking for a web developer'));
 
-    const searchButton = await screen.findByRole('button', { name: /Find Matching Notes/i });
+    const searchButton = await screen.findByRole('button', {
+      name: /Find Matching Notes/i,
+    });
     fireEvent.click(searchButton);
 
-    await waitFor(() => {
-      expect(findMatchingNotesSpy).toHaveBeenCalledWith({
-        kinds: [nostrService.NOTENTION_KIND],
-        limit: 200,
-        '#p': [
-          ['service', 'is', 'Web Development'],
-          ['price', 'is', '4000'],
-        ],
-      });
-    });
-  });
-
-  it('displays results after searching', async () => {
-    render(<DiscoveryViewTestWrapper />);
-
-    fireEvent.click(screen.getByText('Looking for a web developer'));
-
-    const searchButton = await screen.findByRole('button', { name: /Find Matching Notes/i });
-    fireEvent.click(searchButton);
-
-    await waitFor(() => {
-      expect(screen.getByText('Found 1 matching note(s)')).toBeInTheDocument();
-      expect(screen.getByText('Web Developer Available')).toBeInTheDocument();
-      expect(screen.getByText('I am a web developer')).toBeInTheDocument();
-    });
-  });
-
-  it('highlights the matching properties in the result card', async () => {
-    render(<DiscoveryViewTestWrapper />);
-
-    fireEvent.click(screen.getByText('Looking for a web developer'));
-
-    const searchButton = await screen.findByRole('button', { name: /Find Matching Notes/i });
-    fireEvent.click(searchButton);
-
-    await waitFor(() => {
-      expect(screen.getByText('Matching Properties')).toBeInTheDocument();
-      expect(
-        screen.getByText('service:is:Web Development')
-      ).toBeInTheDocument();
-    });
-  });
-
-  it('finds notes with "less than" operator', async () => {
-    findMatchingNotesSpy.mockResolvedValue([mockEvent, mockEvent2]);
-    render(<DiscoveryViewTestWrapper notes={[mockNotes[2]]} />);
-
-    fireEvent.click(screen.getByText('Looking for cheap services'));
-
-    const searchButton = await screen.findByRole('button', { name: /Find Matching Notes/i });
-    fireEvent.click(searchButton);
-
-    await waitFor(() => {
-      const results = screen.getAllByTestId('nostr-event-card');
-      expect(results).toHaveLength(2);
-      expect(screen.getByText('Found 2 matching note(s)')).toBeInTheDocument();
-      expect(screen.getByText('My Cheap Service')).toBeInTheDocument();
-      expect(screen.getByText('Web Developer Available')).toBeInTheDocument();
-    });
+    // After searching, only the matching event should be rendered
+    expect(
+      await screen.findByText('Found 1 matching note(s)'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Web Dev Available')).toBeInTheDocument();
+    expect(
+      screen.queryByText('Mobile Dev Available'),
+    ).not.toBeInTheDocument();
   });
 });

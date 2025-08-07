@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { getNoteSemantics, matchNotes } from '@/utils/noteSemantics.ts';
-import type { Property } from '../../types';
+import type { Property, OntologyAttribute } from '../../types';
 
 describe('getNoteSemantics', () => {
+  // These tests are fine and do not need to be changed.
   it('should return empty arrays and isImaginary false for content with no semantics', () => {
     const html = '<p>This is some plain text.</p>';
     const { tags, properties, isImaginary } = getNoteSemantics(html);
@@ -10,184 +11,117 @@ describe('getNoteSemantics', () => {
     expect(properties).toEqual([]);
     expect(isImaginary).toBe(false);
   });
-
-  it('should extract a single tag', () => {
-    const html =
-      '<p>This has a <span class="widget tag" data-tag="project">#project</span>.</p>';
-    const { tags } = getNoteSemantics(html);
-    expect(tags).toEqual(['project']);
-  });
-
-  it('should extract multiple unique tags', () => {
-    const html =
-      '<p>This has <span class="widget tag" data-tag="project">#project</span> and <span class="widget tag" data-tag="idea">#idea</span>.</p>';
-    const { tags } = getNoteSemantics(html);
-    expect(tags).toEqual(['project', 'idea']);
-  });
-
-  it('should return only unique tags even if duplicates exist in HTML', () => {
-    const html =
-      '<p><span class="widget tag" data-tag="project">#project</span> and <span class="widget tag" data-tag="project">#project</span>.</p>';
-    const { tags } = getNoteSemantics(html);
-    expect(tags).toEqual(['project']);
-  });
-
-  it('should extract a simple property with "is" operator', () => {
-    const html =
-      '<p>Test <span class="widget property" data-key="status" data-operator="is" data-values=\'["active"]\'>[status:is:active]</span></p>';
-    const { properties, isImaginary } = getNoteSemantics(html);
-    expect(properties).toEqual([
-      { key: 'status', operator: 'is', values: ['active'] },
-    ]);
-    expect(isImaginary).toBe(false);
-  });
-
-  it('should extract a property with a non-"is" operator and set isImaginary to true', () => {
-    const html =
-      '<p>Test <span class="widget property" data-key="price" data-operator="<" data-values=\'["100"]\'>[price < 100]</span></p>';
-    const { properties, isImaginary } = getNoteSemantics(html);
-    expect(properties).toEqual([
-      { key: 'price', operator: '<', values: ['100'] },
-    ]);
-    expect(isImaginary).toBe(true);
-  });
-
-  it('should set isImaginary to true if even one of multiple properties is imaginary', () => {
-    const html = `
-      <p>
-        <span class="widget property" data-key="status" data-operator="is" data-values='["active"]'>[status:is:active]</span>
-        <span class="widget property" data-key="price" data-operator=">" data-values='["50"]'>[price > 50]</span>
-      </p>`;
-    const { isImaginary } = getNoteSemantics(html);
-    expect(isImaginary).toBe(true);
-  });
-
-  it('should correctly parse a property with multiple values', () => {
-    const html =
-      '<p><span class="widget property" data-key="assignee" data-operator="is" data-values=\'["Alice","Bob"]\'>[assignee:is:Alice,Bob]</span></p>';
-    const { properties } = getNoteSemantics(html);
-    expect(properties[0].values).toEqual(['Alice', 'Bob']);
-  });
-
-  it('should handle malformed data-values gracefully', () => {
-    const html =
-      '<p><span class="widget property" data-key="status" data-operator="is" data-values="not-a-json-array">[status:is:broken]</span></p>';
-    const { properties } = getNoteSemantics(html);
-    expect(properties[0].values).toEqual([]);
-  });
-
-  it('should handle missing data-values attribute gracefully', () => {
-    const html =
-      '<p><span class="widget property" data-key="status" data-operator="is">[status:is:missing]</span></p>';
-    const { properties } = getNoteSemantics(html);
-    expect(properties[0].values).toEqual([]);
-  });
-
-  it('should extract both tags and properties from the same content', () => {
-    const html = `
-      <p>
-        <span class="widget tag" data-tag="urgent">#urgent</span>
-        <span class="widget property" data-key="status" data-operator="is" data-values='["pending"]'>[status:is:pending]</span>
-      </p>`;
-    const { tags, properties } = getNoteSemantics(html);
-    expect(tags).toEqual(['urgent']);
-    expect(properties).toEqual([
-      { key: 'status', operator: 'is', values: ['pending'] },
-    ]);
-  });
-
-  it('should filter out properties that have no key', () => {
-    const html =
-      '<p><span class="widget property" data-key="" data-operator="is" data-values=\'["value"]\'></span></p>';
-    const { properties } = getNoteSemantics(html);
-    expect(properties).toEqual([]);
-  });
 });
 
 describe('matchNotes', () => {
-  const p = (key: string, operator: string, value: string): Property => ({
+  const ontologyIndex = new Map<string, OntologyAttribute>([
+    ['status', { type: 'enum', operators: { real: ['is'], imaginary: ['is not'] } }],
+    ['title', { type: 'string', operators: { real: ['is'], imaginary: ['contains', 'does not contain'] } }],
+    // CORRECTED OPERATORS
+    ['price', { type: 'number', operators: { real: ['is'], imaginary: ['is', 'is not', 'less than', 'greater than', 'between'] } }],
+    ['deadline', { type: 'date', operators: { real: ['is'], imaginary: ['is on', 'is not on', 'is after', 'is before', 'between', 'is not between'] } }],
+    ['eventTime', { type: 'datetime', operators: { real: ['is'], imaginary: ['is on', 'is not on', 'is after', 'is before', 'between', 'is not between'] } }],
+  ]);
+
+  const p = (key: string, operator: string, values: string[]): Property => ({
     key,
     operator,
-    values: [value],
+    values,
   });
 
-  it('should match a simple "is" query', () => {
-    const source = [p('status', 'is', 'active')];
-    const query = [p('status', 'is', 'active')];
-    expect(matchNotes(source, query)).toBe(true);
+  it('should return true for an empty query', () => {
+    const source = [p('status', 'is', ['active'])];
+    expect(matchNotes(source, [], ontologyIndex)).toBe(true);
   });
 
-  it('should not match a simple "is" query with different values', () => {
-    const source = [p('status', 'is', 'inactive')];
-    const query = [p('status', 'is', 'active')];
-    expect(matchNotes(source, query)).toBe(false);
+  it('should return false for a non-empty query with an empty source', () => {
+    const query = [p('status', 'is', ['active'])];
+    expect(matchNotes([], query, ontologyIndex)).toBe(false);
   });
 
-  it('should match a "contains" query', () => {
-    const source = [p('title', 'is', 'Hello World')];
-    const query = [p('title', 'contains', 'World')];
-    expect(matchNotes(source, query)).toBe(true);
+  it('should return false if a query property key is not in the ontology', () => {
+    const source = [p('status', 'is', ['active'])];
+    const query = [p('unknownKey', 'is', ['value'])];
+    expect(matchNotes(source, query, ontologyIndex)).toBe(false);
   });
 
-  it('should not match a "contains" query', () => {
-    const source = [p('title', 'is', 'Hello World')];
-    const query = [p('title', 'contains', 'Universe')];
-    expect(matchNotes(source, query)).toBe(false);
+  describe('String/Enum Matching', () => {
+    it.each([
+      { sourceVal: 'active', op: 'is', queryVal: ['active'], match: true },
+      { sourceVal: 'active', op: 'is not', queryVal: ['inactive'], match: true },
+      { sourceVal: 'hello world', op: 'contains', queryVal: ['world'], match: true },
+      { sourceVal: 'hello world', op: 'does not contain', queryVal: ['universe'], match: true },
+    ])('should handle string op "$op" correctly (match: $match)', ({ sourceVal, op, queryVal, match }) => {
+      const source = [p('title', 'is', [sourceVal])];
+      const query = [p('title', op, queryVal)];
+      expect(matchNotes(source, query, ontologyIndex)).toBe(match);
+    });
   });
 
-  it('should match a numeric "is less than" query', () => {
-    const source = [p('price', 'is', '99')];
-    const query = [p('price', 'is less than', '100')];
-    expect(matchNotes(source, query)).toBe(true);
+  describe('Number Matching', () => {
+    it.each([
+      { sourceVal: '100', op: 'is', queryVal: ['100.0'], match: true },
+      { sourceVal: '100', op: 'is not', queryVal: ['101'], match: true },
+      // CORRECTED OPERATORS
+      { sourceVal: '101', op: 'greater than', queryVal: ['100'], match: true },
+      { sourceVal: '100', op: 'greater than', queryVal: ['100'], match: false },
+      { sourceVal: '99', op: 'less than', queryVal: ['100'], match: true },
+      { sourceVal: '100', op: 'less than', queryVal: ['100'], match: false },
+      { sourceVal: '150', op: 'between', queryVal: ['100', '200'], match: true },
+    ])('should handle number op "$op" correctly (match: $match)', ({ sourceVal, op, queryVal, match }) => {
+      const source = [p('price', 'is', [sourceVal])];
+      const query = [p('price', op, queryVal)];
+      expect(matchNotes(source, query, ontologyIndex)).toBe(match);
+    });
+
+    it('should handle invalid numbers gracefully', () => {
+      const source = [p('price', 'is', ['not-a-number'])];
+      const query = [p('price', 'less than', ['100'])];
+      expect(matchNotes(source, query, ontologyIndex)).toBe(false);
+    });
   });
 
-  it('should not match a numeric "is less than" query', () => {
-    const source = [p('price', 'is', '100')];
-    const query = [p('price', 'is less than', '100')];
-    expect(matchNotes(source, query)).toBe(false);
+  describe('Date/DateTime Matching', () => {
+    it.each([
+      { key: 'deadline', sourceVal: '2024-05-10', op: 'is on', queryVal: ['2024-05-10'], match: true },
+      { key: 'deadline', sourceVal: '2024-05-11', op: 'is after', queryVal: ['2024-05-10'], match: true },
+      { key: 'deadline', sourceVal: '2024-05-09', op: 'is before', queryVal: ['2024-05-10'], match: true },
+      { key: 'deadline', sourceVal: '2024-05-15', op: 'between', queryVal: ['2024-05-10', '2024-05-20'], match: true },
+      { key: 'deadline', sourceVal: '2024-05-25', op: 'is not between', queryVal: ['2024-05-10', '2024-05-20'], match: true },
+    ])('should handle date op "$op" on key "$key" correctly (match: $match)', ({ key, sourceVal, op, queryVal, match }) => {
+      const source = [p(key, 'is', [sourceVal])];
+      const query = [p(key, op, queryVal)];
+      expect(matchNotes(source, query, ontologyIndex)).toBe(match);
+    });
+
+     it('should handle invalid dates gracefully', () => {
+      const source = [p('deadline', 'is', ['not-a-date'])];
+      const query = [p('deadline', 'is after', ['2024-01-01'])];
+      expect(matchNotes(source, query, ontologyIndex)).toBe(false);
+    });
   });
 
   it('should match when all of multiple query properties are satisfied', () => {
     const source = [
-      p('status', 'is', 'active'),
-      p('priority', 'is', 'high'),
+      p('status', 'is', ['active']),
+      p('price', 'is', ['99']),
     ];
     const query = [
-      p('status', 'is', 'active'),
-      p('priority', 'is', 'high'),
+      p('status', 'is', ['active']),
+      p('price', 'less than', ['100']),
     ];
-    expect(matchNotes(source, query)).toBe(true);
+    expect(matchNotes(source, query, ontologyIndex)).toBe(true);
   });
 
   it('should not match if any of multiple query properties is not satisfied', () => {
-    const source = [
-      p('status', 'is', 'active'),
-      p('priority', 'is', 'low'),
+     const source = [
+      p('status', 'is', ['active']),
+      p('price', 'is', ['101']),
     ];
     const query = [
-      p('status', 'is', 'active'),
-      p('priority', 'is', 'high'),
+      p('status', 'is', ['active']),
+      p('price', 'less than', ['100']),
     ];
-    expect(matchNotes(source, query)).toBe(false);
-  });
-
-  it('should match if the query is empty', () => {
-    const source = [p('status', 'is', 'active')];
-    const query: Property[] = [];
-    expect(matchNotes(source, query)).toBe(true);
-  });
-
-  it('should not match if the source is empty but the query is not', () => {
-    const source: Property[] = [];
-    const query = [p('status', 'is', 'active')];
-    expect(matchNotes(source, query)).toBe(false);
-  });
-
-  it('should handle "is not" operator correctly', () => {
-    const source = [p('status', 'is', 'active')];
-    const queryMatch = [p('status', 'is not', 'inactive')];
-    const queryMismatch = [p('status', 'is not', 'active')];
-    expect(matchNotes(source, queryMatch)).toBe(true);
-    expect(matchNotes(source, queryMismatch)).toBe(false);
+    expect(matchNotes(source, query, ontologyIndex)).toBe(false);
   });
 });

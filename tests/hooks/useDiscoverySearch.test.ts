@@ -1,45 +1,91 @@
-import { renderHook, act } from '@testing-library/react';
-import { vi } from 'vitest';
+import { renderHook, act, waitFor } from '@testing-library/react';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { useDiscoverySearch } from '../../hooks/useDiscoverySearch';
 import * as nostrService from '../../services/nostrService';
-import type { Note } from '../../types';
+import * as ontologyHook from '../../hooks/useOntologyIndex';
+import type { Note, NostrEvent, OntologyAttribute } from '../../types';
 
-// Mock the nostrService to avoid actual network calls
-vi.mock('../../services/nostrService', () => ({
-  findMatchingNotes: vi.fn().mockResolvedValue([]), // Return an empty array to avoid filter error
-  NOTENTION_KIND: 30019,
-}));
+// Mock services and hooks
+vi.mock('../../services/nostrService');
+vi.mock('../../hooks/useOntologyIndex');
 
-const mockNote: Note = {
-  id: 'note1',
-  title: 'Test Note',
-  content: 'This is a test note',
+const mockOntologyIndex = new Map<string, OntologyAttribute>([
+  ['service', { type: 'string', operators: { real: ['is'], imaginary: ['is'] } }],
+  ['price', { type: 'number', operators: { real: ['is'], imaginary: ['less than'] } }],
+]);
+
+const mockQueryNote: Note = {
+  id: 'query-note',
+  title: 'Looking for a dev',
+  content: '',
   tags: [],
   properties: [
-    { key: 'service', op: 'is', values: ['web-design'] },
-    { key: 'budget', op: 'less than', values: ['5000'] },
+    { key: 'looking-for', operator: 'is', values: ['web-dev'] },
+    { key: 'budget', operator: 'less than', values: ['100'] },
   ],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  createdAt: '2024-01-01T00:00:00.000Z',
+  updatedAt: '2024-01-01T00:00:00.000Z',
+};
+
+// This event should match the query
+const matchingEvent: NostrEvent = {
+  id: 'matching-event',
+  pubkey: 'a'.repeat(64),
+  created_at: Math.floor(Date.now() / 1000),
+  kind: 30019,
+  tags: [
+    ['p', 'service', 'is', 'web-dev'], // 'looking-for' maps to 'service'
+    ['p', 'price', 'is', '90'],         // 'budget' maps to 'price', and 90 < 100
+  ],
+  content: JSON.stringify({ title: 'Web Dev Available', content: '...' }),
+  sig: 'sig1',
+};
+
+// This event should NOT match (price is too high)
+const nonMatchingEvent: NostrEvent = {
+  id: 'non-matching-event',
+  pubkey: 'b'.repeat(64),
+  created_at: Math.floor(Date.now() / 1000),
+  kind: 30019,
+  tags: [
+    ['p', 'service', 'is', 'web-dev'],
+    ['p', 'price', 'is', '200'], // 200 is not less than 100
+  ],
+  content: JSON.stringify({ title: 'Expensive Dev', content: '...' }),
+  sig: 'sig2',
 };
 
 describe('useDiscoverySearch', () => {
-  it('should construct the correct filter and call findMatchingNotes', async () => {
-    const { result } = renderHook(() => useDiscoverySearch(mockNote, []));
+  beforeEach(() => {
+    vi.mocked(ontologyHook.useOntologyIndex).mockReturnValue({
+      ontologyIndex: mockOntologyIndex,
+    } as any);
+
+    vi.mocked(nostrService.findMatchingNotes).mockResolvedValue([
+      matchingEvent,
+      nonMatchingEvent,
+    ]);
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should return only the notes that match the query after client-side filtering', async () => {
+    const { result } = renderHook(() => useDiscoverySearch(mockQueryNote, []));
+
+    // Wait for the useEffect to run and set the criteria
+    await waitFor(() => {
+      expect(result.current.searchCriteria.length).toBeGreaterThan(0);
+    });
 
     await act(async () => {
       await result.current.handleSearch();
     });
 
-    const expectedFilter = {
-      kinds: [30019],
-      '#p': [
-        ['service', 'is', 'web-design'],
-        ['price'], // 'budget' is mapped to 'price'
-      ],
-      limit: 200,
-    };
-
-    expect(nostrService.findMatchingNotes).toHaveBeenCalledWith(expectedFilter);
+    await waitFor(() => {
+      expect(result.current.results).toHaveLength(1);
+      expect(result.current.results[0].id).toBe('matching-event');
+    });
   });
 });

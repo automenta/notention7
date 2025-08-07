@@ -79,12 +79,32 @@ export const DEFAULT_ONTOLOGY: OntologyNode[] = [
       startDateTime: {
         type: 'datetime',
         description: 'The start date and time',
-        operators: { real: ['is'], imaginary: ['is after', 'is before'] },
+        operators: {
+          real: ['is'],
+          imaginary: [
+            'is on',
+            'is not on',
+            'is after',
+            'is before',
+            'is between',
+            'is not between',
+          ],
+        },
       },
       endDateTime: {
         type: 'datetime',
         description: 'The end date and time',
-        operators: { real: ['is'], imaginary: ['is after', 'is before'] },
+        operators: {
+          real: ['is'],
+          imaginary: [
+            'is on',
+            'is not on',
+            'is after',
+            'is before',
+            'is between',
+            'is not between',
+          ],
+        },
       },
       venue: {
         type: 'string',
@@ -116,7 +136,17 @@ export const DEFAULT_ONTOLOGY: OntologyNode[] = [
           deadline: {
             type: 'date',
             description: 'The date the project is due.',
-            operators: { real: ['is'], imaginary: ['is after', 'is before'] },
+            operators: {
+              real: ['is'],
+              imaginary: [
+                'is on',
+                'is not on',
+                'is after',
+                'is before',
+                'is between',
+                'is not between',
+              ],
+            },
           },
         },
       },
@@ -134,7 +164,17 @@ export const DEFAULT_ONTOLOGY: OntologyNode[] = [
           dueDate: {
             type: 'date',
             description: 'The date the task should be completed by.',
-            operators: { real: ['is'], imaginary: ['is after', 'is before'] },
+            operators: {
+              real: ['is'],
+              imaginary: [
+                'is on',
+                'is not on',
+                'is after',
+                'is before',
+                'is between',
+                'is not between',
+              ],
+            },
           },
           completed: {
             type: 'enum',
@@ -158,7 +198,17 @@ export const DEFAULT_ONTOLOGY: OntologyNode[] = [
         attributes: {
           startDateTime: {
             type: 'datetime',
-            operators: { real: ['is'], imaginary: ['is after', 'is before'] },
+            operators: {
+              real: ['is'],
+              imaginary: [
+                'is on',
+                'is not on',
+                'is after',
+                'is before',
+                'is between',
+                'is not between',
+              ],
+            },
           },
           attendees: {
             type: 'string',
@@ -209,7 +259,17 @@ export const DEFAULT_ONTOLOGY: OntologyNode[] = [
           },
           deadline: {
             type: 'date',
-            operators: { real: ['is'], imaginary: ['is after', 'is before'] },
+            operators: {
+              real: ['is'],
+              imaginary: [
+                'is on',
+                'is not on',
+                'is after',
+                'is before',
+                'is between',
+                'is not between',
+              ],
+            },
           },
           budget: {
             type: 'number',

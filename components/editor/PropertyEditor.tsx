@@ -83,7 +83,8 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
 
   const renderValueInput = () => {
     const type = attributeType?.type || 'string';
-    const numInputs = operator === 'between' ? 2 : 1;
+    const numInputs =
+      operator === 'between' || operator === 'is not between' ? 2 : 1;
 
     return Array.from({ length: numInputs }).map((_, index) => {
       const value = values[index] || '';

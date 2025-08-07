@@ -202,4 +202,59 @@ describe('PropertyEditor', () => {
       values: ['New Value'],
     });
   });
+
+  it('renders two value inputs when operator is "between"', () => {
+    const property: Property = {
+      key: 'age',
+      operator: 'is', // Start with 'is'
+      values: ['25'],
+    };
+    render(
+      <PropertyEditor
+        property={property}
+        propertyTypes={mockPropertyTypes}
+        onSave={onSave}
+        onCancel={onCancel}
+      />,
+    );
+
+    // Initially, there should be one input
+    expect(screen.getAllByTestId('number-input')).toHaveLength(1);
+
+    // Change the operator to 'between'
+    fireEvent.change(screen.getByDisplayValue('is'), {
+      target: { value: 'between' },
+    });
+
+    // Now there should be two inputs
+    expect(screen.getAllByTestId('number-input')).toHaveLength(2);
+  });
+
+  it('saves two values when operator is "between"', () => {
+    const property: Property = {
+      key: 'age',
+      operator: 'between',
+      values: ['20', '30'],
+    };
+    render(
+      <PropertyEditor
+        property={property}
+        propertyTypes={mockPropertyTypes}
+        onSave={onSave}
+        onCancel={onCancel}
+      />,
+    );
+
+    const inputs = screen.getAllByTestId('number-input');
+    fireEvent.change(inputs[0], { target: { value: '25' } });
+    fireEvent.change(inputs[1], { target: { value: '35' } });
+
+    fireEvent.click(screen.getByText('Save'));
+
+    expect(onSave).toHaveBeenCalledWith({
+      key: 'age',
+      operator: 'between',
+      values: ['25', '35'],
+    });
+  });
 });

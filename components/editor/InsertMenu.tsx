@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { InsertMenuItem } from '@/hooks/useInsertMenuItems';
 import { TagIcon, DocumentDuplicateIcon, ListUlIcon } from '../icons';
 
@@ -20,15 +20,57 @@ export const InsertMenu: React.FC<{
   onSelect: (item: InsertMenuItem) => void;
 }> = ({ items, onSelect }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const listRef = useRef<HTMLDivElement>(null);
 
   const filteredItems = useMemo(() => {
     if (!searchTerm) return items;
     return items.filter((item) =>
-      item.label.toLowerCase().includes(searchTerm.toLowerCase())
+      item.label.toLowerCase().includes(searchTerm.toLowerCase()),
     );
   }, [items, searchTerm]);
 
-  // TODO: Add keyboard navigation (arrow keys, enter, escape)
+  // Reset index when search term or items change
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [searchTerm, items]);
+
+  // Keyboard navigation handler
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (filteredItems.length === 0) return;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedIndex((prev) => (prev + 1) % filteredItems.length);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedIndex(
+          (prev) => (prev - 1 + filteredItems.length) % filteredItems.length,
+        );
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (filteredItems[selectedIndex]) {
+          onSelect(filteredItems[selectedIndex]);
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [filteredItems, selectedIndex, onSelect]);
+
+  // Scroll active item into view
+  useEffect(() => {
+    const selectedItem = listRef.current?.children[selectedIndex] as HTMLElement;
+    if (selectedItem) {
+      selectedItem.scrollIntoView({
+        block: 'nearest',
+      });
+    }
+  }, [selectedIndex, filteredItems]);
 
   return (
     <div className="bg-gray-800 border border-gray-700 rounded-lg shadow-xl w-80 text-sm">
@@ -42,13 +84,19 @@ export const InsertMenu: React.FC<{
           autoFocus
         />
       </div>
-      <div className="max-h-80 overflow-y-auto">
+      <div ref={listRef} className="max-h-80 overflow-y-auto">
         {filteredItems.length > 0 ? (
-          filteredItems.map((item) => (
+          filteredItems.map((item, index) => (
             <div
               key={item.id}
+              data-testid={`insert-menu-item-${item.id}`}
               onClick={() => onSelect(item)}
-              className={`flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-gray-700/50`}
+              onMouseEnter={() => setSelectedIndex(index)}
+              className={`flex items-center gap-3 px-3 py-2 cursor-pointer rounded-md mx-1 ${
+                index === selectedIndex
+                  ? 'bg-blue-600 hover:bg-blue-700'
+                  : 'hover:bg-gray-700/50'
+              }`}
             >
               <TypeIcon type={item.type} />
               <div className="flex-grow">
