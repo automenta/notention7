@@ -76,6 +76,32 @@ export type View =
   | 'settings'
   | 'map';
 
+// --- Content Model Types ---
+
+export type TextNode = {
+  type: 'text';
+  content: string;
+};
+
+export type TagWidgetNode = {
+  type: 'widget';
+  kind: 'tag';
+  tag: string;
+};
+
+export type PropertyWidgetNode = {
+  type: 'widget';
+  kind: 'property';
+  id: string; // For referencing the widget
+  key: string;
+  operator: string;
+  values: unknown[];
+};
+
+export type WidgetNode = TagWidgetNode | PropertyWidgetNode;
+
+export type ContentNode = TextNode | WidgetNode;
+
 // --- Editor Types ---
 
 export interface EditorApi {
@@ -84,13 +110,16 @@ export interface EditorApi {
   toggleBlock: (tag: string) => void;
   queryCommandState: (command: string) => boolean;
   getSelectionParent: () => HTMLElement | null;
-  insertHtml: (html: string, callback?: () => void) => void;
+  insertHtml: (html: string) => void;
   getNote: () => Note;
   getSettings: () => AppSettings;
   // For property editor popover
   setEditingWidget: (element: HTMLElement | null) => void;
   getEditingWidget: () => HTMLElement | null;
-  updateContent: () => void;
+  syncViewToModel: () => void;
+  updateWidget: (widgetId: string, data: Partial<PropertyWidgetNode>) => void;
+  deleteWidget: (widgetId: string) => void;
+  scheduleWidgetEdit: (widgetId: string) => void;
   // For header plugin
   updateNote: (updatedFields: Partial<Note>) => void;
   deleteNote: () => void;

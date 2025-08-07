@@ -2,7 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { PropertyEditor as PropertyEditorForm } from '../PropertyEditor';
 import { useOntologyIndex } from '../../../hooks/useOntologyIndex';
-import { formatPropertyForDisplay } from '../../../utils/properties';
 import type { EditorApi, Property } from '../../../types';
 
 export const PropertyEditorPopover: React.FC<{ editorApi: EditorApi }> = ({
@@ -16,18 +15,6 @@ export const PropertyEditorPopover: React.FC<{ editorApi: EditorApi }> = ({
     return null;
   }
 
-  // The new editor is not a popover, so we need to render it in a portal
-  // and position it correctly. For now, let's just render it in a portal.
-  // We can refine positioning later. This is a big simplification from the
-  // old popover's internal logic.
-  const rect = editingWidget.getBoundingClientRect();
-  const popoverStyle: React.CSSProperties = {
-    position: 'fixed',
-    top: `${rect.bottom + 8}px`,
-    left: `${rect.left}px`,
-    zIndex: 50,
-  };
-
   const initialProperty: Property = {
     key: editingWidget.dataset.key || '',
     operator: editingWidget.dataset.operator || 'is',
@@ -35,24 +22,37 @@ export const PropertyEditorPopover: React.FC<{ editorApi: EditorApi }> = ({
   };
 
   const handleSave = (property: Property) => {
+    if (!editingWidget?.id) return;
     const { key, operator, values } = property;
-    // Update the dataset of the widget node. The MutationObserver in
-    // WidgetRenderer will detect the change and trigger a re-render of the portal.
-    editingWidget.dataset.key = key;
-    editingWidget.dataset.operator = operator;
-    editingWidget.dataset.values = JSON.stringify(values);
-
-    editorApi.updateContent();
+    editorApi.updateWidget(editingWidget.id, { key, operator, values });
     editorApi.setEditingWidget(null);
   };
 
   const handleDelete = () => {
-    editingWidget.remove();
-    editorApi.updateContent();
+    if (!editingWidget?.id) return;
+    editorApi.deleteWidget(editingWidget.id);
     editorApi.setEditingWidget(null);
   };
 
-  return ReactDOM.createPortal(
+  const isMobile = window.matchMedia('(max-width: 768px)').matches;
+  const rect = editingWidget.getBoundingClientRect();
+
+  const popoverStyle: React.CSSProperties = isMobile
+    ? {
+        position: 'fixed',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        zIndex: 50,
+      }
+    : {
+        position: 'fixed',
+        top: `${rect.bottom + 8}px`,
+        left: `${rect.left}px`,
+        zIndex: 50,
+      };
+
+  const portalContent = (
     <div style={popoverStyle}>
       <PropertyEditorForm
         property={initialProperty}
@@ -61,7 +61,20 @@ export const PropertyEditorPopover: React.FC<{ editorApi: EditorApi }> = ({
         onDelete={handleDelete}
         onCancel={() => editorApi.setEditingWidget(null)}
       />
-    </div>,
+    </div>
+  );
+
+  return ReactDOM.createPortal(
+    isMobile ? (
+      <div
+        className="fixed inset-0 bg-black bg-opacity-50 z-40 flex justify-center items-center"
+        onClick={() => editorApi.setEditingWidget(null)}
+      >
+        {portalContent}
+      </div>
+    ) : (
+      portalContent
+    ),
     document.body
   );
 };

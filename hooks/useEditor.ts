@@ -13,6 +13,7 @@ import {
   type EditorAction,
 } from './reducers/editorReducer';
 import { useEditorEvents } from './useEditorEvents';
+import { parseHTML } from '../utils/contentModel';
 
 const AUTO_SAVE_DEBOUNCE_MS = 1000;
 
@@ -30,43 +31,23 @@ const createCommandApi = (focus: () => void) => ({
   queryCommandState: Commands.queryCommandState,
 });
 
+import { parseHTML } from '../utils/contentModel';
+
 const createContentApi = (
-  focus: () => void,
-  editorRef: React.RefObject<HTMLDivElement>,
+  state: EditorState,
   dispatch: React.Dispatch<EditorAction>
 ) => {
-  const updateContent = () => {
-    if (editorRef.current) {
-      const sanitizedContent = sanitizeHTML(editorRef.current.innerHTML);
-      dispatch({ type: 'SET_CONTENT', payload: sanitizedContent });
-    }
-  };
-
   return {
-    updateContent,
-    insertHtml: (html: string, callback?: () => void) => {
-      focus();
-      const selection = window.getSelection();
-      if (!selection || selection.rangeCount === 0) return;
-      const range = selection.getRangeAt(0);
-      range.deleteContents();
+    insertHtml: (html: string) => {
+      const newNodes = parseHTML(html);
+      if (newNodes.length === 0) return;
 
-      const sanitizedHtml = sanitizeHTML(html);
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = sanitizedHtml;
+      // This is a simplified insertion logic. It appends the new nodes to the end.
+      // A proper implementation would need to determine the cursor position within
+      // the content model and insert the nodes there.
+      const newModel = [...state.contentModel, ...newNodes];
 
-      const nodesToInsert = Array.from(tempDiv.childNodes);
-      nodesToInsert.forEach((node) => {
-        range.insertNode(node);
-        range.setStartAfter(node);
-        range.collapse(true);
-      });
-      selection.removeAllRanges();
-      selection.addRange(range);
-      updateContent();
-      if (callback) {
-        callback();
-      }
+      dispatch({ type: 'SET_CONTENT_MODEL', payload: newModel });
     },
   };
 };
@@ -124,11 +105,38 @@ const createEditorApi = (
   return {
     editorRef,
     ...createCommandApi(focus),
-    ...createContentApi(focus, editorRef, dispatch),
+    ...createContentApi(state, dispatch),
     ...createNoteApi(note, state, onSave, onDelete),
     ...createWidgetApi(dispatch, state),
     getSettings: () => settings,
     getSelectionParent: Commands.getSelectionParent,
+    syncViewToModel: () => {
+      if (editorRef.current) {
+        const sanitizedContent = sanitizeHTML(editorRef.current.innerHTML);
+        dispatch({ type: 'SET_CONTENT', payload: sanitizedContent });
+      }
+    },
+    updateWidget: (
+      widgetId: string,
+      data: Partial<import('../types').PropertyWidgetNode>
+    ) => {
+      const newModel = state.contentModel.map((node) => {
+        if (node.type === 'widget' && node.id === widgetId) {
+          return { ...node, ...data };
+        }
+        return node;
+      });
+      dispatch({ type: 'SET_CONTENT_MODEL', payload: newModel });
+    },
+    deleteWidget: (widgetId: string) => {
+      const newModel = state.contentModel.filter(
+        (node) => !(node.type === 'widget' && node.id === widgetId)
+      );
+      dispatch({ type: 'SET_CONTENT_MODEL', payload: newModel });
+    },
+    scheduleWidgetEdit: (widgetId: string) => {
+      dispatch({ type: 'SCHEDULE_WIDGET_EDIT', payload: widgetId });
+    },
     plugins: pluginApis,
   };
 };
@@ -144,7 +152,9 @@ export const useEditor = (
 
   const initialState: EditorState = {
     content: note.content,
+    contentModel: parseHTML(note.content),
     editingWidget: null,
+    pendingWidgetEdit: null,
   };
 
   const [state, dispatch] = useReducer(editorReducer, initialState);
@@ -218,5 +228,6 @@ export const useEditor = (
     popoverComponents,
     headerComponents,
     editorApi,
+    pendingWidgetEdit: state.pendingWidgetEdit,
   };
 };

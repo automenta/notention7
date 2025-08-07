@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useEditor } from '../hooks/useEditor';
 import { sanitizeHTML } from '../utils/sanitize';
 import type { AppSettings, Note } from '../types';
@@ -13,6 +13,8 @@ export const RichTextEditorV2: React.FC<{
 }> = ({ note, onSave, onDelete, settings }) => {
   const {
     editorRef,
+    content,
+    pendingWidgetEdit,
     handleInput,
     handleClick,
     handleKeyDown,
@@ -22,6 +24,25 @@ export const RichTextEditorV2: React.FC<{
     popoverComponents,
     editorApi,
   } = useEditor(editorPlugins, note, settings, onSave, onDelete);
+
+  useEffect(() => {
+    // Sync the editor's DOM with the state, but only if they differ.
+    // This is to avoid resetting cursor position on every input.
+    if (editorRef.current && content !== editorRef.current.innerHTML) {
+      editorRef.current.innerHTML = content;
+    }
+    // We only want this to run when the content state changes, not on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [content]);
+
+  useEffect(() => {
+    if (pendingWidgetEdit) {
+      const el = document.getElementById(pendingWidgetEdit);
+      if (el) {
+        editorApi.setEditingWidget(el);
+      }
+    }
+  }, [pendingWidgetEdit, editorApi]);
 
   return (
     <div className="relative flex flex-col h-full bg-gray-800/50 rounded-lg overflow-hidden">
@@ -42,6 +63,7 @@ export const RichTextEditorV2: React.FC<{
           onKeyDown={handleKeyDown}
           suppressContentEditableWarning={true}
           data-placeholder="Start writing..."
+          // Set initial content. After this, the useEffect will sync state to the DOM.
           dangerouslySetInnerHTML={{ __html: sanitizeHTML(note.content) }}
         />
         <WidgetRenderer editorApi={editorApi} />

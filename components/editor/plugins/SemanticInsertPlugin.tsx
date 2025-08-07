@@ -1,5 +1,10 @@
 import React, { useMemo, useState, useCallback, useEffect } from 'react';
-import { DocumentDuplicateIcon, TagIcon } from '../../icons';
+import {
+  DocumentDuplicateIcon,
+  TagIcon,
+  PlusCircleIcon,
+  CodeBracketsIcon,
+} from '../../icons';
 import { useOntologyIndex } from '../../../hooks/useOntologyIndex';
 import { InsertMenu } from '../InsertMenu';
 import type { InsertMenuItem } from '../../../hooks/useInsertMenuItems';
@@ -7,10 +12,8 @@ import type { EditorApi } from '../../../types';
 
 export const buttonClass = `p-2 rounded-md transition-colors hover:bg-gray-700/80 text-gray-400 hover:text-gray-200`;
 
-type ModalType = 'tag' | 'template';
-
 export const api: {
-  open: (type: ModalType) => void;
+  open: () => void;
   close: () => void;
 } = {
   open: () => {},
@@ -24,41 +27,35 @@ export const SemanticInsertToolbar: React.FC<{ editorApi: EditorApi }> = ({
     <>
       <div className="w-px h-6 bg-gray-700 mx-1"></div>
       <button
-        onClick={() => editorApi.plugins['semantic-insert'].open('tag')}
+        onClick={() => editorApi.plugins['semantic-insert'].open()}
         className={buttonClass}
-        title="Insert Tag"
+        title="Insert Semantic Element"
       >
-        <TagIcon className="h-5 w-5" />
-      </button>
-      <button
-        onClick={() => editorApi.plugins['semantic-insert'].open('template')}
-        className={buttonClass}
-        title="Insert Template"
-      >
-        <DocumentDuplicateIcon className="h-5 w-5" />
+        <PlusCircleIcon className="h-5 w-5" />
       </button>
     </>
   );
 };
 
+type ModalView = 'main' | 'tag' | 'template' | 'property';
+
 export const SemanticInsertModalProvider: React.FC<{
   editorApi: EditorApi;
 }> = ({ editorApi }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [modalType, setModalType] = useState<ModalType | null>(null);
+  const [view, setView] = useState<ModalView>('main');
 
-  const { allTags, allTemplates } = useOntologyIndex(
+  const { allTags, allTemplates, allProperties } = useOntologyIndex(
     editorApi.getSettings().ontology
   );
 
-  const openModal = useCallback((type: ModalType) => {
-    setModalType(type);
+  const openModal = useCallback(() => {
+    setView('main');
     setIsOpen(true);
   }, []);
 
   const closeModal = useCallback(() => {
     setIsOpen(false);
-    setModalType(null);
   }, []);
 
   useEffect(() => {
@@ -71,41 +68,80 @@ export const SemanticInsertModalProvider: React.FC<{
   }, [openModal, closeModal]);
 
   const items: InsertMenuItem[] = useMemo(() => {
-    if (modalType === 'tag') {
-      return allTags.map((t) => ({
-        id: t.id,
-        label: t.label,
-        description: t.description,
-        type: 'tag',
-        action: () => {
-          const html = `<span class="widget tag" contenteditable="false" data-tag="${t.label}">#${t.label}</span>&nbsp;`;
-          editorApi.insertHtml(html);
-        },
-      }));
+    switch (view) {
+      case 'tag':
+        return allTags.map((t) => ({
+          id: t.id,
+          label: t.label,
+          description: t.description,
+          type: 'tag',
+          action: () => {
+            const html = `<span class="widget tag" contenteditable="false" data-tag="${t.label}">#${t.label}</span>&nbsp;`;
+            editorApi.insertHtml(html);
+            closeModal();
+          },
+        }));
+      case 'property':
+        return allProperties.map((p) => ({
+          id: p.id,
+          label: p.label,
+          description: p.description,
+          type: 'property',
+          action: () => {
+            const id = `widget-${crypto.randomUUID()}`;
+            const html = `<span id="${id}" class="widget property" contenteditable="false" data-key="${p.label}" data-operator="is" data-values='[""]'>[${p.label}:is:""]</span>&nbsp;`;
+            editorApi.insertHtml(html);
+            editorApi.scheduleWidgetEdit(id);
+            closeModal();
+          },
+        }));
+      case 'template':
+        return allTemplates.map((t) => ({
+          id: t.id,
+          label: t.label,
+          description: t.description,
+          type: 'template',
+          action: () => {
+            const propertiesHtml = Object.keys(t.attributes || {})
+              .map((key) => {
+                const id = `widget-${crypto.randomUUID()}`;
+                return `<span id="${id}" class="widget property" contenteditable="false" data-key="${key}" data-operator="is" data-values='[""]'>[${key}:is:""]</span>`;
+              })
+              .join('&nbsp;');
+            editorApi.insertHtml(propertiesHtml);
+            closeModal();
+          },
+        }));
+      case 'main':
+      default:
+        return [
+          {
+            id: 'insert-tag',
+            label: 'Tag',
+            description: 'Insert a semantic tag',
+            type: 'action',
+            icon: TagIcon,
+            action: () => setView('tag'),
+          },
+          {
+            id: 'insert-property',
+            label: 'Property',
+            description: 'Insert a key:operator:value property',
+            type: 'action',
+            icon: CodeBracketsIcon,
+            action: () => setView('property'),
+          },
+          {
+            id: 'insert-template',
+            label: 'Template',
+            description: 'Insert a pre-defined template of properties',
+            type: 'action',
+            icon: DocumentDuplicateIcon,
+            action: () => setView('template'),
+          },
+        ];
     }
-    if (modalType === 'template') {
-      return allTemplates.map((t) => ({
-        id: t.id,
-        label: t.label,
-        description: t.description,
-        type: 'template',
-        action: () => {
-          const propertiesHtml = Object.keys(t.attributes || {})
-            .map((key) => {
-              const id = `widget-${Date.now()}-${Math.random()
-                .toString(36)
-                .slice(2, 9)}`;
-              return `<span id="${id}" class="widget property" contenteditable="false" data-key="${key}" data-operator="is" data-values='[""]'>[${key}:is:""]</span>`;
-            })
-            .join('&nbsp;');
-          // Ensure the inserted content is treated as inline.
-          const html = propertiesHtml;
-          editorApi.insertHtml(html, () => {});
-        },
-      }));
-    }
-    return [];
-  }, [modalType, allTags, allTemplates, editorApi]);
+  }, [view, allTags, allTemplates, allProperties, editorApi, closeModal]);
 
   if (!isOpen) {
     return null;
@@ -113,20 +149,43 @@ export const SemanticInsertModalProvider: React.FC<{
 
   const handleSelect = (item: InsertMenuItem) => {
     item.action();
-    closeModal();
+  };
+
+  const getTitle = () => {
+    switch (view) {
+      case 'main':
+        return 'Insert Semantic Element';
+      case 'tag':
+        return 'Insert Tag';
+      case 'property':
+        return 'Insert Property';
+      case 'template':
+        return 'Insert Template';
+    }
   };
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 z-40 flex justify-center items-center"
+      className="fixed inset-0 bg-black bg-opacity-50 z-40 flex justify-center items-start pt-20"
       role="dialog"
       aria-modal="true"
       onClick={closeModal}
     >
-      <div className="w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-        <h2 className="text-lg font-bold text-white text-center mb-4">
-          Insert {modalType === 'tag' ? 'Tag' : 'Template'}
-        </h2>
+      <div
+        className="w-full max-w-md bg-gray-800 rounded-lg shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="p-4 border-b border-gray-700 flex items-center justify-between">
+          <h2 className="text-lg font-bold text-white">{getTitle()}</h2>
+          {view !== 'main' && (
+            <button
+              onClick={() => setView('main')}
+              className="text-sm text-gray-400 hover:text-white"
+            >
+              Back
+            </button>
+          )}
+        </div>
         <InsertMenu
           items={items}
           onSelect={handleSelect}
