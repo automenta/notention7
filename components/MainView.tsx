@@ -9,6 +9,7 @@ import { MapView } from './views/MapView';
 import { NetworkView } from './views/NetworkView';
 import { ChatView } from './views/ChatView';
 import { SettingsView } from './views/SettingsView';
+import { DiscoveryView } from './views/DiscoveryView';
 
 export const MainView: React.FC = () => {
   const { activeView } = useViewContext();
@@ -32,6 +33,8 @@ export const MainView: React.FC = () => {
       return <MapView />;
     case 'network':
       return <NetworkView />;
+    case 'discovery':
+      return <DiscoveryView />;
     case 'chat':
       return <ChatView />;
     case 'settings':

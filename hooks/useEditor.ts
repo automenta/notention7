@@ -166,9 +166,28 @@ export const useEditor = (
       return;
     }
     const handler = setTimeout(() => {
+      // Derive tags and properties from the content model
+      const newTags: string[] = [];
+      const newProperties: Note['properties'] = [];
+      state.contentModel.forEach((node) => {
+        if (node.type === 'widget') {
+          if (node.kind === 'tag') {
+            newTags.push(node.tag);
+          } else if (node.kind === 'property') {
+            newProperties.push({
+              key: node.key,
+              op: node.operator,
+              values: node.values as string[], // Assuming values are strings for now
+            });
+          }
+        }
+      });
+
       onSave({
         ...note,
         content: state.content,
+        tags: newTags,
+        properties: newProperties,
         updatedAt: new Date().toISOString(),
       });
     }, AUTO_SAVE_DEBOUNCE_MS);
@@ -176,7 +195,7 @@ export const useEditor = (
     return () => {
       clearTimeout(handler);
     };
-  }, [state.content, note, onSave]);
+  }, [state.content, state.contentModel, note, onSave]);
 
   const editorApi: EditorApi = useMemo(
     () =>

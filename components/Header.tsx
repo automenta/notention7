@@ -7,6 +7,7 @@ import {
   NoteIcon,
   OntologyIcon,
   PlusIcon,
+  SearchIcon,
   SettingsIcon,
 } from './icons';
 import { useViewContext } from '../hooks/useViewContext';
@@ -47,6 +48,7 @@ export const Header: React.FC<HeaderProps> = ({ onNewNote }) => {
     { view: 'notes', label: 'Notes', icon: <NoteIcon /> },
     { view: 'map', label: 'Map', icon: <MapIcon /> },
     { view: 'network', label: 'Network', icon: <NetworkIcon /> },
+    { view: 'discovery', label: 'Discovery', icon: <SearchIcon /> },
     { view: 'chat', label: 'Chat', icon: <ChatIcon /> },
     { view: 'ontology', label: 'Ontology', icon: <OntologyIcon /> },
   ];

@@ -74,7 +74,8 @@ export type View =
   | 'network'
   | 'chat'
   | 'settings'
-  | 'map';
+  | 'map'
+  | 'discovery';
 
 // --- Content Model Types ---
 

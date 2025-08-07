@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import type { AppSettings, Note } from '../types';
 import { availableEditors } from './editor/editors';
+import { WorldIcon } from './icons';
+import { publishNote } from '../services/nostrService';
 
 interface EditorManagerProps {
   note: Note;
@@ -16,6 +18,24 @@ export const EditorManager: React.FC<EditorManagerProps> = ({
   settings,
 }) => {
   const [selectedEditorId, setSelectedEditorId] = useState<string>('rich-text'); // Default to Rich Text editor
+  const [isPublishing, setIsPublishing] = useState(false);
+
+  const handlePublish = async () => {
+    if (!settings.nostr.privkey) {
+      alert('Nostr private key not set in settings.');
+      return;
+    }
+    setIsPublishing(true);
+    try {
+      await publishNote(note, settings.nostr.privkey);
+      alert('Note published successfully!');
+    } catch (error) {
+      console.error('Failed to publish note:', error);
+      alert(`Failed to publish note. See console for details.`);
+    } finally {
+      setIsPublishing(false);
+    }
+  };
 
   const SelectedEditorComponent = availableEditors.find(
     (plugin) => plugin.id === selectedEditorId
@@ -30,18 +50,33 @@ export const EditorManager: React.FC<EditorManagerProps> = ({
   return (
     <div className="flex flex-col h-full">
       <div className="flex-shrink-0 p-2 border-b border-gray-700/50 flex items-center justify-between">
-        <span className="text-sm text-gray-400">Editor Type:</span>
-        <select
-          className="bg-gray-700 text-gray-200 text-sm rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={selectedEditorId}
-          onChange={(e) => setSelectedEditorId(e.target.value)}
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-gray-400">Editor:</span>
+          <select
+            className="bg-gray-700 text-gray-200 text-sm rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={selectedEditorId}
+            onChange={(e) => setSelectedEditorId(e.target.value)}
+          >
+            {availableEditors.map((plugin) => (
+              <option key={plugin.id} value={plugin.id}>
+                {plugin.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <button
+          onClick={handlePublish}
+          disabled={isPublishing || !settings.nostr.privkey}
+          className="flex items-center gap-2 px-3 py-1 bg-blue-600 text-white text-sm font-semibold rounded-md hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
+          title={
+            settings.nostr.privkey
+              ? 'Publish to Nostr'
+              : 'Nostr private key not set in settings'
+          }
         >
-          {availableEditors.map((plugin) => (
-            <option key={plugin.id} value={plugin.id}>
-              {plugin.name}
-            </option>
-          ))}
-        </select>
+          <WorldIcon className="h-4 w-4" />
+          {isPublishing ? 'Publishing...' : 'Publish'}
+        </button>
       </div>
       <div className="flex-1">
         <SelectedEditorComponent
