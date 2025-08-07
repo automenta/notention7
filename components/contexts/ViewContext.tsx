@@ -1,14 +1,6 @@
-import React, { createContext, ReactNode, useState } from 'react';
+import React, { ReactNode, useState } from 'react';
 import type { View } from '../../types';
-
-interface ViewContextType {
-  activeView: View;
-  setActiveView: (view: View) => void;
-  selectedNoteId: string | null;
-  setSelectedNoteId: (id: string | null) => void;
-}
-
-export const ViewContext = createContext<ViewContextType | undefined>(undefined);
+import { ViewContext } from './view';
 
 export const ViewProvider: React.FC<{ children: ReactNode }> = ({
   children,
@@ -24,4 +16,3 @@ export const ViewProvider: React.FC<{ children: ReactNode }> = ({
     </ViewContext.Provider>
   );
 };
-

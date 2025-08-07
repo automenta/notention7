@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Search } from './sidebar/Search';
-import { useNotes } from './contexts/NotesContext';
-import { useView } from './contexts/ViewContext';
+import { useNotesContext } from '../hooks/useNotesContext';
+import { useViewContext } from '../hooks/useViewContext';
 import { NoteListItem } from './sidebar/NoteListItem';
 
 type SortOrder =
@@ -15,8 +15,8 @@ type SortOrder =
 import { useSortedFilteredNotes } from '../hooks/useSortedFilteredNotes';
 
 export const Sidebar: React.FC = () => {
-  const { notes, deleteNote } = useNotes();
-  const { selectedNoteId, setSelectedNoteId } = useView();
+  const { notes, deleteNote } = useNotesContext();
+  const { selectedNoteId, setSelectedNoteId } = useViewContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState<SortOrder>('updatedAt_desc');
 

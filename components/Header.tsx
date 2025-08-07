@@ -9,7 +9,7 @@ import {
   PlusIcon,
   SettingsIcon,
 } from './icons';
-import { useView } from './contexts/ViewContext';
+import { useViewContext } from '../hooks/useViewContext';
 
 interface HeaderProps {
   onNewNote: () => void;
@@ -42,7 +42,7 @@ const NavButton: React.FC<NavButtonProps> = ({
 );
 
 export const Header: React.FC<HeaderProps> = ({ onNewNote }) => {
-  const { activeView, setActiveView } = useView();
+  const { activeView, setActiveView } = useViewContext();
   const navItems: { view: View; label: string; icon: React.ReactElement }[] = [
     { view: 'notes', label: 'Notes', icon: <NoteIcon /> },
     { view: 'map', label: 'Map', icon: <MapIcon /> },

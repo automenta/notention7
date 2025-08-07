@@ -6,8 +6,8 @@ import { DEFAULT_RELAYS, formatNpub, hexToBytes } from '../../utils/nostr';
 import { pool } from '../../services/nostrService';
 import { useNostrProfile } from '../../hooks/useNostrProfile';
 import { ProfileHeader } from '../network/ProfileHeader';
-import { useSettings } from '../../hooks/useSettingsContext';
-import { useView } from '../contexts/ViewContext';
+import { useSettingsContext } from '../../hooks/useSettingsContext';
+import { useViewContext } from '../../hooks/useViewContext';
 
 const NostrEventCard: React.FC<{
   event: NostrEvent;
@@ -45,8 +45,8 @@ const NostrEventCard: React.FC<{
 };
 
 export const NetworkView: React.FC = () => {
-  const { settings, setSettings } = useSettings();
-  const { setActiveView } = useView();
+  const { settings, setSettings } = useSettingsContext();
+  const { setActiveView } = useViewContext();
   const onNavigateToSettings = () => setActiveView('settings');
   const pubkey = useMemo(
     () =>

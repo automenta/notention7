@@ -2,9 +2,9 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  handleWidgetClick,
   PropertyEditorPopover,
 } from '../../../../components/editor/plugins/PropertyEditorPlugin';
+import { handleWidgetClick } from '../../../../components/editor/plugins/propertyEditorUtils';
 import type { EditorApi } from '../../../../types';
 import { useOntologyIndex } from '../../../../hooks/useOntologyIndex';
 

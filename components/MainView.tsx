@@ -1,7 +1,7 @@
 import React from 'react';
-import { useView } from './contexts/ViewContext';
-import { useSettings } from '../hooks/useSettingsContext';
-import { useNotes } from './contexts/NotesContext';
+import { useViewContext } from '../hooks/useViewContext';
+import { useSettingsContext } from '../hooks/useSettingsContext';
+import { useNotesContext } from '../hooks/useNotesContext';
 import { LoadingSpinner } from './icons';
 import { NotesView } from './views/NotesView';
 import { OntologyView } from './views/OntologyView';
@@ -11,9 +11,9 @@ import { ChatView } from './views/ChatView';
 import { SettingsView } from './views/SettingsView';
 
 export const MainView: React.FC = () => {
-  const { activeView } = useView();
-  const { settingsLoading } = useSettings();
-  const { notesLoading } = useNotes();
+  const { activeView } = useViewContext();
+  const { settingsLoading } = useSettingsContext();
+  const { notesLoading } = useNotesContext();
 
   if (notesLoading || settingsLoading) {
     return (

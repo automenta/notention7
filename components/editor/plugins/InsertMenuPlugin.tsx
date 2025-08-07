@@ -1,10 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import { InsertMenu } from '../InsertMenu';
-import {
-  useInsertMenuItems,
-  InsertMenuMode,
-} from '../../../hooks/useInsertMenuItems';
+import { useInsertMenuItems } from '../../../hooks/useInsertMenuItems';
 import { useOntologyIndex } from '../../../hooks/useOntologyIndex';
 import { TemplateEditor } from '../TemplateEditor';
 import { formatPropertyForDisplay } from '../../../utils/properties';
@@ -13,22 +10,7 @@ import type {
   OntologyNode,
   Property,
 } from '../../../types';
-
-type OpenMenuContext = {
-  mode: InsertMenuMode;
-  selectedValue?: string;
-};
-
-export const api: {
-  open: (
-    position?: { top: number; left: number },
-    context?: OpenMenuContext
-  ) => void;
-  close: () => void;
-} = {
-  open: () => {},
-  close: () => {},
-};
+import { api, OpenMenuContext } from './insertMenuApi';
 
 export const InsertMenuProvider: React.FC<{ editorApi: EditorApi }> = ({
   editorApi,
@@ -192,4 +174,3 @@ export const InsertMenuProvider: React.FC<{ editorApi: EditorApi }> = ({
     </>
   );
 };
-

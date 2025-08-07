@@ -31,9 +31,10 @@ const SemanticWidget: React.FC<SemanticWidgetProps> = ({
       data-operator={operator}
       data-values={JSON.stringify(values)}
       onClick={handleClick}
-    >
-      {property} {operator} {values.join(' and ')}
-    </span>
+    dangerouslySetInnerHTML={{
+      __html: `${property} ${operator} ${values.join(' and ')}`,
+    }}
+  />
   );
 };
 

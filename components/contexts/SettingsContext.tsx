@@ -1,17 +1,8 @@
-import React, { createContext, ReactNode, useEffect } from 'react';
+import React, { ReactNode, useEffect } from 'react';
 import { useLocalForage } from '../../hooks/useLocalForage';
 import type { AppSettings } from '../../types';
 import { DEFAULT_ONTOLOGY } from '../../utils/ontology.default';
-
-interface SettingsContextType {
-  settings: AppSettings;
-  setSettings: (updater: (settings: AppSettings) => AppSettings) => void;
-  settingsLoading: boolean;
-}
-
-export const SettingsContext = createContext<SettingsContextType | undefined>(
-  undefined
-);
+import { SettingsContext } from './settings';
 
 export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
   children,
@@ -46,4 +37,3 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
     </SettingsContext.Provider>
   );
 };
-

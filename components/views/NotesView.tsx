@@ -1,7 +1,7 @@
 import React from 'react';
-import { useNotes } from '../contexts/NotesContext';
-import { useView } from '../contexts/ViewContext';
-import { useSettings } from '../../hooks/useSettingsContext';
+import { useNotesContext } from '../../hooks/useNotesContext';
+import { useViewContext } from '../../hooks/useViewContext';
+import { useSettingsContext } from '../../hooks/useSettingsContext';
 import { EditorManager } from '../EditorManager';
 import { CubeTransparentIcon } from '../icons';
 
@@ -26,9 +26,9 @@ const PlaceholderView: React.FC<PlaceholderViewProps> = ({
 );
 
 export const NotesView: React.FC = () => {
-  const { notes, updateNote, deleteNote } = useNotes();
-  const { selectedNoteId, setSelectedNoteId } = useView();
-  const { settings } = useSettings();
+  const { notes, updateNote, deleteNote } = useNotesContext();
+  const { selectedNoteId, setSelectedNoteId } = useViewContext();
+  const { settings } = useSettingsContext();
   const selectedNote = notes.find((note) => note.id === selectedNoteId);
 
   const handleDeleteNote = (id: string) => {

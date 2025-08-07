@@ -3,7 +3,7 @@ import { generateSecretKey, getPublicKey, nip19 } from 'nostr-tools';
 import { bytesToHex, hexToBytes } from '@/utils/nostr.ts';
 import { ClipboardIcon, KeyIcon, SparklesIcon, TrashIcon } from '../icons';
 import { isApiKeyAvailable } from '@/services/geminiService.ts';
-import { useSettings } from '../../hooks/useSettingsContext';
+import { useSettingsContext } from '../../hooks/useSettingsContext';
 
 const TabButton: React.FC<{
   label: string;
@@ -72,7 +72,7 @@ const CopyableField: React.FC<{
 };
 
 export const SettingsView: React.FC = () => {
-  const { settings, setSettings } = useSettings();
+  const { settings, setSettings } = useSettingsContext();
   const [activeTab, setActiveTab] = useState<'ai' | 'nostr' | 'data'>('ai');
 
   const handleToggleAI = () => {

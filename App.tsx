@@ -2,14 +2,14 @@ import React, { useEffect, useMemo } from 'react';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { MainView } from './components/MainView';
-import { useNotes } from './hooks/useNotesContext';
-import { useView } from './hooks/useViewContext';
+import { useNotesContext } from './hooks/useNotesContext';
+import { useViewContext } from './hooks/useViewContext';
 import { sortNotesByDate } from './utils/notes';
 
 const App: React.FC = () => {
-  const { notes, addNote, notesLoading } = useNotes();
+  const { notes, addNote, notesLoading } = useNotesContext();
   const { activeView, setActiveView, selectedNoteId, setSelectedNoteId } =
-    useView();
+    useViewContext();
 
   const sortedNotes = useMemo(() => sortNotesByDate(notes), [notes]);
 

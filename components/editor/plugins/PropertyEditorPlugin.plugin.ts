@@ -1,8 +1,6 @@
 import type { EditorPlugin } from '../../../types';
-import {
-  handleWidgetClick,
-  PropertyEditorPopover,
-} from './PropertyEditorPlugin';
+import { PropertyEditorPopover } from './PropertyEditorPlugin';
+import { handleWidgetClick } from './propertyEditorUtils';
 
 export const propertyEditorPlugin: EditorPlugin = {
   id: 'property-editor',

@@ -5,10 +5,10 @@ import { DEFAULT_RELAYS, hexToBytes } from '../../utils/nostr';
 import { pool } from '../../services/nostrService';
 import { ContactList } from '../chat/ContactList';
 import { ChatWindow } from '../chat/ChatWindow';
-import { useSettings } from '../../hooks/useSettingsContext';
+import { useSettingsContext } from '../../hooks/useSettingsContext';
 
 export const ChatView: React.FC = () => {
-  const { settings } = useSettings();
+  const { settings } = useSettingsContext();
   const privkey = settings.nostr.privkey;
   const pubkey = useMemo(
     () => (privkey ? getPublicKey(hexToBytes(privkey)) : null),

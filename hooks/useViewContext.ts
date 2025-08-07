@@ -2,12 +2,12 @@ import { useContext } from 'react';
 import {
   ViewContext,
   type ViewContextType,
-} from '../components/contexts/ViewContext';
+} from '../components/contexts/view';
 
-export const useView = (): ViewContextType => {
+export const useViewContext = (): ViewContextType => {
   const context = useContext(ViewContext);
   if (context === undefined) {
-    throw new Error('useView must be used within a ViewProvider');
+    throw new Error('useViewContext must be used within a ViewProvider');
   }
   return context;
 };
