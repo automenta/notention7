@@ -3,9 +3,9 @@ import { DocumentDuplicateIcon, TagIcon } from '../../icons';
 import { useOntologyIndex } from '../../../hooks/useOntologyIndex';
 import { InsertMenu } from '../InsertMenu';
 import type { InsertMenuItem } from '../../../hooks/useInsertMenuItems';
-import type { EditorApi, EditorPlugin } from '../../../types';
+import type { EditorApi } from '../../../types';
 
-const buttonClass = `p-2 rounded-md transition-colors hover:bg-gray-700/80 text-gray-400 hover:text-gray-200`;
+export const buttonClass = `p-2 rounded-md transition-colors hover:bg-gray-700/80 text-gray-400 hover:text-gray-200`;
 
 type ModalType = 'tag' | 'template';
 
@@ -41,9 +41,9 @@ export const SemanticInsertToolbar: React.FC<{ editorApi: EditorApi }> = ({
   );
 };
 
-export const SemanticInsertModalProvider: React.FC<{ editorApi: EditorApi }> = ({
-  editorApi,
-}) => {
+export const SemanticInsertModalProvider: React.FC<{
+  editorApi: EditorApi;
+}> = ({ editorApi }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [modalType, setModalType] = useState<ModalType | null>(null);
 
@@ -122,24 +122,17 @@ export const SemanticInsertModalProvider: React.FC<{ editorApi: EditorApi }> = (
       aria-modal="true"
       onClick={closeModal}
     >
-      <div
-        className="w-full max-w-md"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="w-full max-w-md" onClick={(e) => e.stopPropagation()}>
         <h2 className="text-lg font-bold text-white text-center mb-4">
           Insert {modalType === 'tag' ? 'Tag' : 'Template'}
         </h2>
-        <InsertMenu items={items} onSelect={handleSelect} onClose={closeModal} />
+        <InsertMenu
+          items={items}
+          onSelect={handleSelect}
+          onClose={closeModal}
+        />
       </div>
     </div>
   );
 };
 
-
-export const semanticInsertPlugin: EditorPlugin = {
-  id: 'semantic-insert',
-  name: 'Semantic Insert',
-  ToolbarComponent: SemanticInsertToolbar,
-  Modal: SemanticInsertModalProvider,
-  api: api,
-};

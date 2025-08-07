@@ -1,4 +1,4 @@
-import React, { createContext, ReactNode, useContext } from 'react';
+import React, { createContext, ReactNode } from 'react';
 import { useNotes as useNotesService } from '../../hooks/useNotes';
 import type { Note } from '../../types';
 
@@ -10,7 +10,9 @@ interface NotesContextType {
   notesLoading: boolean;
 }
 
-const NotesContext = createContext<NotesContextType | undefined>(undefined);
+export const NotesContext = createContext<NotesContextType | undefined>(
+  undefined
+);
 
 export const NotesProvider: React.FC<{ children: ReactNode }> = ({
   children,
@@ -25,12 +27,4 @@ export const NotesProvider: React.FC<{ children: ReactNode }> = ({
       {children}
     </NotesContext.Provider>
   );
-};
-
-export const useNotes = (): NotesContextType => {
-  const context = useContext(NotesContext);
-  if (context === undefined) {
-    throw new Error('useNotes must be used within a NotesProvider');
-  }
-  return context;
 };

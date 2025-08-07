@@ -1,11 +1,11 @@
 import type { EditorPlugin } from '../../types';
-import { toolbarPlugin } from './plugins/ToolbarPlugin';
-import { semanticInsertPlugin } from './plugins/SemanticInsertPlugin';
-import { propertyEditorPlugin } from './plugins/PropertyEditorPlugin';
+import { toolbarPlugin } from './plugins/ToolbarPlugin.plugin';
+import { semanticInsertPlugin } from './plugins/SemanticInsertPlugin.plugin';
+import { propertyEditorPlugin } from './plugins/PropertyEditorPlugin.plugin';
 import { inputRulesPlugin } from './plugins/inputRulesPlugin';
-import { editorHeaderPlugin } from './plugins/EditorHeaderPlugin';
-import { insertMenuPlugin } from './plugins/InsertMenuPlugin';
-import { selectionToolbarPlugin } from './plugins/SelectionToolbarPlugin';
+import { editorHeaderPlugin } from './plugins/EditorHeaderPlugin.plugin';
+import { insertMenuPlugin } from './plugins/InsertMenuPlugin.plugin';
+import { selectionToolbarPlugin } from './plugins/SelectionToolbarPlugin.plugin';
 
 export const editorPlugins: EditorPlugin[] = [
   editorHeaderPlugin,

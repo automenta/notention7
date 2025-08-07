@@ -33,7 +33,13 @@ describe('StringInput', () => {
 
   it('should use the provided placeholder', () => {
     const handleChange = vi.fn();
-    render(<StringInput value="" onChange={handleChange} placeholder="My Placeholder" />);
+    render(
+      <StringInput
+        value=""
+        onChange={handleChange}
+        placeholder="My Placeholder"
+      />
+    );
 
     const input = screen.getByPlaceholderText('My Placeholder');
     expect(input).toBeInTheDocument();

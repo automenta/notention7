@@ -1,4 +1,3 @@
-import React from 'react';
 import type { AvailableEditor } from '../../types';
 import { RichTextEditorV2 } from '../RichTextEditorV2';
 import { TextareaEditor } from '../TextareaEditor';

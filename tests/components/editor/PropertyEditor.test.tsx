@@ -5,20 +5,44 @@ import { vi } from 'vitest';
 import { PropertyEditor } from '../../../components/editor/PropertyEditor';
 import type { OntologyAttribute, Property } from '../../../types';
 
+import type { StringInputProps } from '../../../components/editor/inputs/StringInput';
+
 // Mock child input components
 vi.mock('../../../components/editor/inputs/StringInput', () => ({
-  StringInput: (props: any) => <input data-testid="string-input" {...props} />,
+  StringInput: ({ value, onChange, ...props }: StringInputProps) => (
+    <input
+      data-testid="string-input"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      {...props}
+    />
+  ),
 }));
 vi.mock('../../../components/editor/inputs/NumberInput', () => ({
-  NumberInput: (props: any) => <input data-testid="number-input" {...props} />,
+  NumberInput: ({ value, onChange, ...props }: StringInputProps) => (
+    <input
+      data-testid="number-input"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      {...props}
+    />
+  ),
 }));
 vi.mock('../../../components/editor/inputs/DateInput', () => ({
-  DateInput: (props: any) => <input data-testid="date-input" {...props} />,
+  DateInput: ({ value, onChange, ...props }: StringInputProps) => (
+    <input
+      data-testid="date-input"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      {...props}
+    />
+  ),
 }));
 vi.mock('../../../components/editor/KeySelector', () => ({
-  KeySelector: ({ onChange }: any) => (
+  KeySelector: ({ value, onChange }: { value: string; onChange: (v: string) => void }) => (
     <input
       data-testid="key-selector"
+      value={value}
       onChange={(e) => onChange(e.target.value)}
     />
   ),
@@ -51,7 +75,6 @@ const mockPropertyTypes = new Map<string, OntologyAttribute>([
 describe('PropertyEditor', () => {
   const onSave = vi.fn();
   const onCancel = vi.fn();
-  const onDelete = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -91,7 +114,11 @@ describe('PropertyEditor', () => {
   });
 
   it('preserves value and operator when key changes to a compatible type', () => {
-    const property: Property = { key: 'name', operator: 'is', values: ['test'] };
+    const property: Property = {
+      key: 'name',
+      operator: 'is',
+      values: ['test'],
+    };
     const { rerender } = render(
       <PropertyEditor
         property={property}
@@ -117,8 +144,12 @@ describe('PropertyEditor', () => {
   });
 
   it('preserves value but resets operator when key changes to incompatible type', () => {
-    const property: Property = { key: 'name', operator: 'contains', values: ['acme'] };
-     const { rerender } = render(
+    const property: Property = {
+      key: 'name',
+      operator: 'contains',
+      values: ['acme'],
+    };
+    const { rerender } = render(
       <PropertyEditor
         property={property}
         propertyTypes={mockPropertyTypes}
@@ -145,7 +176,11 @@ describe('PropertyEditor', () => {
   });
 
   it('calls onSave with the updated data when form is submitted', () => {
-    const existingProperty: Property = { key: 'name', operator: 'is', values: [''] };
+    const existingProperty: Property = {
+      key: 'name',
+      operator: 'is',
+      values: [''],
+    };
     render(
       <PropertyEditor
         property={existingProperty}
@@ -155,7 +190,9 @@ describe('PropertyEditor', () => {
       />
     );
 
-    fireEvent.change(screen.getByTestId('string-input'), { target: { value: 'New Value' } });
+    fireEvent.change(screen.getByTestId('string-input'), {
+      target: { value: 'New Value' },
+    });
     fireEvent.click(screen.getByText('Save'));
 
     expect(onSave).toHaveBeenCalledTimes(1);

@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import { PropertyEditor as PropertyEditorForm } from '../PropertyEditor';
 import { useOntologyIndex } from '../../../hooks/useOntologyIndex';
 import { formatPropertyForDisplay } from '../../../utils/properties';
-import type { EditorApi, EditorPlugin, Property } from '../../../types';
+import type { EditorApi, Property } from '../../../types';
 
 // This function will be the `onClick` handler provided by the plugin.
 export const handleWidgetClick = (
@@ -60,10 +60,20 @@ export const PropertyEditorPopover: React.FC<{ editorApi: EditorApi }> = ({
 
   const handleSave = (property: Property) => {
     const { key, operator, values } = property;
-    editingWidget.dataset.key = key;
-    editingWidget.dataset.operator = operator;
-    editingWidget.dataset.values = JSON.stringify(values);
-    editingWidget.innerHTML = formatPropertyForDisplay(key, operator, values);
+    // The new SemanticWidget will handle the display. We just need to update the data.
+    // The MutationObserver in WidgetRenderer will trigger a re-render.
+    if (editingWidget.dataset.widget === 'semantic-property') {
+      editingWidget.dataset.property = key;
+      editingWidget.dataset.operator = operator;
+      editingWidget.dataset.values = JSON.stringify(values);
+    } else {
+      // Keep old logic for old-style properties if they exist
+      editingWidget.dataset.key = key;
+      editingWidget.dataset.operator = operator;
+      editingWidget.dataset.values = JSON.stringify(values);
+      editingWidget.innerHTML = formatPropertyForDisplay(key, operator, values);
+    }
+
     editorApi.updateContent();
     editorApi.setEditingWidget(null);
   };
@@ -88,9 +98,3 @@ export const PropertyEditorPopover: React.FC<{ editorApi: EditorApi }> = ({
   );
 };
 
-export const propertyEditorPlugin: EditorPlugin = {
-  id: 'property-editor',
-  name: 'Property Editor',
-  onClick: handleWidgetClick,
-  Popover: PropertyEditorPopover,
-};

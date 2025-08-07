@@ -28,10 +28,14 @@ export const KeySelector: React.FC<KeySelectorProps> = ({
       if (!isOpen) return;
       if (event.key === 'ArrowUp') {
         event.preventDefault();
-        setSelectedIndex((prev) => (prev === 0 ? filteredKeys.length - 1 : prev - 1));
+        setSelectedIndex((prev) =>
+          prev === 0 ? filteredKeys.length - 1 : prev - 1
+        );
       } else if (event.key === 'ArrowDown') {
         event.preventDefault();
-        setSelectedIndex((prev) => (prev === filteredKeys.length - 1 ? 0 : prev + 1));
+        setSelectedIndex((prev) =>
+          prev === filteredKeys.length - 1 ? 0 : prev + 1
+        );
       } else if (event.key === 'Enter') {
         event.preventDefault();
         if (filteredKeys[selectedIndex]) {

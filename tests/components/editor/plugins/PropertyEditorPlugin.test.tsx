@@ -3,7 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   handleWidgetClick,
-  PropertyEditor,
+  PropertyEditorPopover,
 } from '../../../../components/editor/plugins/PropertyEditorPlugin';
 import type { EditorApi } from '../../../../types';
 import { useOntologyIndex } from '../../../../hooks/useOntologyIndex';
@@ -93,10 +93,10 @@ describe('PropertyEditorPlugin', () => {
     });
   });
 
-  describe('PropertyEditor Component', () => {
+  describe('PropertyEditorPopover Component', () => {
     it('should render null if no widget is being edited', () => {
       const api = createMockEditorApi(null);
-      const { container } = render(<PropertyEditor editorApi={api} />);
+      const { container } = render(<PropertyEditorPopover editorApi={api} />);
       expect(container.firstChild).toBeNull();
     });
 
@@ -115,7 +115,7 @@ describe('PropertyEditorPlugin', () => {
       });
       const api = createMockEditorApi(widget);
 
-      render(<PropertyEditor editorApi={api} />);
+      render(<PropertyEditorPopover editorApi={api} />);
 
       // The popover is complex, so we check for a key element we know it renders, like the "Save" button.
       expect(screen.getByText('Save')).toBeInTheDocument();
@@ -127,20 +127,22 @@ describe('PropertyEditorPlugin', () => {
       const widget = document.createElement('div');
       widget.id = 'widget-to-save';
       widget.dataset.key = 'old-key';
+      widget.dataset.widget = 'semantic-property'; // Test the new widget type
+      widget.dataset.values = '["old-value"]';
       widget.innerHTML = 'old';
       widget.getBoundingClientRect = vi.fn().mockReturnValue({});
       const api = createMockEditorApi(widget);
 
-      render(<PropertyEditor editorApi={api} />);
+      render(<PropertyEditorPopover editorApi={api} />);
 
       // To test handleSave, we need to get it from the props of the rendered popover.
       // Since we can't do that easily, we'll simulate the user action that triggers it.
       fireEvent.click(screen.getByText('Save')); // This calls onSave with the current state
 
-      expect(widget.dataset.key).toBe('old-key'); // It saves the initial state
+      expect(widget.dataset.property).toBe('old-key'); // It saves the initial state
       expect(widget.dataset.operator).toBe('is');
-      expect(widget.dataset.values).toBe('[""]');
-      expect(widget.innerHTML).toBe('[old-key:is:]');
+      // When saving an unmodified editor, the original values should be preserved.
+      expect(widget.dataset.values).toBe('["old-value"]');
       expect(mockUpdateContent).toHaveBeenCalled();
       expect(mockSetEditingWidget).toHaveBeenCalledWith(null);
     });
@@ -150,12 +152,14 @@ describe('PropertyEditorPlugin', () => {
       widget.id = 'widget-to-delete';
       widget.getBoundingClientRect = vi.fn().mockReturnValue({});
       const api = createMockEditorApi(widget);
+      // Mock the remove function
+      widget.remove = vi.fn();
 
-      render(<PropertyEditor editorApi={api} />);
+      render(<PropertyEditorPopover editorApi={api} />);
 
       fireEvent.click(screen.getByTitle('Delete Property'));
 
-      expect(api.editorRef.current.contains(widget)).toBe(false);
+      expect(widget.remove).toHaveBeenCalled();
       expect(mockUpdateContent).toHaveBeenCalled();
       expect(mockSetEditingWidget).toHaveBeenCalledWith(null);
     });

@@ -2,9 +2,8 @@ import React, { useEffect, useMemo } from 'react';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { MainView } from './components/MainView';
-import { useNotes } from './components/contexts/NotesContext';
-import { useView } from './components/contexts/ViewContext';
-import type { Note } from './types';
+import { useNotes } from './hooks/useNotesContext';
+import { useView } from './hooks/useViewContext';
 import { sortNotesByDate } from './utils/notes';
 
 const App: React.FC = () => {

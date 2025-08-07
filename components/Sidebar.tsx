@@ -1,5 +1,4 @@
-import React, { useMemo, useState } from 'react';
-import type { Note } from '../types';
+import React, { useState } from 'react';
 import { Search } from './sidebar/Search';
 import { useNotes } from './contexts/NotesContext';
 import { useView } from './contexts/ViewContext';
@@ -25,8 +24,11 @@ export const Sidebar: React.FC = () => {
 
   const handleDeleteNote = (noteIdToDelete: string) => {
     if (selectedNoteId === noteIdToDelete) {
-      const currentIndex = sortedNotes.findIndex((n) => n.id === noteIdToDelete);
-      const nextNote = sortedNotes[currentIndex + 1] || sortedNotes[currentIndex - 1] || null;
+      const currentIndex = sortedNotes.findIndex(
+        (n) => n.id === noteIdToDelete
+      );
+      const nextNote =
+        sortedNotes[currentIndex + 1] || sortedNotes[currentIndex - 1] || null;
       setSelectedNoteId(nextNote ? nextNote.id : null);
     }
     deleteNote(noteIdToDelete);

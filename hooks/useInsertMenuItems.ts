@@ -55,7 +55,9 @@ export const useInsertMenuItems = (
     // If in 'all' mode, filter out properties that are part of templates already shown
     if (mode === 'all') {
       const templateProps = new Set(
-        allTemplates.flatMap((t) => (t.attributes ? Object.keys(t.attributes) : []))
+        allTemplates.flatMap((t) =>
+          t.attributes ? Object.keys(t.attributes) : []
+        )
       );
       items = items.filter(
         (item) => item.type !== 'property' || !templateProps.has(item.label)

@@ -1,5 +1,4 @@
 import React, {
-  useCallback,
   useEffect,
   useMemo,
   useReducer,
@@ -112,12 +111,15 @@ const createEditorApi = (
 ): EditorApi => {
   const focus = () => editorRef.current?.focus();
 
-  const pluginApis = plugins.reduce((acc, plugin) => {
-    if (plugin.api) {
-      acc[plugin.id] = plugin.api;
-    }
-    return acc;
-  }, {} as { [pluginId: string]: unknown });
+  const pluginApis = plugins.reduce(
+    (acc, plugin) => {
+      if (plugin.api) {
+        acc[plugin.id] = plugin.api;
+      }
+      return acc;
+    },
+    {} as { [pluginId: string]: unknown }
+  );
 
   return {
     editorRef,

@@ -10,7 +10,6 @@ import { TemplateEditor } from '../TemplateEditor';
 import { formatPropertyForDisplay } from '../../../utils/properties';
 import type {
   EditorApi,
-  EditorPlugin,
   OntologyNode,
   Property,
 } from '../../../types';
@@ -20,7 +19,7 @@ type OpenMenuContext = {
   selectedValue?: string;
 };
 
-const api: {
+export const api: {
   open: (
     position?: { top: number; left: number },
     context?: OpenMenuContext
@@ -31,11 +30,14 @@ const api: {
   close: () => {},
 };
 
-const InsertMenuProvider: React.FC<{ editorApi: EditorApi }> = ({ editorApi }) => {
+export const InsertMenuProvider: React.FC<{ editorApi: EditorApi }> = ({
+  editorApi,
+}) => {
   const [isMenuOpen, setMenuOpen] = useState(false);
-  const [position, setPosition] = useState<{ top: number; left: number } | null>(
-    null
-  );
+  const [position, setPosition] = useState<{
+    top: number;
+    left: number;
+  } | null>(null);
   const [isTemplateEditorOpen, setTemplateEditorOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<OntologyNode | null>(
     null
@@ -95,31 +97,40 @@ const InsertMenuProvider: React.FC<{ editorApi: EditorApi }> = ({ editorApi }) =
       htmlToInsert = `<span class="widget tag" contenteditable="false" data-tag="${item.label}">#${item.label}</span>&nbsp;`;
       editorApi.insertHtml(htmlToInsert);
     } else if (item.type === 'property') {
-      // Handle creating a property from selected text
-      if (context.selectedValue && context.mode === 'property') {
-        const values = [context.selectedValue];
-        const operator = 'is';
-        const formatted = formatPropertyForDisplay(item.label, operator, values);
-        htmlToInsert = `<span class="widget property" contenteditable="false" data-key="${item.label}" data-operator="${operator}" data-values='${JSON.stringify(
-          values
-        )}'>${formatted}</span>&nbsp;`;
-        // This will replace the selected text
-        editorApi.insertHtml(htmlToInsert);
-      } else {
-        // Handle inserting an empty property
-        const widgetId = `widget-${crypto.randomUUID()}`;
-        htmlToInsert = `<span id="${widgetId}" class="widget property" contenteditable="false" data-key="${item.label}" data-operator="is" data-values='[""]'>[${item.label}:is:""]</span>&nbsp;`;
+      const key = item.label;
+      const operator = 'is';
+      const value = context.selectedValue || '';
 
-        editorApi.insertHtml(htmlToInsert, () => {
-          const editor = editorApi.editorRef.current;
-          if (editor) {
-            const newWidget = editor.querySelector<HTMLElement>(`#${widgetId}`);
-            if (newWidget) {
-              editorApi.setEditingWidget(newWidget);
-            }
+      const newWidget = document.createElement('span');
+      newWidget.contentEditable = 'false';
+      newWidget.className =
+        'bg-blue-900/50 text-blue-300 px-2 py-1 rounded-md text-sm mx-1';
+      newWidget.dataset.widget = 'semantic-property';
+      newWidget.dataset.property = key;
+      newWidget.dataset.operator = operator;
+      const values = [value];
+      newWidget.dataset.values = JSON.stringify(values);
+      newWidget.textContent = `${key} ${operator} ${values.join(' and ')}`;
+
+      // Insert a space after the widget for better UX
+      const space = document.createTextNode('\u00A0');
+
+      editorApi.insertHtml(newWidget.outerHTML + space.textContent, () => {
+        // We will add portal rendering logic here later.
+        // For now, we can try to set the editing widget
+        const editor = editorApi.editorRef.current;
+        if (editor) {
+          // This is a bit brittle, we need a better way to find the inserted node
+          // For now, let's assume it's the last one of its kind
+          const allWidgets = editor.querySelectorAll<HTMLElement>(
+            '[data-widget="semantic-property"]'
+          );
+          const insertedWidget = allWidgets[allWidgets.length - 1];
+          if (insertedWidget) {
+            editorApi.setEditingWidget(insertedWidget);
           }
-        });
-      }
+        }
+      });
     } else if (item.type === 'template') {
       const template = indexedOntology.allTemplates.find(
         (t) => t.id === item.id.replace('template-', '')
@@ -158,12 +169,18 @@ const InsertMenuProvider: React.FC<{ editorApi: EditorApi }> = ({ editorApi }) =
 
   return (
     <>
-      {isMenuOpen && position && ReactDOM.createPortal(
-        <div style={popoverStyle}>
-          <InsertMenu items={items} onSelect={handleSelect} onClose={closeMenu} />
-        </div>,
-        document.body
-      )}
+      {isMenuOpen &&
+        position &&
+        ReactDOM.createPortal(
+          <div style={popoverStyle}>
+            <InsertMenu
+              items={items}
+              onSelect={handleSelect}
+              onClose={closeMenu}
+            />
+          </div>,
+          document.body
+        )}
       {selectedTemplate && (
         <TemplateEditor
           template={selectedTemplate}
@@ -176,9 +193,3 @@ const InsertMenuProvider: React.FC<{ editorApi: EditorApi }> = ({ editorApi }) =
   );
 };
 
-export const insertMenuPlugin: EditorPlugin = {
-  id: 'insert-menu',
-  name: 'Insert Menu',
-  Popover: InsertMenuProvider,
-  api: api,
-};

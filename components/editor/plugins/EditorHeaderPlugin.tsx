@@ -1,5 +1,5 @@
 import React from 'react';
-import type { EditorApi, EditorPlugin } from '../../../types';
+import type { EditorApi } from '../../../types';
 import { CubeIcon, TrashIcon } from '../../icons';
 
 export const EditorHeaderComponent: React.FC<{ editorApi: EditorApi }> = ({
@@ -47,8 +47,3 @@ export const EditorHeaderComponent: React.FC<{ editorApi: EditorApi }> = ({
   );
 };
 
-export const editorHeaderPlugin: EditorPlugin = {
-  id: 'editor-header',
-  name: 'Editor Header',
-  HeaderComponent: EditorHeaderComponent,
-};

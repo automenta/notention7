@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNotes } from '../contexts/NotesContext';
 import { useView } from '../contexts/ViewContext';
-import { useSettings } from '../contexts/SettingsContext';
+import { useSettings } from '../../hooks/useSettingsContext';
 import { EditorManager } from '../EditorManager';
 import { CubeTransparentIcon } from '../icons';
 

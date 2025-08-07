@@ -3,7 +3,7 @@ import { generateSecretKey, getPublicKey, nip19 } from 'nostr-tools';
 import { bytesToHex, hexToBytes } from '@/utils/nostr.ts';
 import { ClipboardIcon, KeyIcon, SparklesIcon, TrashIcon } from '../icons';
 import { isApiKeyAvailable } from '@/services/geminiService.ts';
-import { useSettings } from '../contexts/SettingsContext';
+import { useSettings } from '../../hooks/useSettingsContext';
 
 const TabButton: React.FC<{
   label: string;

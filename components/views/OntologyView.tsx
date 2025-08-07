@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { OntologyNode } from '../../types';
 import { ChevronDownIcon } from '../icons';
-import { useSettings } from '../contexts/SettingsContext';
+import { useSettings } from '../../hooks/useSettingsContext';
 
 interface OntologyNodeProps {
   node: OntologyNode;

@@ -73,15 +73,17 @@ describe('SemanticInsertPlugin', () => {
     it('calls the plugin open method with "tag" when tag button is clicked', () => {
       render(<SemanticInsertToolbar editorApi={mockEditorApi} />);
       fireEvent.click(screen.getByTitle('Insert Tag'));
-      expect(mockEditorApi.plugins['semantic-insert'].open).toHaveBeenCalledWith('tag');
+      expect(
+        mockEditorApi.plugins['semantic-insert'].open
+      ).toHaveBeenCalledWith('tag');
     });
 
     it('calls the plugin open method with "template" when template button is clicked', () => {
       render(<SemanticInsertToolbar editorApi={mockEditorApi} />);
       fireEvent.click(screen.getByTitle('Insert Template'));
-      expect(mockEditorApi.plugins['semantic-insert'].open).toHaveBeenCalledWith(
-        'template'
-      );
+      expect(
+        mockEditorApi.plugins['semantic-insert'].open
+      ).toHaveBeenCalledWith('template');
     });
   });
 

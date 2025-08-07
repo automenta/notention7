@@ -80,7 +80,9 @@ const Workbench = () => {
           onDelete={handleDelete}
         />
         <div className="mt-4 p-4 bg-gray-900 rounded-lg">
-          <h3 className="text-sm font-semibold text-gray-400">Current State:</h3>
+          <h3 className="text-sm font-semibold text-gray-400">
+            Current State:
+          </h3>
           <pre className="text-sm text-yellow-300">
             {JSON.stringify(property, null, 2)}
           </pre>
@@ -93,23 +95,33 @@ const Workbench = () => {
         </h2>
         <div className="space-y-8 max-w-md">
           <div>
-            <h3 className="text-lg font-semibold text-gray-300 mb-2">String Input</h3>
+            <h3 className="text-lg font-semibold text-gray-300 mb-2">
+              String Input
+            </h3>
             <StringInput value={stringValue} onChange={setStringValue} />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-300 mb-2">Number Input</h3>
+            <h3 className="text-lg font-semibold text-gray-300 mb-2">
+              Number Input
+            </h3>
             <NumberInput value={numberValue} onChange={setNumberValue} />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-300 mb-2">Date Input</h3>
+            <h3 className="text-lg font-semibold text-gray-300 mb-2">
+              Date Input
+            </h3>
             <DateInput value={dateValue} onChange={setDateValue} />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-300 mb-2">DateTime Input</h3>
+            <h3 className="text-lg font-semibold text-gray-300 mb-2">
+              DateTime Input
+            </h3>
             <DateTimeInput value={datetimeValue} onChange={setDatetimeValue} />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-300 mb-2">Enum Input</h3>
+            <h3 className="text-lg font-semibold text-gray-300 mb-2">
+              Enum Input
+            </h3>
             <EnumInput
               value={enumValue}
               onChange={setEnumValue}
@@ -117,7 +129,9 @@ const Workbench = () => {
             />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-300 mb-2">Geo Input</h3>
+            <h3 className="text-lg font-semibold text-gray-300 mb-2">
+              Geo Input
+            </h3>
             <GeoInput
               value={geoValue}
               onChange={setGeoValue}
@@ -130,9 +144,13 @@ const Workbench = () => {
   );
 };
 
-const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
+const root = ReactDOM.createRoot(
+  document.getElementById('root') as HTMLElement
+);
 root.render(
   <React.StrictMode>
     <Workbench />
   </React.StrictMode>
 );
+
+export default Workbench;

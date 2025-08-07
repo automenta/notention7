@@ -3,6 +3,7 @@ import { useEditor } from '../hooks/useEditor';
 import { sanitizeHTML } from '../utils/sanitize';
 import type { AppSettings, Note } from '../types';
 import { editorPlugins } from './editor/plugins';
+import WidgetRenderer from './editor/widgets/WidgetRenderer';
 
 export const RichTextEditorV2: React.FC<{
   note: Note;
@@ -43,6 +44,7 @@ export const RichTextEditorV2: React.FC<{
           data-placeholder="Start writing..."
           dangerouslySetInnerHTML={{ __html: sanitizeHTML(note.content) }}
         />
+        <WidgetRenderer editorApi={editorApi} />
         {/* Render all popover components provided by plugins */}
         {popoverComponents.map((Popover, index) => (
           <Popover key={index} editorApi={editorApi} />

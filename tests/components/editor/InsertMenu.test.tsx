@@ -6,8 +6,18 @@ import '@testing-library/jest-dom';
 describe('InsertMenu', () => {
   const mockItems = [
     { id: '1', type: 'tag', label: 'Tag 1', description: 'This is a tag' },
-    { id: '2', type: 'template', label: 'Template 1', description: 'This is a template' },
-    { id: '3', type: 'property', label: 'Property 1', description: 'This is a property' },
+    {
+      id: '2',
+      type: 'template',
+      label: 'Template 1',
+      description: 'This is a template',
+    },
+    {
+      id: '3',
+      type: 'property',
+      label: 'Property 1',
+      description: 'This is a property',
+    },
   ];
 
   it('renders without crashing', () => {

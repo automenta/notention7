@@ -5,7 +5,7 @@ import { DEFAULT_RELAYS, hexToBytes } from '../../utils/nostr';
 import { pool } from '../../services/nostrService';
 import { ContactList } from '../chat/ContactList';
 import { ChatWindow } from '../chat/ChatWindow';
-import { useSettings } from '../contexts/SettingsContext';
+import { useSettings } from '../../hooks/useSettingsContext';
 
 export const ChatView: React.FC = () => {
   const { settings } = useSettings();

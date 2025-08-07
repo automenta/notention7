@@ -54,7 +54,10 @@ export const TemplateEditor: React.FC<{
                 type="text"
                 value={prop.values[0] || ''}
                 onChange={(e) =>
-                  handlePropertyChange(index, { ...prop, values: [e.target.value] })
+                  handlePropertyChange(index, {
+                    ...prop,
+                    values: [e.target.value],
+                  })
                 }
                 className="w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />

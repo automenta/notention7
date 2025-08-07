@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import type { EditorApi, EditorPlugin } from '../../../types';
+import type { EditorApi } from '../../../types';
 import {
   BoldIcon,
   CodeBlockIcon,
@@ -155,8 +155,3 @@ export const ToolbarComponent: React.FC<ToolbarPluginProps> = ({
   );
 };
 
-export const toolbarPlugin: EditorPlugin = {
-  id: 'toolbar',
-  name: 'Toolbar',
-  ToolbarComponent: ToolbarComponent,
-};

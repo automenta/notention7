@@ -46,6 +46,13 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
     [key, propertyTypes]
   );
 
+  // When the property prop changes, we need to reset the internal state
+  useEffect(() => {
+    setKey(property?.key || '');
+    setOperator(property?.operator || 'is');
+    setValues(property?.values || ['']);
+  }, [property]);
+
   // When the selected key (and thus its type) changes, we need to ensure the
   // currently selected operator is still valid. If not, we reset the operator
   // to the first available one for the new type, but we preserve the value.
@@ -59,7 +66,7 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
         setOperator(allOperators[0] || 'is');
       }
     }
-  }, [attributeType]);
+  }, [attributeType, operator]);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();

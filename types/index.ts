@@ -97,7 +97,7 @@ export interface EditorApi {
 
   // Extensible plugin API container
   plugins: {
-    [pluginId:string]: unknown;
+    [pluginId: string]: unknown;
   };
 }
 
@@ -168,9 +168,17 @@ export interface EditorPlugin {
   ) => boolean | void;
 }
 
+// Defines the shape of the props that editor components will receive
+export interface EditorComponentProps {
+  note: Note;
+  onSave: (note: Note) => void;
+  onDelete: (id: string) => void;
+  settings: AppSettings;
+}
+
 // Defines the shape of an available editor component
 export interface AvailableEditor {
   id: string;
-  name:string;
-  component: React.FC<any>;
+  name: string;
+  component: React.FC<EditorComponentProps>;
 }

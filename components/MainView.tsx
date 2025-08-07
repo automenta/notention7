@@ -1,6 +1,6 @@
 import React from 'react';
 import { useView } from './contexts/ViewContext';
-import { useSettings } from './contexts/SettingsContext';
+import { useSettings } from '../hooks/useSettingsContext';
 import { useNotes } from './contexts/NotesContext';
 import { LoadingSpinner } from './icons';
 import { NotesView } from './views/NotesView';

@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import ReactDOM from 'react-dom';
-import type { EditorApi, EditorPlugin } from '../../../types';
+import type { EditorApi } from '../../../types';
 import { PlusCircleIcon } from '../../icons';
 
-const SelectionToolbar: React.FC<{ editorApi: EditorApi }> = ({ editorApi }) => {
+export const SelectionToolbar: React.FC<{ editorApi: EditorApi }> = ({
+  editorApi,
+}) => {
   const [isVisible, setIsVisible] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const selectedTextRef = useRef<string>('');
@@ -39,7 +41,10 @@ const SelectionToolbar: React.FC<{ editorApi: EditorApi }> = ({ editorApi }) => 
       mode: 'property' as const,
       selectedValue: selectedTextRef.current,
     };
-    editorApi.plugins['insert-menu'].open({ top: position.top + 40, left: position.left }, context);
+    editorApi.plugins['insert-menu'].open(
+      { top: position.top + 40, left: position.left },
+      context
+    );
     setIsVisible(false);
   };
 
@@ -56,7 +61,10 @@ const SelectionToolbar: React.FC<{ editorApi: EditorApi }> = ({ editorApi }) => 
   };
 
   return ReactDOM.createPortal(
-    <div style={popoverStyle} className="bg-gray-900 rounded-md shadow-lg p-1 flex gap-1">
+    <div
+      style={popoverStyle}
+      className="bg-gray-900 rounded-md shadow-lg p-1 flex gap-1"
+    >
       <button
         onClick={handleCreateProperty}
         className="p-2 rounded-md transition-colors hover:bg-gray-700/80 text-gray-400 hover:text-gray-200"
@@ -69,9 +77,3 @@ const SelectionToolbar: React.FC<{ editorApi: EditorApi }> = ({ editorApi }) => 
   );
 };
 
-
-export const selectionToolbarPlugin: EditorPlugin = {
-  id: 'selection-toolbar',
-  name: 'Selection Toolbar',
-  Popover: SelectionToolbar,
-};
