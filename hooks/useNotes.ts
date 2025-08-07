@@ -1,4 +1,6 @@
+import { useMemo } from 'react';
 import { useLocalForage } from './useLocalForage';
+import { sortNotesByDate } from '../utils/notes';
 import type { Note } from '../types';
 
 export const useNotes = () => {
@@ -6,6 +8,8 @@ export const useNotes = () => {
     'notention-notes',
     []
   );
+
+  const sortedNotes = useMemo(() => sortNotesByDate(notes), [notes]);
 
   const addNote = () => {
     const newNote: Note = {
@@ -32,7 +36,7 @@ export const useNotes = () => {
   };
 
   return {
-    notes,
+    notes: sortedNotes,
     addNote,
     updateNote,
     deleteNote,

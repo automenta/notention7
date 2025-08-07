@@ -1,35 +1,15 @@
-import React, { useEffect, useMemo } from 'react';
+import React from 'react';
 import { Header } from './components/Header';
-import { Sidebar } from './components/Sidebar';
-import { MainView } from './components/MainView';
 import { useNotesContext } from './hooks/useNotesContext';
 import { useViewContext } from './hooks/useViewContext';
-import { sortNotesByDate } from './utils/notes';
+import { useAutoSelectNote } from './hooks/useAutoSelectNote';
+import { MainLayout } from './components/MainLayout';
 
 const App: React.FC = () => {
-  const { notes, addNote, notesLoading } = useNotesContext();
-  const { activeView, setActiveView, selectedNoteId, setSelectedNoteId } =
-    useViewContext();
+  const { addNote } = useNotesContext();
+  const { setActiveView, setSelectedNoteId } = useViewContext();
 
-  const sortedNotes = useMemo(() => sortNotesByDate(notes), [notes]);
-
-  // Auto-select the most recent note on load or when switching to 'notes' view
-  useEffect(() => {
-    if (
-      activeView === 'notes' &&
-      !notesLoading &&
-      selectedNoteId === null &&
-      sortedNotes.length > 0
-    ) {
-      setSelectedNoteId(sortedNotes[0].id);
-    }
-  }, [
-    notesLoading,
-    sortedNotes,
-    selectedNoteId,
-    activeView,
-    setSelectedNoteId,
-  ]);
+  useAutoSelectNote();
 
   const handleNewNote = () => {
     const newNote = addNote();
@@ -40,17 +20,7 @@ const App: React.FC = () => {
   return (
     <div className="flex flex-col h-screen bg-gray-800 text-gray-200">
       <Header onNewNote={handleNewNote} />
-      <div className="flex flex-1 overflow-hidden">
-        {activeView === 'notes' && (
-          <div className="w-[320px] flex-shrink-0 bg-gray-900 border-r border-gray-700/50">
-            <Sidebar />
-          </div>
-        )}
-
-        <main className="flex-1 p-3 overflow-hidden">
-          <MainView />
-        </main>
-      </div>
+      <MainLayout />
     </div>
   );
 };
