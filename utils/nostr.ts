@@ -45,5 +45,5 @@ export function getTextFromHtml(content: string): string {
       el.appendChild(br);
     });
 
-  return div.innerText || '';
+  return div.textContent || '';
 }
