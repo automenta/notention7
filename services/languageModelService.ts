@@ -3,7 +3,34 @@ import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { z } from 'zod';
 import type { OntologyNode } from '../types';
 
-// Define the Zod schema for structured output
+// New type for AI Actions
+export type AIAction =
+  | 'summarize'
+  | 'key-points'
+  | 'questions'
+  | 'action-items';
+
+// --- PROMPTS ---
+const PROMPTS: Record<AIAction, string> = {
+  summarize: `Summarize the following note content into a single, concise paragraph.
+    Focus on the main narrative and key points.
+    Ignore structured data like hashtags or key-value properties.
+    Do not include any introductory phrases like "This note is about..." in your response.`,
+
+  'key-points': `Analyze the following note content and extract the key points and most important takeaways.
+    Present them as a bulleted list (using '- ' for each point).
+    Focus on conciseness and clarity.`,
+
+  questions: `Analyze the following note content and generate a list of questions that the content could answer.
+    This is for studying or self-testing purposes.
+    Present them as a numbered list.`,
+
+  'action-items': `Analyze the following note content and identify any potential action items, tasks, or to-dos.
+    If you find any, present them as a bulleted list (using '- ' for each point).
+    If no action items are found, respond with "No action items found."`,
+};
+
+// Define the Zod schema for structured output (for suggestTagsAndProperties)
 const SuggestionsSchema = z.object({
   tags: z.array(z.string()).describe('List of suggested tag strings'),
   properties: z
@@ -18,7 +45,7 @@ const SuggestionsSchema = z.object({
 
 export interface AISuggestions {
   tags: string[];
-  properties: { key:string; value: string }[];
+  properties: { key: string; value: string }[];
 }
 
 const getModel = (apiKey: string) => {
@@ -32,37 +59,39 @@ const getModel = (apiKey: string) => {
   });
 };
 
-export const summarizeText = async (
+/**
+ * Generates content for a given text using a specified AI action, streaming the results.
+ */
+export async function* generateContentStream(
   apiKey: string,
-  textToSummarize: string
-): Promise<string> => {
+  action: AIAction,
+  textToProcess: string
+): AsyncGenerator<string, void, undefined> {
   const model = getModel(apiKey);
-  const prompt = [
-    new SystemMessage(
-      `Summarize the following note content into a single, concise paragraph.
-      Focus on the main narrative and key points.
-      Ignore structured data like hashtags or key-value properties.
-      Do not include any introductory phrases like "This note is about..." in your response.`
-    ),
-    new HumanMessage(textToSummarize),
-  ];
+  const systemPrompt = PROMPTS[action];
+
+  if (!systemPrompt) {
+    throw new Error(`Invalid AI action: ${action}`);
+  }
+
+  const prompt = [new SystemMessage(systemPrompt), new HumanMessage(textToProcess)];
 
   try {
-    const response = await model.invoke(prompt);
-    const summary = response.content.toString();
-    if (!summary) {
-      throw new Error('Received an empty summary from the API.');
+    const stream = await model.stream(prompt);
+    for await (const chunk of stream) {
+      yield chunk.content.toString();
     }
-    return summary.trim();
   } catch (error) {
-    console.error('Error summarizing text with Langchain:', error);
+    console.error(`Error during ${action} generation with Langchain:`, error);
     if (error instanceof Error) {
-      throw new Error(`Failed to generate summary: ${error.message}`);
+      throw new Error(`Failed to generate content: ${error.message}`);
     }
-    throw new Error('An unknown error occurred while generating the summary.');
+    throw new Error('An unknown error occurred while generating content.');
   }
-};
+}
 
+
+// This function remains for other potential uses.
 export const suggestTagsAndProperties = async (
   apiKey: string,
   content: string,

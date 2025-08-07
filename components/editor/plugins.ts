@@ -6,6 +6,7 @@ import { inputRulesPlugin } from './plugins/inputRulesPlugin';
 import { editorHeaderPlugin } from './plugins/EditorHeaderPlugin.plugin';
 import { insertMenuPlugin } from './plugins/InsertMenuPlugin.plugin';
 import { selectionToolbarPlugin } from './plugins/SelectionToolbarPlugin.plugin';
+import { aiActionPlugin } from './plugins/AIActionPlugin.plugin';
 
 export const editorPlugins: EditorPlugin[] = [
   editorHeaderPlugin,
@@ -15,4 +16,5 @@ export const editorPlugins: EditorPlugin[] = [
   inputRulesPlugin,
   insertMenuPlugin,
   selectionToolbarPlugin,
+  aiActionPlugin,
 ];
