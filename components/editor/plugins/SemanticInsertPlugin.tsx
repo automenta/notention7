@@ -9,26 +9,16 @@ import { useOntologyIndex } from '../../../hooks/useOntologyIndex';
 import { InsertMenu } from '../InsertMenu';
 import type { InsertMenuItem } from '../../../hooks/useInsertMenuItems';
 import type { EditorApi } from '../../../types';
+import { useSemanticInsert } from './SemanticInsertContext';
 
-export const buttonClass = `p-2 rounded-md transition-colors hover:bg-gray-700/80 text-gray-400 hover:text-gray-200`;
-
-export const api: {
-  open: () => void;
-  close: () => void;
-} = {
-  open: () => {},
-  close: () => {},
-};
-
-export const SemanticInsertToolbar: React.FC<{ editorApi: EditorApi }> = ({
-  editorApi,
-}) => {
+export const SemanticInsertToolbar: React.FC = () => {
+  const { openModal } = useSemanticInsert();
   return (
     <>
       <div className="w-px h-6 bg-gray-700 mx-1"></div>
       <button
-        onClick={() => editorApi.plugins['semantic-insert'].open()}
-        className={buttonClass}
+        onClick={openModal}
+        className="p-2 rounded-md transition-colors hover:bg-gray-700/80 text-gray-400 hover:text-gray-200"
         title="Insert Semantic Element"
       >
         <PlusCircleIcon className="h-5 w-5" />
@@ -42,30 +32,23 @@ type ModalView = 'main' | 'tag' | 'template' | 'property';
 export const SemanticInsertModalProvider: React.FC<{
   editorApi: EditorApi;
 }> = ({ editorApi }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const { isOpen, closeModal } = useSemanticInsert();
   const [view, setView] = useState<ModalView>('main');
 
   const { allTags, allTemplates, allProperties } = useOntologyIndex(
     editorApi.getSettings().ontology
   );
 
-  const openModal = useCallback(() => {
+  const handleClose = () => {
     setView('main');
-    setIsOpen(true);
-  }, []);
-
-  const closeModal = useCallback(() => {
-    setIsOpen(false);
-  }, []);
+    closeModal();
+  };
 
   useEffect(() => {
-    api.open = openModal;
-    api.close = closeModal;
-    return () => {
-      api.open = () => {};
-      api.close = () => {};
-    };
-  }, [openModal, closeModal]);
+    if (isOpen) {
+      setView('main');
+    }
+  }, [isOpen]);
 
   const items: InsertMenuItem[] = useMemo(() => {
     switch (view) {
@@ -78,7 +61,7 @@ export const SemanticInsertModalProvider: React.FC<{
           action: () => {
             const html = `<span class="widget tag" contenteditable="false" data-tag="${t.label}">#${t.label}</span>&nbsp;`;
             editorApi.insertHtml(html);
-            closeModal();
+            handleClose();
           },
         }));
       case 'property':
@@ -92,7 +75,7 @@ export const SemanticInsertModalProvider: React.FC<{
             const html = `<span id="${id}" class="widget property" contenteditable="false" data-key="${p.label}" data-operator="is" data-values='[""]'>[${p.label}:is:""]</span>&nbsp;`;
             editorApi.insertHtml(html);
             editorApi.scheduleWidgetEdit(id);
-            closeModal();
+            handleClose();
           },
         }));
       case 'template':
@@ -109,7 +92,7 @@ export const SemanticInsertModalProvider: React.FC<{
               })
               .join('&nbsp;');
             editorApi.insertHtml(propertiesHtml);
-            closeModal();
+            handleClose();
           },
         }));
       case 'main':
@@ -141,7 +124,7 @@ export const SemanticInsertModalProvider: React.FC<{
           },
         ];
     }
-  }, [view, allTags, allTemplates, allProperties, editorApi, closeModal]);
+  }, [view, allTags, allTemplates, allProperties, editorApi, handleClose]);
 
   if (!isOpen) {
     return null;
@@ -169,7 +152,7 @@ export const SemanticInsertModalProvider: React.FC<{
       className="fixed inset-0 bg-black bg-opacity-50 z-40 flex justify-center items-start pt-20"
       role="dialog"
       aria-modal="true"
-      onClick={closeModal}
+      onClick={handleClose}
     >
       <div
         className="w-full max-w-md bg-gray-800 rounded-lg shadow-xl"
@@ -189,7 +172,7 @@ export const SemanticInsertModalProvider: React.FC<{
         <InsertMenu
           items={items}
           onSelect={handleSelect}
-          onClose={closeModal}
+          onClose={handleClose}
         />
       </div>
     </div>

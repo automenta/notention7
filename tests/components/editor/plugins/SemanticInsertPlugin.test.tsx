@@ -7,47 +7,21 @@ import {
 } from '../../../../components/editor/plugins/SemanticInsertPlugin';
 import type { EditorApi } from '../../../../types';
 import * as OntologyIndexHook from '../../../../hooks/useOntologyIndex';
+import { SemanticInsertProvider } from '../../../../components/editor/plugins/SemanticInsertContext';
+import { createMockEditorApi } from '../../../utils/mocks';
 
 // Mock the useOntologyIndex hook
 vi.mock('../../../../hooks/useOntologyIndex');
 
-const createMockEditorApi = (): EditorApi => ({
-  editorRef: { current: document.createElement('div') },
-  execCommand: vi.fn(),
-  toggleBlock: vi.fn(),
-  queryCommandState: vi.fn(),
-  getSelectionParent: vi.fn(),
-  insertHtml: vi.fn(),
-  getNote: vi.fn(),
-  getSettings: vi.fn(() => ({
-    aiEnabled: false,
-    theme: 'dark',
-    nostr: { privkey: null },
-    ontology: [],
-  })),
-  setEditingWidget: vi.fn(),
-  getEditingWidget: vi.fn(() => null),
-  updateContent: vi.fn(),
-  updateNote: vi.fn(),
-  deleteNote: vi.fn(),
-  plugins: {
-    'insert-menu': {
-      open: vi.fn(),
-      close: vi.fn(),
-    },
-    'semantic-insert': {
-      open: vi.fn(),
-      close: vi.fn(),
-    },
-  },
-});
+const TestWrapper: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => <SemanticInsertProvider>{children}</SemanticInsertProvider>;
 
 describe('SemanticInsertPlugin', () => {
   let mockEditorApi: EditorApi;
 
   beforeEach(() => {
     mockEditorApi = createMockEditorApi();
-    // Provide a default mock implementation for the hook
     vi.mocked(OntologyIndexHook.useOntologyIndex).mockReturnValue({
       allTags: [{ id: 'tag1', label: 'TestTag', description: 'A test tag' }],
       allTemplates: [
@@ -63,37 +37,52 @@ describe('SemanticInsertPlugin', () => {
     });
   });
 
-  describe('SemanticInsertToolbar', () => {
-    it('renders toolbar buttons', () => {
-      render(<SemanticInsertToolbar editorApi={mockEditorApi} />);
-      expect(screen.getByTitle('Insert Tag')).toBeInTheDocument();
-      expect(screen.getByTitle('Insert Template')).toBeInTheDocument();
-    });
+  it('opens and closes the modal when interacting with the toolbar', () => {
+    render(
+      <>
+        <SemanticInsertToolbar />
+        <SemanticInsertModalProvider editorApi={mockEditorApi} />
+      </>,
+      { wrapper: TestWrapper }
+    );
 
-    it('calls the plugin open method with "tag" when tag button is clicked', () => {
-      render(<SemanticInsertToolbar editorApi={mockEditorApi} />);
-      fireEvent.click(screen.getByTitle('Insert Tag'));
-      expect(
-        mockEditorApi.plugins['semantic-insert'].open
-      ).toHaveBeenCalledWith('tag');
-    });
+    // Modal should be closed initially
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 
-    it('calls the plugin open method with "template" when template button is clicked', () => {
-      render(<SemanticInsertToolbar editorApi={mockEditorApi} />);
-      fireEvent.click(screen.getByTitle('Insert Template'));
-      expect(
-        mockEditorApi.plugins['semantic-insert'].open
-      ).toHaveBeenCalledWith('template');
-    });
+    // Click the toolbar button to open the modal
+    fireEvent.click(screen.getByTitle('Insert Semantic Element'));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByText('Insert Semantic Element')).toBeInTheDocument();
+
+    // Click the overlay to close the modal
+    fireEvent.click(screen.getByRole('dialog'));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  describe('SemanticInsertModalProvider', () => {
-    // Note: Testing the modal is now harder as its state is internal.
-    // These tests rely on the mock API being called correctly by the toolbar.
-    // A full integration test might be better, but this is a good start.
-    it('does not render modal initially', () => {
-      render(<SemanticInsertModalProvider editorApi={mockEditorApi} />);
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    });
+  it('allows inserting a tag', () => {
+    render(
+      <>
+        <SemanticInsertToolbar />
+        <SemanticInsertModalProvider editorApi={mockEditorApi} />
+      </>,
+      { wrapper: TestWrapper }
+    );
+
+    // Open the modal
+    fireEvent.click(screen.getByTitle('Insert Semantic Element'));
+
+    // Go to tag view
+    fireEvent.click(screen.getByText('Tag'));
+
+    // Click the tag to insert it
+    fireEvent.click(screen.getByText('TestTag'));
+
+    // Assert that the editorApi was called
+    expect(mockEditorApi.insertHtml).toHaveBeenCalledWith(
+      '<span class="widget tag" contenteditable="false" data-tag="TestTag">#TestTag</span>&nbsp;'
+    );
+
+    // Assert that the modal is closed
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });

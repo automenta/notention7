@@ -34,8 +34,6 @@ describe('Plugin Definitions', () => {
     expect(typeof semanticInsertPlugin.Popover).toBe('function');
     expect(semanticInsertPlugin.ToolbarComponent).toBeDefined();
     expect(typeof semanticInsertPlugin.ToolbarComponent).toBe('function');
-    expect(semanticInsertPlugin.api).toBeDefined();
-    expect(typeof semanticInsertPlugin.api).toBe('object');
   });
 
   it('toolbarPlugin should have a valid ToolbarComponent', () => {

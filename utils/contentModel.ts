@@ -2,7 +2,6 @@ import {
   ContentNode,
   PropertyWidgetNode,
   TagWidgetNode,
-  TextNode,
 } from '../types';
 
 export const parseHTML = (html: string): ContentNode[] => {

@@ -86,26 +86,23 @@ describe('useEditor hook', () => {
     expect(result.current.content).toBe('<p>New content</p>');
   });
 
-  it('should sanitize and update content when inserting HTML', () => {
+  it('should sanitize content on input', () => {
     const { result } = renderHook(() =>
       useEditor([], mockNote, mockSettings, mockOnSave, mockOnDelete)
     );
 
-    // --- Setup the ref to point to our fake div ---
-    act(() => {
-      (
-        result.current.editorRef as React.MutableRefObject<HTMLDivElement>
-      ).current = editorDiv;
-    });
+    const unsafeHtml = '<p>Hello <script>alert("xss")</script><img src="x" onerror="alert(\'xss\')"></p>';
+    const sanitizedHtml = '<p>Hello <img src="x"></p>';
 
-    // Directly set the innerHTML of the fake editor
-    editorDiv.innerHTML = '<p>Hello <script>alert("xss")</script></p>';
+    const mockEvent = {
+      currentTarget: { innerHTML: unsafeHtml },
+    } as unknown as React.FormEvent<HTMLDivElement>;
 
     act(() => {
-      result.current.editorApi.updateContent();
+      result.current.handleInput(mockEvent);
     });
 
-    expect(result.current.content).toBe('<p>Hello </p>');
+    expect(result.current.content).toBe(sanitizedHtml);
   });
 
   describe('debounced auto-save', () => {

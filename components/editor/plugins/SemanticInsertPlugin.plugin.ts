@@ -1,6 +1,5 @@
 import type { EditorPlugin } from '../../../types';
 import {
-  api,
   SemanticInsertModalProvider,
   SemanticInsertToolbar,
 } from './SemanticInsertPlugin';
@@ -10,5 +9,4 @@ export const semanticInsertPlugin: EditorPlugin = {
   name: 'Semantic Insert',
   ToolbarComponent: SemanticInsertToolbar,
   Popover: SemanticInsertModalProvider,
-  api: api,
 };

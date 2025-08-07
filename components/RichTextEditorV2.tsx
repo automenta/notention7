@@ -4,6 +4,7 @@ import { sanitizeHTML } from '../utils/sanitize';
 import type { AppSettings, Note } from '../types';
 import { editorPlugins } from './editor/plugins';
 import WidgetRenderer from './editor/widgets/WidgetRenderer';
+import { SemanticInsertProvider } from './editor/plugins/SemanticInsertContext';
 
 export const RichTextEditorV2: React.FC<{
   note: Note;
@@ -45,42 +46,44 @@ export const RichTextEditorV2: React.FC<{
   }, [pendingWidgetEdit, editorApi]);
 
   return (
-    <div className="relative flex flex-col h-full bg-gray-800/50 rounded-lg overflow-hidden">
-      {headerComponents.map((Component, index) => (
-        <Component key={index} editorApi={editorApi} />
-      ))}
-      {toolbarComponents.map((Component, index) => (
-        <Component key={index} editorApi={editorApi} />
-      ))}
-
-      <div className="flex-grow flex flex-col overflow-y-auto note-content relative">
-        <div
-          ref={editorRef}
-          className="ProseMirror"
-          contentEditable={true}
-          onInput={handleInput}
-          onClick={handleClick}
-          onKeyDown={handleKeyDown}
-          suppressContentEditableWarning={true}
-          data-placeholder="Start writing..."
-          // Set initial content. After this, the useEffect will sync state to the DOM.
-          dangerouslySetInnerHTML={{ __html: sanitizeHTML(note.content) }}
-        />
-        <WidgetRenderer editorApi={editorApi} />
-        {/* Render all popover components provided by plugins */}
-        {popoverComponents.map((Popover, index) => (
-          <Popover key={index} editorApi={editorApi} />
+    <SemanticInsertProvider>
+      <div className="relative flex flex-col h-full bg-gray-800/50 rounded-lg overflow-hidden">
+        {headerComponents.map((Component, index) => (
+          <Component key={index} editorApi={editorApi} />
         ))}
-      </div>
+        {toolbarComponents.map((Component, index) => (
+          <Component key={index} editorApi={editorApi} />
+        ))}
 
-      {/* Render all modal components provided by plugins */}
-      {modalComponents.map((Modal, index) => (
-        <Modal key={index} editorApi={editorApi} />
-      ))}
+        <div className="flex-grow flex flex-col overflow-y-auto note-content relative">
+          <div
+            ref={editorRef}
+            className="ProseMirror"
+            contentEditable={true}
+            onInput={handleInput}
+            onClick={handleClick}
+            onKeyDown={handleKeyDown}
+            suppressContentEditableWarning={true}
+            data-placeholder="Start writing..."
+            // Set initial content. After this, the useEffect will sync state to the DOM.
+            dangerouslySetInnerHTML={{ __html: sanitizeHTML(note.content) }}
+          />
+          <WidgetRenderer editorApi={editorApi} />
+          {/* Render all popover components provided by plugins */}
+          {popoverComponents.map((Popover, index) => (
+            <Popover key={index} editorApi={editorApi} />
+          ))}
+        </div>
 
-      <div className="flex-shrink-0 p-2 text-xs text-center text-gray-500 border-t border-gray-700/50">
-        Last saved: {new Date(note.updatedAt).toLocaleString()}
+        {/* Render all modal components provided by plugins */}
+        {modalComponents.map((Modal, index) => (
+          <Modal key={index} editorApi={editorApi} />
+        ))}
+
+        <div className="flex-shrink-0 p-2 text-xs text-center text-gray-500 border-t border-gray-700/50">
+          Last saved: {new Date(note.updatedAt).toLocaleString()}
+        </div>
       </div>
-    </div>
+    </SemanticInsertProvider>
   );
 };

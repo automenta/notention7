@@ -8,43 +8,14 @@ import { handleWidgetClick } from '../../../../components/editor/plugins/propert
 import type { EditorApi } from '../../../../types';
 import { useOntologyIndex } from '../../../../hooks/useOntologyIndex';
 
+import { createMockEditorApi } from '../../../utils/mocks';
+
 // Mock dependencies
-vi.mock('@/hooks/useOntologyIndex');
-vi.mock('@/utils/properties', () => ({
+vi.mock('../../../../hooks/useOntologyIndex');
+vi.mock('../../../../utils/properties', () => ({
   formatPropertyForDisplay: (key: string, op: string, vals: string[]) =>
     `[${key}:${op}:${vals.join(',')}]`,
 }));
-
-const mockSetEditingWidget = vi.fn();
-const mockUpdateContent = vi.fn();
-
-const createMockEditorApi = (editingWidget: HTMLElement | null): EditorApi => {
-  const editorDiv = document.createElement('div');
-  if (editingWidget) {
-    editorDiv.appendChild(editingWidget);
-  }
-  return {
-    editorRef: { current: editorDiv },
-    execCommand: vi.fn(),
-    toggleBlock: vi.fn(),
-    queryCommandState: vi.fn(),
-    getSelectionParent: vi.fn(),
-    insertHtml: vi.fn(),
-    getNote: vi.fn(),
-    getSettings: vi.fn(() => ({
-      aiEnabled: false,
-      theme: 'dark',
-      nostr: { privkey: null },
-      ontology: [],
-    })),
-    setEditingWidget: mockSetEditingWidget,
-    getEditingWidget: () => editingWidget,
-    updateContent: mockUpdateContent,
-    updateNote: vi.fn(),
-    deleteNote: vi.fn(),
-    plugins: {},
-  };
-};
 
 describe('PropertyEditorPlugin', () => {
   beforeEach(() => {
@@ -71,7 +42,7 @@ describe('PropertyEditorPlugin', () => {
 
       expect(event.preventDefault).toHaveBeenCalled();
       expect(event.stopPropagation).toHaveBeenCalled();
-      expect(mockSetEditingWidget).toHaveBeenCalledWith(widget);
+      expect(api.setEditingWidget).toHaveBeenCalledWith(widget);
       expect(widget.id).toMatch(/^widget-/);
       expect(handled).toBe(true);
     });
@@ -89,7 +60,7 @@ describe('PropertyEditorPlugin', () => {
 
       handleWidgetClick(event, api);
 
-      expect(mockSetEditingWidget).toHaveBeenCalledWith(null);
+      expect(api.setEditingWidget).toHaveBeenCalledWith(null);
     });
   });
 
@@ -121,46 +92,40 @@ describe('PropertyEditorPlugin', () => {
       expect(screen.getByText('Save')).toBeInTheDocument();
     });
 
-    // NOTE: Testing the save/delete handlers directly is difficult because they are defined inside the component.
-    // A full integration test would be better. However, for now, we can assert on the side effects we can observe.
-    it('handleSave updates the widget in the DOM', () => {
+    it('handleSave calls editorApi.updateWidget with current data', () => {
       const widget = document.createElement('div');
       widget.id = 'widget-to-save';
-      widget.dataset.key = 'old-key';
-      widget.dataset.values = '["old-value"]';
-      widget.innerHTML = 'old';
+      widget.dataset.key = 'test-key';
+      widget.dataset.operator = 'contains';
+      widget.dataset.values = '["initial"]';
       widget.getBoundingClientRect = vi.fn().mockReturnValue({});
       const api = createMockEditorApi(widget);
 
       render(<PropertyEditorPopover editorApi={api} />);
 
-      // To test handleSave, we need to get it from the props of the rendered popover.
-      // Since we can't do that easily, we'll simulate the user action that triggers it.
-      fireEvent.click(screen.getByText('Save')); // This calls onSave with the current state
+      // Simulate user clicking save without changing anything
+      fireEvent.click(screen.getByText('Save'));
 
-      expect(widget.dataset.key).toBe('old-key'); // It saves the initial state
-      expect(widget.dataset.operator).toBe('is');
-      // When saving an unmodified editor, the original values should be preserved.
-      expect(widget.dataset.values).toBe('["old-value"]');
-      expect(mockUpdateContent).toHaveBeenCalled();
-      expect(mockSetEditingWidget).toHaveBeenCalledWith(null);
+      expect(api.updateWidget).toHaveBeenCalledWith('widget-to-save', {
+        key: 'test-key',
+        operator: 'contains',
+        values: ['initial'],
+      });
+      expect(api.setEditingWidget).toHaveBeenCalledWith(null);
     });
 
-    it('handleDelete removes the widget from the DOM', () => {
+    it('handleDelete calls editorApi.deleteWidget', () => {
       const widget = document.createElement('div');
       widget.id = 'widget-to-delete';
       widget.getBoundingClientRect = vi.fn().mockReturnValue({});
       const api = createMockEditorApi(widget);
-      // Mock the remove function
-      widget.remove = vi.fn();
 
       render(<PropertyEditorPopover editorApi={api} />);
 
       fireEvent.click(screen.getByTitle('Delete Property'));
 
-      expect(widget.remove).toHaveBeenCalled();
-      expect(mockUpdateContent).toHaveBeenCalled();
-      expect(mockSetEditingWidget).toHaveBeenCalledWith(null);
+      expect(api.deleteWidget).toHaveBeenCalledWith('widget-to-delete');
+      expect(api.setEditingWidget).toHaveBeenCalledWith(null);
     });
   });
 });
