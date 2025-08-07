@@ -44,6 +44,7 @@ export interface Note {
 
 export interface AppSettings {
   aiEnabled: boolean;
+  geminiApiKey: string | null;
   theme: 'light' | 'dark';
   nostr: {
     privkey: string | null;

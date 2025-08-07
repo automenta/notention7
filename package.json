@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "@google/genai": "^1.12.0",
+    "@langchain/core": "^0.3.67",
+    "@langchain/google-genai": "^0.2.16",
     "dompurify": "^3.2.6",
     "leaflet": "1.9.4",
     "localforage": "^1.10.0",

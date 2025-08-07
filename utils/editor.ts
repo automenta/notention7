@@ -1,5 +1,17 @@
 import { formatPropertyForDisplay } from './properties';
 
+/**
+ * Strips HTML tags and decodes HTML entities from a string.
+ * @param html The HTML string to clean.
+ * @returns The plain text representation of the HTML.
+ */
+export const getCleanText = (html: string): string => {
+  if (!html) return '';
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = html;
+  return tempDiv.textContent || tempDiv.innerText || '';
+};
+
 // A one-time conversion for legacy note content from plain text to widgets.
 export const convertPlainTextToWidgets = (html: string): string => {
   if (!html) return html;
