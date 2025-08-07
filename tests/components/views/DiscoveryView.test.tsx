@@ -135,6 +135,10 @@ describe('DiscoveryView', () => {
       expect(findMatchingNotesSpy).toHaveBeenCalledWith({
         kinds: [nostrService.NOTENTION_KIND],
         limit: 200,
+        '#p': [
+          ['service', 'is', 'Web Development'],
+          ['price', 'is', '4000'],
+        ],
       });
     });
   });

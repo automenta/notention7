@@ -43,10 +43,30 @@ export const useDiscoverySearch = (
     setSearchState('searching');
     setResults([]);
 
-    const filter = {
+    const filter: {
+      kinds: number[];
+      limit: number;
+      '#p'?: string[][];
+    } = {
       kinds: [NOTENTION_KIND],
       limit: 200,
     };
+
+    const pTags: string[][] = [];
+    searchCriteria.forEach((criterion) => {
+      if (criterion.op === 'is') {
+        // For 'is' operator, create a specific tag filter
+        pTags.push([criterion.key, 'is', ...criterion.values]);
+      } else {
+        // For range operators, filter by key only at the relay level
+        pTags.push([criterion.key]);
+      }
+    });
+
+    if (pTags.length > 0) {
+      filter['#p'] = pTags;
+    }
+
     const foundEvents = await findMatchingNotes(filter);
 
     const matchingEvents = foundEvents.filter((event) => {
@@ -55,32 +75,42 @@ export const useDiscoverySearch = (
         return false; // Exclude user's own notes
       }
 
+      // Final client-side filtering for criteria that relays can't handle (e.g., range operators)
       return searchCriteria.every((criterion) => {
+        // 'is' operator is already handled by the relay filter, so we can skip the check
+        if (criterion.op === 'is') {
+          return true;
+        }
+
         const matchingTag = event.tags.find(
           (tag) => tag[0] === 'p' && tag[1] === criterion.key
         );
 
-        if (!matchingTag) return false;
+        if (!matchingTag) {
+          // This should ideally not happen for range queries if the relay works correctly,
+          // but as a safeguard, we return false.
+          return false;
+        }
 
         const [_, key, op, ...values] = matchingTag;
 
+        // For range queries, the client must perform the final comparison.
+        // We only expect events with 'is' operator from other clients' "real" notes.
+        if (op !== 'is') return false;
+
         switch (criterion.op) {
-          case 'is':
-            return (
-              op === 'is' &&
-              criterion.values.every((v, i) => v === values[i])
-            );
           case 'less than': {
             const criterionValue = parseFloat(criterion.values[0]);
             const eventValue = parseFloat(values[0]);
-            return op === 'is' && !isNaN(criterionValue) && !isNaN(eventValue) && eventValue < criterionValue;
+            return !isNaN(criterionValue) && !isNaN(eventValue) && eventValue < criterionValue;
           }
           case 'greater than': {
             const criterionValue = parseFloat(criterion.values[0]);
             const eventValue = parseFloat(values[0]);
-            return op === 'is' && !isNaN(criterionValue) && !isNaN(eventValue) && eventValue > criterionValue;
+            return !isNaN(criterionValue) && !isNaN(eventValue) && eventValue > criterionValue;
           }
           default:
+            // Should not happen as we already handled 'is'
             return false;
         }
       });
