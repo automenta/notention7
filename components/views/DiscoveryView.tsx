@@ -1,18 +1,13 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNotesContext } from '../../hooks/useNotesContext';
 import { NoteListItem } from '../sidebar/NoteListItem';
-import {
-  findMatchingNotes,
-  NOTENTION_KIND,
-} from '../../services/nostrService';
-import type { NostrEvent, Property } from '../../types';
+import type { NostrEvent } from '../../types';
 import { LoadingSpinner } from '../icons';
 import { useNostrProfile } from '../../hooks/useNostrProfile';
 import { NostrEventCard } from '../network/NostrEventCard';
-import { getTextFromDelta } from '../../utils/nostr';
-import { IMAGINARY_TO_REAL_MAP } from '../../utils/discovery';
+import { getTextFromHtml } from '../../utils/nostr';
+import { useDiscoverySearch } from '../../hooks/useDiscoverySearch';
 
-type SearchState = 'idle' | 'ready' | 'searching' | 'results';
 type SearchCriterion = { key: string; op: string; values: readonly string[] };
 
 const SearchCriteriaSummary: React.FC<{ criteria: SearchCriterion[] }> = ({
@@ -61,95 +56,16 @@ const SearchCriteriaSummary: React.FC<{ criteria: SearchCriterion[] }> = ({
 export const DiscoveryView: React.FC = () => {
   const { notes } = useNotesContext();
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
-  const [results, setResults] = useState<NostrEvent[]>([]);
-  const [searchState, setSearchState] = useState<SearchState>('idle');
-  const [searchCriteria, setSearchCriteria] = useState<SearchCriterion[]>([]);
-
   const selectedNote = notes.find((n) => n.id === selectedNoteId);
+
+  const { results, searchState, searchCriteria, handleSearch } =
+    useDiscoverySearch(selectedNote, notes);
 
   const authorPubkeys = useMemo(
     () => [...new Set(results.map((e) => e.pubkey))],
     [results]
   );
   const profiles = useNostrProfile(authorPubkeys);
-
-  // Effect to derive search criteria when a note is selected
-  useEffect(() => {
-    if (selectedNote) {
-      const criteria = selectedNote.properties
-        .map((p) => {
-          const realKey = IMAGINARY_TO_REAL_MAP[p.key] || p.key;
-          // For now, only support 'is', 'less than', and 'greater than'
-          if (['is', 'less than', 'greater than'].includes(p.op)) {
-            return { key: realKey, op: p.op, values: p.values };
-          }
-          return null;
-        })
-        .filter((c): c is SearchCriterion => c !== null);
-
-      setSearchCriteria(criteria);
-      setResults([]);
-      setSearchState('ready');
-    } else {
-      setSearchCriteria([]);
-      setResults([]);
-      setSearchState('idle');
-    }
-  }, [selectedNote]);
-
-  const handleSearch = async () => {
-    if (searchCriteria.length === 0) return;
-
-    setSearchState('searching');
-    setResults([]);
-
-    const realKeys = [...new Set(searchCriteria.map((c) => c.key))];
-    const filter = {
-      kinds: [NOTENTION_KIND],
-      '#p': realKeys,
-    };
-    const foundEvents = await findMatchingNotes(filter);
-
-    const matchingEvents = foundEvents.filter((event) => {
-      const dTag = event.tags.find((t) => t[0] === 'd');
-      if (dTag && notes.some((n) => n.id === dTag[1])) {
-        return false;
-      }
-
-      return searchCriteria.every((criterion) => {
-        const matchingTag = event.tags.find(
-          (tag) => tag[0] === 'p' && tag[1] === criterion.key
-        );
-
-        if (!matchingTag) return false;
-
-        const [_, key, op, ...values] = matchingTag;
-
-        switch (criterion.op) {
-          case 'is':
-            return (
-              op === 'is' &&
-              criterion.values.every((v, i) => v === values[i])
-            );
-          case 'less than': {
-            const criterionValue = parseFloat(criterion.values[0]);
-            const eventValue = parseFloat(values[0]);
-            return op === 'is' && !isNaN(criterionValue) && !isNaN(eventValue) && eventValue < criterionValue;
-          }
-          case 'greater than': {
-            const criterionValue = parseFloat(criterion.values[0]);
-            const eventValue = parseFloat(values[0]);
-            return op === 'is' && !isNaN(criterionValue) && !isNaN(eventValue) && eventValue > criterionValue;
-          }
-          default:
-            return false;
-        }
-      });
-    });
-
-    setResults(matchingEvents);
-    setSearchState('results');
-  };
 
   const handleReset = () => {
     setSelectedNoteId(null);
@@ -215,18 +131,26 @@ export const DiscoveryView: React.FC = () => {
             <div className="space-y-4">
               {results.length > 0 ? (
                 results.map((event) => {
+                  let title = 'Untitled';
                   let contentPreview = 'Could not parse content.';
                   try {
-                    const contentDelta = JSON.parse(event.content);
-                    contentPreview = getTextFromDelta(contentDelta);
+                    const parsedContent = JSON.parse(event.content);
+                    title = parsedContent.title || 'Untitled';
+                    contentPreview = getTextFromHtml(parsedContent.content).substring(0, 300);
+                    if (contentPreview.length === 300) {
+                      contentPreview += '...';
+                    }
                   } catch (e) {
-                    /* Do nothing */
+                    // Fallback for old content format
+                    contentPreview = event.content.substring(0, 300);
                   }
+
                   return (
                     <NostrEventCard
                       key={event.id}
                       event={event}
                       profile={profiles[event.pubkey]}
+                      title={title}
                       contentPreview={contentPreview}
                       matchingCriteria={searchCriteria}
                     />

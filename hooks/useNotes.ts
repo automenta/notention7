@@ -27,7 +27,11 @@ export const useNotes = () => {
 
   const updateNote = (updatedNote: Note) => {
     setNotes((prev) =>
-      prev.map((n) => (n.id === updatedNote.id ? updatedNote : n))
+      prev.map((n) =>
+        n.id === updatedNote.id
+          ? { ...updatedNote, updatedAt: new Date().toISOString() }
+          : n
+      )
     );
   };
 

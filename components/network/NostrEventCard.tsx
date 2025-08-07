@@ -8,9 +8,10 @@ type SearchCriterion = { key: string; op: string; values: readonly string[] };
 export const NostrEventCard: React.FC<{
   event: NostrEvent;
   profile: NostrProfile | undefined;
+  title?: string;
   contentPreview?: string;
   matchingCriteria?: SearchCriterion[];
-}> = ({ event, profile, contentPreview, matchingCriteria = [] }) => {
+}> = ({ event, profile, title, contentPreview, matchingCriteria = [] }) => {
   const eventDate = new Date(event.created_at * 1000).toLocaleString();
   const authorNpub = useMemo(
     () => nip19.npubEncode(event.pubkey),
@@ -54,6 +55,11 @@ export const NostrEventCard: React.FC<{
         </span>
         <span className="ml-auto">{eventDate}</span>
       </div>
+
+      {title && (
+        <h3 className="text-lg font-bold text-white mt-3 mb-2">{title}</h3>
+      )}
+
       <p className="text-gray-300 whitespace-pre-wrap break-words">
         {contentPreview ?? event.content}
       </p>

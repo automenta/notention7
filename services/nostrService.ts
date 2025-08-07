@@ -50,7 +50,10 @@ export const publishNote = async (
     pubkey,
     created_at: Math.floor(Date.now() / 1000),
     tags,
-    content: JSON.stringify(note.content),
+    content: JSON.stringify({
+      title: note.title,
+      content: note.content,
+    }),
   };
 
   const signedEvent = finalizeEvent(unsignedEvent, privkeyBytes);

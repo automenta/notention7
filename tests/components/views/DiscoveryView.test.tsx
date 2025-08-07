@@ -24,7 +24,7 @@ const mockNotes: Note[] = [
   {
     id: 'note1',
     title: 'Looking for a web developer',
-    content: '{"ops":[{"insert":"test"}]}',
+    content: '<p>Some content</p>',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     tags: [],
@@ -36,7 +36,7 @@ const mockNotes: Note[] = [
   {
     id: 'note2',
     title: 'My Freelance Services',
-    content: '{"ops":[{"insert":"test"}]}',
+    content: '<p>Some content</p>',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     tags: [],
@@ -45,7 +45,7 @@ const mockNotes: Note[] = [
   {
     id: 'note3',
     title: 'Looking for cheap services',
-    content: '{"ops":[{"insert":"test"}]}',
+    content: '<p>Some content</p>',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     tags: [],
@@ -59,23 +59,28 @@ const mockEvent: NostrEvent = {
   created_at: Math.floor(Date.now() / 1000),
   kind: 30019,
   tags: [
+    ['d', 'remote-note-1'],
     ['p', 'service', 'is', 'Web Development'],
     ['p', 'price', 'is', '4000'],
   ],
-  content: '{"ops":[{"insert":"I am a web developer"}]}',
+  content: JSON.stringify({
+    title: 'Web Developer Available',
+    content: '<p>I am a web developer</p>',
+  }),
   sig: 'sig1',
 };
 
 const mockEvent2: NostrEvent = {
-    id: 'event2',
-    pubkey: 'b2fdef39a25ee7e2861d12a1491579a8af841a39038051016629471c7b8566a5',
-    created_at: Math.floor(Date.now() / 1000),
-    kind: 30019,
-    tags: [
-        ['p', 'price', 'is', '4500'],
-    ],
-    content: '{"ops":[{"insert":"A cheap service"}]}',
-    sig: 'sig2',
+  id: 'event2',
+  pubkey: 'b2fdef39a25ee7e2861d12a1491579a8af841a39038051016629471c7b8566a5',
+  created_at: Math.floor(Date.now() / 1000),
+  kind: 30019,
+  tags: [['d', 'remote-note-2'], ['p', 'price', 'is', '4500']],
+  content: JSON.stringify({
+    title: 'My Cheap Service',
+    content: '<p>A cheap service</p>',
+  }),
+  sig: 'sig2',
 };
 
 
@@ -129,7 +134,7 @@ describe('DiscoveryView', () => {
     await waitFor(() => {
       expect(findMatchingNotesSpy).toHaveBeenCalledWith({
         kinds: [nostrService.NOTENTION_KIND],
-        '#p': ['service', 'price'],
+        limit: 200,
       });
     });
   });
@@ -144,6 +149,7 @@ describe('DiscoveryView', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Found 1 matching note(s)')).toBeInTheDocument();
+      expect(screen.getByText('Web Developer Available')).toBeInTheDocument();
       expect(screen.getByText('I am a web developer')).toBeInTheDocument();
     });
   });
@@ -177,8 +183,8 @@ describe('DiscoveryView', () => {
       const results = screen.getAllByTestId('nostr-event-card');
       expect(results).toHaveLength(2);
       expect(screen.getByText('Found 2 matching note(s)')).toBeInTheDocument();
-      expect(screen.getByText('A cheap service')).toBeInTheDocument();
-      expect(screen.getByText('I am a web developer')).toBeInTheDocument();
+      expect(screen.getByText('My Cheap Service')).toBeInTheDocument();
+      expect(screen.getByText('Web Developer Available')).toBeInTheDocument();
     });
   });
 });

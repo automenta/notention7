@@ -41,12 +41,15 @@ This is what makes Notention unique. Every piece of structured data can be defin
   - `[skill:contains:React]` - The ideal candidate has a skill that _contains_ React.
   - `[deadline > 2025-01-01]` - The required deadline _is after_ the start of 2025.
 
-**Why does this matter?** When you publish a note to a decentralized network like Nostr, this distinction powers a
-semantic matching system.
+**Why does this matter?** This distinction is the engine behind Notention's **Networked Discovery** feature. When you
+publish a note containing "real" data, it becomes a public, discoverable fact on the Nostr network. When you create a
+local note with "imaginary" data, it acts as a query.
 
-- A note with `[service:is:Web Design]` can be matched with a note containing `[looking for:is:Web Design]`.
-- A note from a freelancer with `[hourlyRate < 100]` can be automatically discovered by someone whose project note
-  contains `[budget:is:<100/hr]`.
+The Discovery view allows you to select one of your "imaginary" notes and find "real" notes from other users across the
+network that satisfy your conditions.
+
+- Your note with `[looking-for:is:Web Design]` will find a freelancer's note containing `[service:is:Web Design]`.
+- Your project note with `[budget < 5000]` will find contractor notes with `[rate:is:4000]`.
 
 ### 4. Decentralization via Nostr
 
@@ -83,4 +86,6 @@ Notention is a client-side Progressive Web App (PWA) built with modern web techn
   operators.
 - **Local-First & Offline:** All data lives on your device first, making the app fast, private, and available offline.
 - **Optional Nostr Publishing:** Share your notes on a censorship-resistant, decentralized social network.
+- **Networked Semantic Discovery:** Select one of your notes containing a query (e.g., `[looking-for:is:service]`) and
+  discover notes from other users across the network that match your criteria.
 - **AI Summarization:** Generate concise summaries of long notes with the click of a button.
