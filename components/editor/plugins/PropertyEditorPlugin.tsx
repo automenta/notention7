@@ -36,19 +36,11 @@ export const PropertyEditorPopover: React.FC<{ editorApi: EditorApi }> = ({
 
   const handleSave = (property: Property) => {
     const { key, operator, values } = property;
-    // The new SemanticWidget will handle the display. We just need to update the data.
-    // The MutationObserver in WidgetRenderer will trigger a re-render.
-    if (editingWidget.dataset.widget === 'semantic-property') {
-      editingWidget.dataset.property = key;
-      editingWidget.dataset.operator = operator;
-      editingWidget.dataset.values = JSON.stringify(values);
-    } else {
-      // Keep old logic for old-style properties if they exist
-      editingWidget.dataset.key = key;
-      editingWidget.dataset.operator = operator;
-      editingWidget.dataset.values = JSON.stringify(values);
-      editingWidget.innerHTML = formatPropertyForDisplay(key, operator, values);
-    }
+    // Update the dataset of the widget node. The MutationObserver in
+    // WidgetRenderer will detect the change and trigger a re-render of the portal.
+    editingWidget.dataset.key = key;
+    editingWidget.dataset.operator = operator;
+    editingWidget.dataset.values = JSON.stringify(values);
 
     editorApi.updateContent();
     editorApi.setEditingWidget(null);

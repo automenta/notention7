@@ -98,7 +98,8 @@ export const SemanticInsertModalProvider: React.FC<{
               return `<span id="${id}" class="widget property" contenteditable="false" data-key="${key}" data-operator="is" data-values='[""]'>[${key}:is:""]</span>`;
             })
             .join('&nbsp;');
-          const html = `<div>${propertiesHtml}</div>`;
+          // Ensure the inserted content is treated as inline.
+          const html = propertiesHtml;
           editorApi.insertHtml(html, () => {});
         },
       }));

@@ -26,10 +26,6 @@ const SemanticWidget: React.FC<SemanticWidgetProps> = ({
     <span
       contentEditable="false"
       className="bg-blue-900/50 text-blue-300 px-2 py-1 rounded-md text-sm mx-1 cursor-pointer"
-      data-widget="semantic-property"
-      data-property={property}
-      data-operator={operator}
-      data-values={JSON.stringify(values)}
       onClick={handleClick}
     dangerouslySetInnerHTML={{
       __html: `${property} ${operator} ${values.join(' and ')}`,

@@ -127,7 +127,6 @@ describe('PropertyEditorPlugin', () => {
       const widget = document.createElement('div');
       widget.id = 'widget-to-save';
       widget.dataset.key = 'old-key';
-      widget.dataset.widget = 'semantic-property'; // Test the new widget type
       widget.dataset.values = '["old-value"]';
       widget.innerHTML = 'old';
       widget.getBoundingClientRect = vi.fn().mockReturnValue({});
@@ -139,7 +138,7 @@ describe('PropertyEditorPlugin', () => {
       // Since we can't do that easily, we'll simulate the user action that triggers it.
       fireEvent.click(screen.getByText('Save')); // This calls onSave with the current state
 
-      expect(widget.dataset.property).toBe('old-key'); // It saves the initial state
+      expect(widget.dataset.key).toBe('old-key'); // It saves the initial state
       expect(widget.dataset.operator).toBe('is');
       // When saving an unmodified editor, the original values should be preserved.
       expect(widget.dataset.values).toBe('["old-value"]');
