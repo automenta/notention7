@@ -6,14 +6,16 @@ import React, {
 } from 'react';
 import { sanitizeHTML } from '../utils/sanitize';
 import * as Commands from '../utils/editorCommands';
-import type { AppSettings, Note, EditorApi, EditorPlugin } from '../types';
+import type { AppSettings, Note, EditorApi, EditorPlugin, ContentNode } from '../types';
 import {
   editorReducer,
   type EditorState,
   type EditorAction,
 } from './reducers/editorReducer';
 import { useEditorEvents } from './useEditorEvents';
-import { parseHTML } from '../utils/contentModel';
+import { parseHTML, serializeToHTML } from '../utils/contentModel';
+import { getCursorPosition, setCursorPosition } from '../utils/selection';
+
 
 const AUTO_SAVE_DEBOUNCE_MS = 1000;
 
@@ -31,26 +33,76 @@ const createCommandApi = (focus: () => void) => ({
   queryCommandState: Commands.queryCommandState,
 });
 
-import { parseHTML } from '../utils/contentModel';
+const findModelPosition = (model: ContentNode[], charPosition: number) => {
+  let currentCharCount = 0;
+  for (let i = 0; i < model.length; i++) {
+    const node = model[i];
+    if (node.type === 'text') {
+      const nodeLength = node.content.length;
+      if (currentCharCount + nodeLength >= charPosition) {
+        return { index: i, offset: charPosition - currentCharCount };
+      }
+      currentCharCount += nodeLength;
+    } else if (node.type === 'widget') {
+      // Widgets are treated as a single character
+      if (currentCharCount + 1 >= charPosition) {
+        return { index: i, offset: charPosition - currentCharCount };
+      }
+      currentCharCount += 1;
+    }
+  }
+  return { index: model.length, offset: 0 }; // Default to the end
+};
 
 const createContentApi = (
   state: EditorState,
-  dispatch: React.Dispatch<EditorAction>
+  dispatch: React.Dispatch<EditorAction>,
+  editorRef: React.RefObject<HTMLDivElement>
 ) => {
   return {
     insertHtml: (html: string) => {
+      if (!editorRef.current) return;
+
       const newNodes = parseHTML(html);
       if (newNodes.length === 0) return;
 
-      // This is a simplified insertion logic. It appends the new nodes to the end.
-      // A proper implementation would need to determine the cursor position within
-      // the content model and insert the nodes there.
-      const newModel = [...state.contentModel, ...newNodes];
+      // 1. Get cursor position from the DOM
+      const charPosition = getCursorPosition(editorRef.current);
 
-      dispatch({ type: 'SET_CONTENT_MODEL', payload: newModel });
+      // 2. Find where that position maps to in our content model
+      const { index: modelIndex, offset: modelOffset } = findModelPosition(
+        state.contentModel,
+        charPosition
+      );
+
+      // 3. Split the target node if inserting in the middle of a text node
+      const targetNode = state.contentModel[modelIndex];
+      let newModel = [...state.contentModel];
+
+      if (targetNode?.type === 'text' && modelOffset > 0 && modelOffset < targetNode.content.length) {
+        const before = { ...targetNode, content: targetNode.content.substring(0, modelOffset) };
+        const after = { ...targetNode, content: targetNode.content.substring(modelOffset) };
+        newModel.splice(modelIndex, 1, before, ...newNodes, after);
+      } else {
+        newModel.splice(modelIndex, 0, ...newNodes);
+      }
+
+      // 4. Dispatch the updated model and calculate next cursor position
+      const newContent = serializeToHTML(newModel);
+      const nextCursorPos = charPosition + newNodes.reduce((len, node) => len + (node.type === 'text' ? node.content.length : 1), 0);
+
+      dispatch({
+        type: 'SET_CONTENT_AND_MODEL',
+        payload: {
+          content: newContent,
+          contentModel: newModel,
+          nextCursorPosition: nextCursorPos,
+        },
+      });
     },
   };
 };
+
 
 const createNoteApi = (
   note: Note,
@@ -105,7 +157,7 @@ const createEditorApi = (
   return {
     editorRef,
     ...createCommandApi(focus),
-    ...createContentApi(state, dispatch),
+    ...createContentApi(state, dispatch, editorRef),
     ...createNoteApi(note, state, onSave, onDelete),
     ...createWidgetApi(dispatch, state),
     getSettings: () => settings,
@@ -155,6 +207,7 @@ export const useEditor = (
     contentModel: parseHTML(note.content),
     editingWidget: null,
     pendingWidgetEdit: null,
+    nextCursorPosition: null,
   };
 
   const [state, dispatch] = useReducer(editorReducer, initialState);
@@ -218,6 +271,17 @@ export const useEditor = (
     state,
     dispatch
   );
+
+  // Effect to restore cursor position after programmatic content changes
+  useEffect(() => {
+    if (state.nextCursorPosition !== null && editorRef.current) {
+      setCursorPosition(editorRef.current, state.nextCursorPosition);
+      // Reset the cursor position so this effect doesn't run again unintentionally
+      dispatch({ type: 'RESET_CURSOR_POSITION' });
+    }
+    // This effect should ONLY run when nextCursorPosition changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.nextCursorPosition]);
 
   const toolbarComponents = useMemo(
     () => plugins.map((p) => p.ToolbarComponent).filter(Boolean),
