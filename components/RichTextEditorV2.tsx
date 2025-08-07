@@ -4,7 +4,7 @@ import { sanitizeHTML } from '../utils/sanitize';
 import type { AppSettings, Note } from '../types';
 import { editorPlugins } from './editor/plugins';
 import WidgetRenderer from './editor/widgets/WidgetRenderer';
-import { SemanticInsertProvider } from './editor/plugins/SemanticInsertContext';
+import { SemanticInsertProvider } from './editor/plugins/SemanticInsertProvider';
 
 export const RichTextEditorV2: React.FC<{
   note: Note;

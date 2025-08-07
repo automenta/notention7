@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import type { EditorApi } from '../../../types';
+import { suggestTagsAndProperties } from '../../../services/geminiService';
 import {
   BoldIcon,
   CodeBlockIcon,
@@ -11,6 +12,7 @@ import {
   ListOlIcon,
   ListUlIcon,
   QuoteIcon,
+  SparklesIcon,
   StrikethroughIcon,
   UnderlineIcon,
 } from '../../icons';
@@ -25,6 +27,7 @@ export const ToolbarComponent: React.FC<ToolbarPluginProps> = ({
   const [activeButtons, setActiveButtons] = useState<Record<string, boolean>>(
     {}
   );
+  const [isSuggesting, setIsSuggesting] = useState(false);
 
   const updateActiveStates = useCallback(() => {
     const parent = editorApi.getSelectionParent();
@@ -62,6 +65,29 @@ export const ToolbarComponent: React.FC<ToolbarPluginProps> = ({
 
   const buttonClass = (isActive: boolean) =>
     `p-2 rounded-md transition-colors ${isActive ? 'bg-gray-600 text-white' : 'hover:bg-gray-700/80 text-gray-400 hover:text-gray-200'}`;
+
+  const handleSuggest = async () => {
+    if (!editorApi.editorRef.current) return;
+
+    setIsSuggesting(true);
+    try {
+      const content = editorApi.editorRef.current.innerText;
+      const ontology = editorApi.getSettings().ontology;
+      const suggestions = await suggestTagsAndProperties(content, ontology);
+      console.log('AI Suggestions:', suggestions);
+      // In the future, we would use these suggestions to update the note.
+      window.alert('Suggestions logged to console. See developer tools.');
+    } catch (error) {
+      console.error('Failed to get AI suggestions:', error);
+      window.alert(
+        `Error getting suggestions: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`
+      );
+    } finally {
+      setIsSuggesting(false);
+    }
+  };
 
   return (
     <div className="flex-shrink-0 p-2 border-b border-gray-700/50 flex items-center flex-wrap gap-1">
@@ -150,6 +176,23 @@ export const ToolbarComponent: React.FC<ToolbarPluginProps> = ({
         title="Horizontal Rule"
       >
         <HorizontalRuleIcon className="h-5 w-5" />
+      </button>
+
+      <div className="w-px h-6 bg-gray-700 mx-1"></div>
+      <button
+        onClick={handleSuggest}
+        className={
+          buttonClass(false) +
+          (isSuggesting ? ' animate-pulse cursor-not-allowed' : '')
+        }
+        disabled={isSuggesting || !editorApi.getSettings().aiEnabled}
+        title={
+          editorApi.getSettings().aiEnabled
+            ? 'Auto-suggest tags & properties'
+            : 'AI features are disabled in settings'
+        }
+      >
+        <SparklesIcon className="h-5 w-5" />
       </button>
     </div>
   );

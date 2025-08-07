@@ -7,7 +7,7 @@ import {
 } from '../../../../components/editor/plugins/SemanticInsertPlugin';
 import type { EditorApi } from '../../../../types';
 import * as OntologyIndexHook from '../../../../hooks/useOntologyIndex';
-import { SemanticInsertProvider } from '../../../../components/editor/plugins/SemanticInsertContext';
+import { SemanticInsertProvider } from '../../../../components/editor/plugins/SemanticInsertProvider';
 import { createMockEditorApi } from '../../../utils/mocks';
 
 // Mock the useOntologyIndex hook

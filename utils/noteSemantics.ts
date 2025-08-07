@@ -38,3 +38,46 @@ export const getNoteSemantics = (htmlContent: string) => {
 
   return { tags, properties, isImaginary };
 };
+
+const matchProperty = (real: Property, imaginary: Property): boolean => {
+  if (real.key !== imaginary.key) {
+    return false;
+  }
+
+  // For now, we assume single values for simplicity.
+  const realValue = real.values[0];
+  const imaginaryValue = imaginary.values[0];
+
+  switch (imaginary.operator) {
+    case 'is':
+      return realValue === imaginaryValue;
+    case 'is not':
+      return realValue !== imaginaryValue;
+    case 'contains':
+      return realValue.includes(imaginaryValue);
+    case 'does not contain':
+      return !realValue.includes(imaginaryValue);
+    case 'is greater than':
+      return Number(realValue) > Number(imaginaryValue);
+    case 'is less than':
+      return Number(realValue) < Number(imaginaryValue);
+    // TODO: Add date/datetime operators
+    default:
+      return false;
+  }
+};
+
+/**
+ * Checks if a source note (with real data) satisfies a query note (with imaginary data).
+ */
+export const matchNotes = (
+  sourceProperties: Property[],
+  queryProperties: Property[]
+): boolean => {
+  // Every property in the query must be satisfied by at least one property in the source.
+  return queryProperties.every((imaginaryProp) => {
+    return sourceProperties.some((realProp) =>
+      matchProperty(realProp, imaginaryProp)
+    );
+  });
+};

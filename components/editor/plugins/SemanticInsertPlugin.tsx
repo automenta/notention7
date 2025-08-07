@@ -9,7 +9,7 @@ import { useOntologyIndex } from '../../../hooks/useOntologyIndex';
 import { InsertMenu } from '../InsertMenu';
 import type { InsertMenuItem } from '../../../hooks/useInsertMenuItems';
 import type { EditorApi } from '../../../types';
-import { useSemanticInsert } from './SemanticInsertContext';
+import { useSemanticInsert } from './useSemanticInsert';
 
 export const SemanticInsertToolbar: React.FC = () => {
   const { openModal } = useSemanticInsert();
@@ -39,10 +39,10 @@ export const SemanticInsertModalProvider: React.FC<{
     editorApi.getSettings().ontology
   );
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setView('main');
     closeModal();
-  };
+  }, [closeModal]);
 
   useEffect(() => {
     if (isOpen) {

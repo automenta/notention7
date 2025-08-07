@@ -5,7 +5,6 @@ import {
   PropertyEditorPopover,
 } from '../../../../components/editor/plugins/PropertyEditorPlugin';
 import { handleWidgetClick } from '../../../../components/editor/plugins/propertyEditorUtils';
-import type { EditorApi } from '../../../../types';
 import { useOntologyIndex } from '../../../../hooks/useOntologyIndex';
 
 import { createMockEditorApi } from '../../../utils/mocks';

@@ -4,6 +4,7 @@ import { bytesToHex, hexToBytes } from '@/utils/nostr.ts';
 import { ClipboardIcon, KeyIcon, SparklesIcon, TrashIcon } from '../icons';
 import { isApiKeyAvailable } from '@/services/geminiService.ts';
 import { useSettingsContext } from '../../hooks/useSettingsContext';
+import OntologyEditor from '../settings/OntologyEditor';
 
 const TabButton: React.FC<{
   label: string;
@@ -73,7 +74,9 @@ const CopyableField: React.FC<{
 
 export const SettingsView: React.FC = () => {
   const { settings, setSettings } = useSettingsContext();
-  const [activeTab, setActiveTab] = useState<'ai' | 'nostr' | 'data'>('ai');
+  const [activeTab, setActiveTab] = useState<
+    'ai' | 'nostr' | 'data' | 'ontology'
+  >('ai');
 
   const handleToggleAI = () => {
     if (!isApiKeyAvailable) return;
@@ -128,6 +131,11 @@ export const SettingsView: React.FC = () => {
             label="📦 Data"
             isActive={activeTab === 'data'}
             onClick={() => setActiveTab('data')}
+          />
+          <TabButton
+            label="🧠 Ontology"
+            isActive={activeTab === 'ontology'}
+            onClick={() => setActiveTab('ontology')}
           />
         </nav>
       </div>
@@ -260,6 +268,18 @@ export const SettingsView: React.FC = () => {
             >
               <TrashIcon className="h-5 w-5" /> Clear All Local Data
             </button>
+          </div>
+        )}
+
+        {activeTab === 'ontology' && (
+          <div className="bg-gray-900/70 p-6 rounded-lg animate-fade-in">
+            <h2 className="text-xl font-semibold text-gray-100 mb-4">
+              Ontology Management
+            </h2>
+            <p className="text-sm text-gray-400 mb-4">
+              Define the types of tags and properties you can use in your notes.
+            </p>
+            <OntologyEditor ontology={settings.ontology} />
           </div>
         )}
       </div>

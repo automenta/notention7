@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { getNoteSemantics } from '@/utils/noteSemantics.ts';
+import { getNoteSemantics, matchNotes } from '@/utils/noteSemantics.ts';
+import type { Property } from '../../types';
 
 describe('getNoteSemantics', () => {
   it('should return empty arrays and isImaginary false for content with no semantics', () => {
@@ -100,5 +101,93 @@ describe('getNoteSemantics', () => {
       '<p><span class="widget property" data-key="" data-operator="is" data-values=\'["value"]\'></span></p>';
     const { properties } = getNoteSemantics(html);
     expect(properties).toEqual([]);
+  });
+});
+
+describe('matchNotes', () => {
+  const p = (key: string, operator: string, value: string): Property => ({
+    key,
+    operator,
+    values: [value],
+  });
+
+  it('should match a simple "is" query', () => {
+    const source = [p('status', 'is', 'active')];
+    const query = [p('status', 'is', 'active')];
+    expect(matchNotes(source, query)).toBe(true);
+  });
+
+  it('should not match a simple "is" query with different values', () => {
+    const source = [p('status', 'is', 'inactive')];
+    const query = [p('status', 'is', 'active')];
+    expect(matchNotes(source, query)).toBe(false);
+  });
+
+  it('should match a "contains" query', () => {
+    const source = [p('title', 'is', 'Hello World')];
+    const query = [p('title', 'contains', 'World')];
+    expect(matchNotes(source, query)).toBe(true);
+  });
+
+  it('should not match a "contains" query', () => {
+    const source = [p('title', 'is', 'Hello World')];
+    const query = [p('title', 'contains', 'Universe')];
+    expect(matchNotes(source, query)).toBe(false);
+  });
+
+  it('should match a numeric "is less than" query', () => {
+    const source = [p('price', 'is', '99')];
+    const query = [p('price', 'is less than', '100')];
+    expect(matchNotes(source, query)).toBe(true);
+  });
+
+  it('should not match a numeric "is less than" query', () => {
+    const source = [p('price', 'is', '100')];
+    const query = [p('price', 'is less than', '100')];
+    expect(matchNotes(source, query)).toBe(false);
+  });
+
+  it('should match when all of multiple query properties are satisfied', () => {
+    const source = [
+      p('status', 'is', 'active'),
+      p('priority', 'is', 'high'),
+    ];
+    const query = [
+      p('status', 'is', 'active'),
+      p('priority', 'is', 'high'),
+    ];
+    expect(matchNotes(source, query)).toBe(true);
+  });
+
+  it('should not match if any of multiple query properties is not satisfied', () => {
+    const source = [
+      p('status', 'is', 'active'),
+      p('priority', 'is', 'low'),
+    ];
+    const query = [
+      p('status', 'is', 'active'),
+      p('priority', 'is', 'high'),
+    ];
+    expect(matchNotes(source, query)).toBe(false);
+  });
+
+  it('should match if the query is empty', () => {
+    const source = [p('status', 'is', 'active')];
+    const query: Property[] = [];
+    expect(matchNotes(source, query)).toBe(true);
+  });
+
+  it('should not match if the source is empty but the query is not', () => {
+    const source: Property[] = [];
+    const query = [p('status', 'is', 'active')];
+    expect(matchNotes(source, query)).toBe(false);
+  });
+
+  it('should handle "is not" operator correctly', () => {
+    const source = [p('status', 'is', 'active')];
+    const queryMatch = [p('status', 'is not', 'inactive')];
+    const queryMismatch = [p('status', 'is not', 'active')];
+    expect(matchNotes(source, queryMatch)).toBe(true);
+    expect(matchNotes(source, queryMismatch)).toBe(false);
   });
 });
