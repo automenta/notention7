@@ -1,8 +1,6 @@
 import type { EditorPlugin } from '../../../types';
-import {
-  api,
-  InsertMenuProvider,
-} from './InsertMenuPlugin';
+import { InsertMenuProvider } from './InsertMenuPlugin';
+import { api } from './insertMenuApi';
 
 export const insertMenuPlugin: EditorPlugin = {
   id: 'insert-menu',

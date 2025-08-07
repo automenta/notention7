@@ -9,7 +9,7 @@ export const buttonClass = `p-2 rounded-md transition-colors hover:bg-gray-700/8
 
 type ModalType = 'tag' | 'template';
 
-const api: {
+export const api: {
   open: (type: ModalType) => void;
   close: () => void;
 } = {

@@ -1,12 +1,14 @@
 import type { EditorPlugin } from '../../../types';
 import {
-  handleSemanticInsert,
-  SemanticsProvider,
+  api,
+  SemanticInsertModalProvider,
+  SemanticInsertToolbar,
 } from './SemanticInsertPlugin';
 
 export const semanticInsertPlugin: EditorPlugin = {
   id: 'semantic-insert',
   name: 'Semantic Insert',
-  onInput: handleSemanticInsert,
-  Popover: SemanticsProvider,
+  ToolbarComponent: SemanticInsertToolbar,
+  Popover: SemanticInsertModalProvider,
+  api: api,
 };
