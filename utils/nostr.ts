@@ -47,3 +47,8 @@ export function getTextFromHtml(content: string): string {
 
   return div.textContent || '';
 }
+
+export const getTextFromDelta = (delta: { ops: any[] }): string => {
+  if (!delta || !delta.ops) return '';
+  return delta.ops.map((op) => op.insert || '').join('');
+};
