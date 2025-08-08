@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import type { AISuggestions, EditorApi } from '../../../types';
 import { CubeIcon, SparklesIcon, TagIcon, TrashIcon } from '../../icons';
 import {
-  summarizeText,
+  generateContentStream,
   suggestTagsAndProperties,
 } from '../../../services/languageModelService';
 import { SummaryModal } from '../SummaryModal';
@@ -42,11 +42,19 @@ export const EditorHeaderComponent: React.FC<{ editorApi: EditorApi }> = ({
 
     setSummaryModalOpen(true);
     setIsGenerating(true);
+    setGeneratedSummary(''); // Clear previous summary
 
     try {
       const cleanText = getCleanText(note.content);
-      const summary = await summarizeText(settings.geminiApiKey!, cleanText);
-      setGeneratedSummary(summary);
+      const stream = generateContentStream(
+        settings.geminiApiKey!,
+        'summarize',
+        cleanText
+      );
+
+      for await (const chunk of stream) {
+        setGeneratedSummary((prev) => prev + chunk);
+      }
     } catch (error) {
       console.error(error);
       const errorMessage =

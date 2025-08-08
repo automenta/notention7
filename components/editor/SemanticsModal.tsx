@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { AISuggestions } from '../../types';
-import { TagIcon, XMarkIcon } from '../icons';
+import { TagIcon, XCircleIcon } from '../icons';
 
 interface SemanticsModalProps {
   isOpen: boolean;
@@ -65,7 +65,7 @@ export const SemanticsModal: React.FC<SemanticsModalProps> = ({
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-white">Suggested Semantics</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-white">
-            <XMarkIcon className="h-6 w-6" />
+            <XCircleIcon className="h-6 w-6" />
           </button>
         </div>
         <div className="bg-gray-900/50 p-4 rounded-md mb-6 min-h-[200px]">
