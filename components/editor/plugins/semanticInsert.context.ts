@@ -1,11 +1,11 @@
-import { createContext } from 'react';
+import {createContext} from 'react';
 
 export interface SemanticInsertContextType {
-  isOpen: boolean;
-  openModal: () => void;
-  closeModal: () => void;
+    isOpen: boolean;
+    openModal: () => void;
+    closeModal: () => void;
 }
 
 export const SemanticInsertContext = createContext<
-  SemanticInsertContextType | undefined
+    SemanticInsertContextType | undefined
 >(undefined);

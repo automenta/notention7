@@ -1,37 +1,37 @@
 import React from 'react';
-import { EditorApi } from '../../../types';
+import {EditorApi} from '@/types';
 
 interface SemanticWidgetProps {
-  property: string;
-  operator: string;
-  values: string[];
-  editorApi: EditorApi;
-  node: HTMLElement;
+    property: string;
+    operator: string;
+    values: string[];
+    editorApi: EditorApi;
+    node: HTMLElement;
 }
 
 const SemanticWidget: React.FC<SemanticWidgetProps> = ({
-  property,
-  operator,
-  values,
-  editorApi,
-  node,
-}) => {
-  const handleClick = (event: React.MouseEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
-    editorApi.setEditingWidget(node);
-  };
+                                                           property,
+                                                           operator,
+                                                           values,
+                                                           editorApi,
+                                                           node,
+                                                       }) => {
+    const handleClick = (event: React.MouseEvent) => {
+        event.preventDefault();
+        event.stopPropagation();
+        editorApi.setEditingWidget(node);
+    };
 
-  return (
-    <span
-      contentEditable="false"
-      className="bg-blue-900/50 text-blue-300 px-2 py-1 rounded-md text-sm mx-1 cursor-pointer"
-      onClick={handleClick}
-    dangerouslySetInnerHTML={{
-      __html: `${property} ${operator} ${values.join(' and ')}`,
-    }}
-  />
-  );
+    return (
+        <span
+            contentEditable="false"
+            className="bg-blue-900/50 text-blue-300 px-2 py-1 rounded-md text-sm mx-1 cursor-pointer"
+            onClick={handleClick}
+            dangerouslySetInnerHTML={{
+                __html: `${property} ${operator} ${values.join(' and ')}`,
+            }}
+        />
+    );
 };
 
 export default SemanticWidget;

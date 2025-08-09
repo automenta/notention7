@@ -1,8 +1,8 @@
-import type { EditorPlugin } from '../../../types';
-import { AIActionComponent } from './AIActionPlugin';
+import type {EditorPlugin} from '@/types';
+import {AIActionComponent} from './AIActionPlugin';
 
 export const aiActionPlugin: EditorPlugin = {
-  id: 'ai-action',
-  name: 'AI Action',
-  HeaderComponent: AIActionComponent,
+    id: 'ai-action',
+    name: 'AI Action',
+    HeaderComponent: AIActionComponent,
 };

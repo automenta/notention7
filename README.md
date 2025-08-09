@@ -31,15 +31,15 @@ date, geo, etc.) and, crucially, the **operators** they can use.
 This is what makes Notention unique. Every piece of structured data can be defined as either "real" or "imaginary."
 
 - **Real Data** represents a definite, observed fact. It typically uses the `is` operator.
-  - `[client:is:Acme Corp]` - The client _is_ Acme Corp.
-  - `[meetingDate:is:2024-09-15]` - The meeting date _is_ set.
-  - `[temperature:is:25]` - It _is_ 25 degrees.
+    - `[client:is:Acme Corp]` - The client _is_ Acme Corp.
+    - `[meetingDate:is:2024-09-15]` - The meeting date _is_ set.
+    - `[temperature:is:25]` - It _is_ 25 degrees.
 
 - **Imaginary Data** represents a condition, a query, a desire, or a potential state. It uses conditional operators like
   `greater than`, `less than`, `contains`, `is not`, `between`, etc.
-  - `[budget < 5000]` - I'm looking for a solution with a budget _less than_ $5000.
-  - `[skill:contains:React]` - The ideal candidate has a skill that _contains_ React.
-  - `[deadline > 2025-01-01]` - The required deadline _is after_ the start of 2025.
+    - `[budget < 5000]` - I'm looking for a solution with a budget _less than_ $5000.
+    - `[skill:contains:React]` - The ideal candidate has a skill that _contains_ React.
+    - `[deadline > 2025-01-01]` - The required deadline _is after_ the start of 2025.
 
 **Why does this matter?** This distinction is the engine behind Notention's **Networked Discovery** feature. When you
 publish a note containing "real" data, it becomes a public, discoverable fact on the Nostr network. When you create a

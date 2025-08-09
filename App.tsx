@@ -1,28 +1,28 @@
 import React from 'react';
-import { Header } from './components/Header';
-import { useNotesContext } from './hooks/useNotesContext';
-import { useViewContext } from './hooks/useViewContext';
-import { useAutoSelectNote } from './hooks/useAutoSelectNote';
-import { MainLayout } from './components/MainLayout';
+import {Header} from './components/Header';
+import {useNotesContext} from './hooks/useNotesContext';
+import {useViewContext} from './hooks/useViewContext';
+import {useAutoSelectNote} from './hooks/useAutoSelectNote';
+import {MainLayout} from './components/MainLayout';
 
 const App: React.FC = () => {
-  const { addNote } = useNotesContext();
-  const { setActiveView, setSelectedNoteId } = useViewContext();
+    const {addNote} = useNotesContext();
+    const {setActiveView, setSelectedNoteId} = useViewContext();
 
-  useAutoSelectNote();
+    useAutoSelectNote();
 
-  const handleNewNote = () => {
-    const newNote = addNote();
-    setSelectedNoteId(newNote.id);
-    setActiveView('notes');
-  };
+    const handleNewNote = () => {
+        const newNote = addNote();
+        setSelectedNoteId(newNote.id);
+        setActiveView('notes');
+    };
 
-  return (
-    <div className="flex flex-col h-screen bg-gray-800 text-gray-200">
-      <Header onNewNote={handleNewNote} />
-      <MainLayout />
-    </div>
-  );
+    return (
+        <div className="flex flex-col h-screen bg-gray-800 text-gray-200">
+            <Header onNewNote={handleNewNote}/>
+            <MainLayout/>
+        </div>
+    );
 };
 
 export default App;

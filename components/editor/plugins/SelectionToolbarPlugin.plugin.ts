@@ -1,8 +1,8 @@
-import type { EditorPlugin } from '../../../types';
-import { SelectionToolbar } from './SelectionToolbarPlugin';
+import type {EditorPlugin} from '@/types';
+import {SelectionToolbar} from './SelectionToolbarPlugin';
 
 export const selectionToolbarPlugin: EditorPlugin = {
-  id: 'selection-toolbar',
-  name: 'Selection Toolbar',
-  ToolbarComponent: SelectionToolbar,
+    id: 'selection-toolbar',
+    name: 'Selection Toolbar',
+    ToolbarComponent: SelectionToolbar,
 };

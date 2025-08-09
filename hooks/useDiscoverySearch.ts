@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
-import type { Note, NostrEvent, Property } from '../types';
-import { findMatchingNotes, NOTENTION_KIND } from '../services/nostrService';
-import { IMAGINARY_TO_REAL_MAP } from '../utils/discovery';
-import { useOntologyIndex } from './useOntologyIndex';
-import { matchNotes } from '../utils/noteSemantics';
+import {useEffect, useState} from 'react';
+import type {NostrEvent, Note, Property} from '@/types';
+import {findMatchingNotes, NOTENTION_KIND} from '../services/nostrService';
+import {IMAGINARY_TO_REAL_MAP} from '../utils/discovery';
+import {useOntologyIndex} from './useOntologyIndex';
+import {matchNotes} from '../utils/noteSemantics';
 
 type SearchState = 'idle' | 'ready' | 'searching' | 'results';
 
@@ -11,96 +11,96 @@ type SearchState = 'idle' | 'ready' | 'searching' | 'results';
 type RelaySearchCriterion = { key: string; op: string; values: readonly string[] };
 
 export const useDiscoverySearch = (
-  selectedNote: Note | undefined,
-  localNotes: Note[],
+    selectedNote: Note | undefined,
+    localNotes: Note[],
 ) => {
-  const [results, setResults] = useState<NostrEvent[]>([]);
-  const [searchState, setSearchState] = useState<SearchState>('idle');
-  const [relayCriteria, setRelayCriteria] = useState<RelaySearchCriterion[]>([]);
-  const { ontologyIndex } = useOntologyIndex();
+    const [results, setResults] = useState<NostrEvent[]>([]);
+    const [searchState, setSearchState] = useState<SearchState>('idle');
+    const [relayCriteria, setRelayCriteria] = useState<RelaySearchCriterion[]>([]);
+    const {ontologyIndex} = useOntologyIndex();
 
-  // Effect to derive search criteria when a note is selected
-  useEffect(() => {
-    if (selectedNote) {
-      // This criteria is only for the initial Nostr query.
-      // The full client-side check will use the complete properties.
-      const criteria = selectedNote.properties
-        .map((p) => {
-          const realKey = IMAGINARY_TO_REAL_MAP[p.key] || p.key;
-          // Relays can only effectively filter by 'is' or presence of a key.
-          if (['is', 'less than', 'greater than', 'between'].includes(p.operator)) {
-            return { key: realKey, op: p.operator, values: p.values };
-          }
-          return null;
-        })
-        .filter((c): c is RelaySearchCriterion => c !== null);
+    // Effect to derive search criteria when a note is selected
+    useEffect(() => {
+        if (selectedNote) {
+            // This criteria is only for the initial Nostr query.
+            // The full client-side check will use the complete properties.
+            const criteria = selectedNote.properties
+                .map((p) => {
+                    const realKey = IMAGINARY_TO_REAL_MAP[p.key] || p.key;
+                    // Relays can only effectively filter by 'is' or presence of a key.
+                    if (['is', 'less than', 'greater than', 'between'].includes(p.operator)) {
+                        return {key: realKey, op: p.operator, values: p.values};
+                    }
+                    return null;
+                })
+                .filter((c): c is RelaySearchCriterion => c !== null);
 
-      setRelayCriteria(criteria);
-      setResults([]);
-      setSearchState('ready');
-    } else {
-      setRelayCriteria([]);
-      setResults([]);
-      setSearchState('idle');
-    }
-  }, [selectedNote]);
+            setRelayCriteria(criteria);
+            setResults([]);
+            setSearchState('ready');
+        } else {
+            setRelayCriteria([]);
+            setResults([]);
+            setSearchState('idle');
+        }
+    }, [selectedNote]);
 
-  const handleSearch = async () => {
-    if (!selectedNote || relayCriteria.length === 0) return;
+    const handleSearch = async () => {
+        if (!selectedNote || relayCriteria.length === 0) return;
 
-    setSearchState('searching');
-    setResults([]);
+        setSearchState('searching');
+        setResults([]);
 
-    // Construct the relay filter. For range queries, we can only filter by key,
-    // and must do the full comparison on the client.
-    const pTags: string[][] = [];
-    relayCriteria.forEach((criterion) => {
-      if (criterion.op === 'is') {
-        pTags.push([criterion.key, 'is', ...criterion.values]);
-      } else {
-        pTags.push([criterion.key]);
-      }
-    });
+        // Construct the relay filter. For range queries, we can only filter by key,
+        // and must do the full comparison on the client.
+        const pTags: string[][] = [];
+        relayCriteria.forEach((criterion) => {
+            if (criterion.op === 'is') {
+                pTags.push([criterion.key, 'is', ...criterion.values]);
+            } else {
+                pTags.push([criterion.key]);
+            }
+        });
 
-    const filter = {
-      kinds: [NOTENTION_KIND],
-      limit: 200,
-      ...(pTags.length > 0 && { '#p': pTags }),
+        const filter = {
+            kinds: [NOTENTION_KIND],
+            limit: 200,
+            ...(pTags.length > 0 && {'#p': pTags}),
+        };
+
+        const foundEvents = await findMatchingNotes(filter);
+
+        // Map the query properties to their "real" counterparts for matching.
+        const queryPropertiesWithMappedKeys: Property[] = selectedNote.properties.map(
+            (p) => ({
+                ...p,
+                key: IMAGINARY_TO_REAL_MAP[p.key] || p.key,
+            }),
+        );
+
+        const matchingEvents = foundEvents.filter((event) => {
+            // Exclude own notes from results
+            const dTag = event.tags.find((t) => t[0] === 'd');
+            if (dTag && localNotes.some((n) => n.id === dTag[1])) {
+                return false;
+            }
+
+            // Re-construct the "real" properties from the event's tags
+            const sourceProperties: Property[] = event.tags
+                .filter((tag) => tag[0] === 'p' && tag[1] && tag[2])
+                .map(([, key, op, ...values]) => ({key, operator: op, values}));
+
+            // Use the robust matchNotes function for final, accurate client-side filtering.
+            return matchNotes(
+                sourceProperties,
+                queryPropertiesWithMappedKeys,
+                ontologyIndex,
+            );
+        });
+
+        setResults(matchingEvents);
+        setSearchState('results');
     };
 
-    const foundEvents = await findMatchingNotes(filter);
-
-    // Map the query properties to their "real" counterparts for matching.
-    const queryPropertiesWithMappedKeys: Property[] = selectedNote.properties.map(
-      (p) => ({
-        ...p,
-        key: IMAGINARY_TO_REAL_MAP[p.key] || p.key,
-      }),
-    );
-
-    const matchingEvents = foundEvents.filter((event) => {
-      // Exclude own notes from results
-      const dTag = event.tags.find((t) => t[0] === 'd');
-      if (dTag && localNotes.some((n) => n.id === dTag[1])) {
-        return false;
-      }
-
-      // Re-construct the "real" properties from the event's tags
-      const sourceProperties: Property[] = event.tags
-        .filter((tag) => tag[0] === 'p' && tag[1] && tag[2])
-        .map(([, key, op, ...values]) => ({ key, operator: op, values }));
-
-      // Use the robust matchNotes function for final, accurate client-side filtering.
-      return matchNotes(
-        sourceProperties,
-        queryPropertiesWithMappedKeys,
-        ontologyIndex,
-      );
-    });
-
-    setResults(matchingEvents);
-    setSearchState('results');
-  };
-
-  return { results, searchState, searchCriteria: relayCriteria, handleSearch };
+    return {results, searchState, searchCriteria: relayCriteria, handleSearch};
 };

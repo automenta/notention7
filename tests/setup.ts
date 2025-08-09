@@ -5,24 +5,24 @@
 import '@testing-library/jest-dom';
 import 'react'; // Ensure React is loaded for all tests
 import React from 'react';
-import { vi } from 'vitest';
+import {vi} from 'vitest';
 
 // Make React globally available for tests, which can help with some environment issues.
 (global as any).React = React;
 
 // Polyfill for window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: vi.fn().mockImplementation(query => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(), // deprecated
-    removeListener: vi.fn(), // deprecated
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  })),
+    writable: true,
+    value: vi.fn().mockImplementation(query => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: vi.fn(), // deprecated
+        removeListener: vi.fn(), // deprecated
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+    })),
 });
 
 // Polyfill for Element.scrollIntoView

@@ -1,17 +1,19 @@
-import { InsertMenuMode } from '../../../hooks/useInsertMenuItems';
+import {InsertMenuMode} from '@/hooks/useInsertMenuItems.ts';
 
 export type OpenMenuContext = {
-  mode: InsertMenuMode;
-  selectedValue?: string;
+    mode: InsertMenuMode;
+    selectedValue?: string;
 };
 
 export const api: {
-  open: (
-    position?: { top: number; left: number },
-    context?: OpenMenuContext
-  ) => void;
-  close: () => void;
+    open: (
+        position?: { top: number; left: number },
+        context?: OpenMenuContext
+    ) => void;
+    close: () => void;
 } = {
-  open: () => {},
-  close: () => {},
+    open: () => {
+    },
+    close: () => {
+    },
 };
