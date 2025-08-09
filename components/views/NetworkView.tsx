@@ -1,19 +1,17 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {getPublicKey} from 'nostr-tools';
-import type {NostrEvent} from '@/types';
 import {KeyIcon, LoadingSpinner, SettingsIcon} from '../icons';
-import {DEFAULT_RELAYS, hexToBytes} from '@/utils/nostr.ts';
-import {pool} from '@/services/nostrService.ts';
-import {useNostrProfile} from '@/hooks/useNostrProfile.ts';
+import {hexToBytes} from '@/utils/format.ts';
 import {ProfileHeader} from '../network/ProfileHeader';
-import {useSettingsContext} from '../contexts/SettingsContext';
-import {useViewContext} from '../contexts/ViewContext';
 import {NostrEventCard} from '../network/NostrEventCard';
+import {useAppContext} from '../contexts/AppContext';
+import {useNostrFeed} from '../../hooks/useNostrFeed';
+import {Placeholder} from '../common/Placeholder';
 
 export const NetworkView: React.FC = () => {
-    const {settings, setSettings} = useSettingsContext();
-    const {setActiveView} = useViewContext();
+    const {settings, setSettings, setActiveView} = useAppContext();
     const onNavigateToSettings = () => setActiveView('settings');
+
     const pubkey = useMemo(
         () =>
             settings.nostr?.privkey
@@ -21,69 +19,24 @@ export const NetworkView: React.FC = () => {
                 : null,
         [settings.nostr?.privkey]
     );
-    const [events, setEvents] = useState<NostrEvent[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
-        if (!pubkey) return;
-
-        setEvents([]); // Clear previous events
-        setIsLoading(true);
-        const seenEventIds = new Set<string>();
-
-        const sub = pool.subscribeMany(
-            DEFAULT_RELAYS,
-            [{kinds: [1], limit: 50}],
-            {
-                onevent: (event) => {
-                    if (!seenEventIds.has(event.id)) {
-                        seenEventIds.add(event.id);
-                        setEvents((prev) => [...prev, event]);
-                    }
-                },
-            }
-        );
-
-        const timer = setTimeout(() => setIsLoading(false), 3000);
-
-        return () => {
-            clearTimeout(timer);
-            sub.close();
-        };
-    }, [pubkey]);
-
-    const sortedEvents = useMemo(() => {
-        return events.sort((a, b) => b.created_at - a.created_at).slice(0, 100);
-    }, [events]);
-
-    const authorPubkeys = useMemo(() => {
-        const pubkeys = new Set(sortedEvents.map((e) => e.pubkey));
-        if (pubkey) {
-            pubkeys.add(pubkey);
-        }
-        return Array.from(pubkeys);
-    }, [sortedEvents, pubkey]);
-
-    const profiles = useNostrProfile(authorPubkeys);
+    const {isLoading, sortedEvents, profiles} = useNostrFeed(pubkey);
 
     if (!pubkey) {
         return (
-            <div className="p-8 h-full flex flex-col items-center justify-center text-center bg-gray-800/50 rounded-lg">
-                <KeyIcon className="h-16 w-16 text-yellow-500 mb-4"/>
-                <h2 className="text-2xl font-bold text-white mb-2">
-                    Connect your Nostr Identity
-                </h2>
-                <p className="text-gray-400 mb-6 max-w-md">
-                    A Nostr identity is required to publish notes and interact with the
-                    network. You can generate one in settings.
-                </p>
-                <button
-                    onClick={onNavigateToSettings}
-                    className="flex items-center justify-center gap-3 mx-auto px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                    <SettingsIcon className="h-5 w-5"/> Go to Settings
-                </button>
-            </div>
+            <Placeholder
+                icon={<KeyIcon/>}
+                title="Connect your Nostr Identity"
+                message="A Nostr identity is required to publish notes and interact with the network. You can generate one in settings."
+                actions={
+                    <button
+                        onClick={onNavigateToSettings}
+                        className="flex items-center justify-center gap-3 mx-auto px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                        <SettingsIcon className="h-5 w-5"/> Go to Settings
+                    </button>
+                }
+            />
         );
     }
 

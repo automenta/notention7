@@ -1,14 +1,14 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {getPublicKey, nip04} from 'nostr-tools';
 import type {Contact, NostrEvent} from '@/types';
-import {DEFAULT_RELAYS, hexToBytes} from '@/utils/nostr.ts';
-import {pool} from '@/services/nostrService.ts';
+import {hexToBytes} from '@/utils/format.ts';
+import {nostrService} from '@/services/NostrService.ts';
 import {ContactList} from '../chat/ContactList';
 import {ChatWindow} from '../chat/ChatWindow';
-import {useSettingsContext} from '../contexts/SettingsContext';
+import {useAppContext} from '../contexts/AppContext';
 
 export const ChatView: React.FC = () => {
-    const {settings} = useSettingsContext();
+    const {settings} = useAppContext();
     const privkey = settings.nostr.privkey;
     const pubkey = useMemo(
         () => (privkey ? getPublicKey(hexToBytes(privkey)) : null),
@@ -68,20 +68,13 @@ export const ChatView: React.FC = () => {
             return;
         }
 
-        const sub = pool.subscribeMany(
-            DEFAULT_RELAYS,
-            [{kinds: [3], authors: [pubkey], limit: 1}],
-            {
-                onevent: (event) => {
-                    const newContacts: Contact[] = event.tags
-                        .filter((tag) => tag[0] === 'p' && tag[1])
-                        .map((tag) => ({pubkey: tag[1]}));
-                    setContacts(newContacts);
-                    setIsLoading(false);
-                },
-                onclose: () => setIsLoading(false),
-            }
-        );
+        const sub = nostrService.subscribeToContactList(pubkey, (event) => {
+            const newContacts: Contact[] = event.tags
+                .filter((tag) => tag[0] === 'p' && tag[1])
+                .map((tag) => ({pubkey: tag[1]}));
+            setContacts(newContacts);
+            setIsLoading(false);
+        });
 
         const timer = setTimeout(() => {
             if (contacts.length === 0) setIsLoading(false);
@@ -98,13 +91,10 @@ export const ChatView: React.FC = () => {
     useEffect(() => {
         if (!selectedContact || !pubkey || !privkey) return;
 
-        const sub = pool.subscribeMany(
-            DEFAULT_RELAYS,
-            [
-                {kinds: [4], authors: [pubkey], '#p': [selectedContact.pubkey]},
-                {kinds: [4], authors: [selectedContact.pubkey], '#p': [pubkey]},
-            ],
-            {onevent: handleDecryption}
+        const sub = nostrService.subscribeToDms(
+            pubkey,
+            selectedContact.pubkey,
+            handleDecryption
         );
 
         return () => sub.close();

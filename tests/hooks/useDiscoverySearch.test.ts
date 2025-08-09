@@ -1,12 +1,20 @@
 import {act, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {useDiscoverySearch} from '@/hooks/useDiscoverySearch.ts';
-import * as nostrService from '../../services/nostrService';
+import {nostrService} from '@/services/NostrService.ts';
 import * as ontologyHook from '../../hooks/useOntologyIndex';
 import type {NostrEvent, Note, OntologyAttribute} from '@/types';
 
 // Mock services and hooks
-vi.mock('../../services/nostrService');
+vi.mock('@/services/NostrService', async (importOriginal) => {
+    const actual = await importOriginal();
+    return {
+        ...actual,
+        nostrService: {
+            findMatchingNotes: vi.fn(),
+        },
+    };
+});
 vi.mock('../../hooks/useOntologyIndex');
 
 const mockOntologyIndex = new Map<string, OntologyAttribute>([

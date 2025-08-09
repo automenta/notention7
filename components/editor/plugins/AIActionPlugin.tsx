@@ -10,9 +10,9 @@ import {
     SparklesIcon,
     XCircleIcon,
 } from '../../icons';
-import {getTextFromHtml} from '@/utils/nostr.ts';
+import {getTextFromHtml} from '@/utils/dom.ts';
 import {useNotesContext} from '../../contexts/NotesContext';
-import {useViewContext} from '../../contexts/ViewContext';
+import {useAppContext} from '../../contexts/AppContext';
 
 type GenerationState = 'idle' | 'streaming' | 'done' | 'error';
 
@@ -38,7 +38,7 @@ const AIActionModal: React.FC<{
     const [copyButtonText, setCopyButtonText] = useState('Copy');
 
     const {addNote} = useNotesContext();
-    const {setActiveView, setSelectedNoteId} = useViewContext();
+    const {setActiveView, setSelectedNoteId} = useAppContext();
 
     useEffect(() => {
         if (!isOpen || !action) return;

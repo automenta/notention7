@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
 import type {NostrEvent, Note, Property} from '@/types';
-import {findMatchingNotes, NOTENTION_KIND} from '../services/nostrService';
+import {nostrService, NOTENTION_KIND} from '../services/NostrService';
 import {IMAGINARY_TO_REAL_MAP} from '../utils/discovery';
 import {useOntologyIndex} from './useOntologyIndex';
 import {matchNotes} from '../utils/noteSemantics';
@@ -68,7 +68,7 @@ export const useDiscoverySearch = (
             ...(pTags.length > 0 && {'#p': pTags}),
         };
 
-        const foundEvents = await findMatchingNotes(filter);
+        const foundEvents = await nostrService.findMatchingNotes(filter);
 
         // Map the query properties to their "real" counterparts for matching.
         const queryPropertiesWithMappedKeys: Property[] = selectedNote.properties.map(

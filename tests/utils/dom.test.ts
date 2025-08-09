@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {getTextFromHtml} from '@/utils/nostr';
+import {getTextFromHtml} from '@/utils/dom';
 
 describe('getTextFromHtml', () => {
     it('should extract text from a simple p tag', () => {

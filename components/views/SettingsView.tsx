@@ -1,8 +1,8 @@
 import React, {useMemo, useState} from 'react';
 import {generateSecretKey, getPublicKey, nip19} from 'nostr-tools';
-import {bytesToHex, hexToBytes} from '@/utils/nostr.ts';
+import {bytesToHex, hexToBytes} from '@/utils/format.ts';
 import {ClipboardIcon, KeyIcon, SparklesIcon, TrashIcon} from '../icons';
-import {useSettingsContext} from '../contexts/SettingsContext';
+import {useAppContext} from '../contexts/AppContext';
 import OntologyEditor from '../settings/OntologyEditor';
 
 const TabButton: React.FC<{
@@ -72,7 +72,7 @@ const CopyableField: React.FC<{
 };
 
 export const SettingsView: React.FC = () => {
-    const {settings, setSettings} = useSettingsContext();
+    const {settings, setSettings} = useAppContext();
     const [activeTab, setActiveTab] = useState<
         'ai' | 'nostr' | 'data' | 'ontology'
     >('ai');

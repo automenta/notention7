@@ -1,10 +1,10 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {finalizeEvent, nip04, nip19} from 'nostr-tools';
+import {nip19} from 'nostr-tools';
 import type {Contact, NostrEvent} from '@/types';
 import {useNostrProfile} from '@/hooks/useNostrProfile.ts';
-import {pool} from '@/services/nostrService.ts';
-import {DEFAULT_RELAYS, formatNpub, hexToBytes} from '@/utils/nostr.ts';
+import {formatNpub} from '@/utils/format.ts';
 import {ArrowLeftIcon, SendIcon} from '../icons';
+import {nostrService} from '@/services/NostrService.ts';
 
 interface ChatWindowProps {
     privkey: string;
@@ -48,23 +48,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         if (!newMessage.trim() || !selectedContact) return;
 
         try {
-            const encryptedContent = nip04.encrypt(
+            const sentEvent = await nostrService.sendMessage(
                 privkey,
                 selectedContact.pubkey,
                 newMessage.trim()
             );
-            const event = finalizeEvent(
-                {
-                    kind: 4,
-                    created_at: Math.floor(Date.now() / 1000),
-                    tags: [['p', selectedContact.pubkey]],
-                    content: encryptedContent,
-                },
-                hexToBytes(privkey)
-            );
-
-            await Promise.all(pool.publish(DEFAULT_RELAYS, event));
-            onSendMessage(selectedContact.pubkey, event, newMessage.trim());
+            onSendMessage(selectedContact.pubkey, sentEvent, newMessage.trim());
             setNewMessage('');
         } catch (err) {
             console.error('Failed to send message:', err);

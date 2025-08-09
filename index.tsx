@@ -1,9 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import {SettingsProvider} from './components/contexts/SettingsContext';
 import {NotesProvider} from './components/contexts/NotesContext';
-import {ViewProvider} from './components/contexts/ViewContext';
+import {AppProvider} from './components/contexts/AppContext';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -13,12 +12,10 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
     <React.StrictMode>
-        <SettingsProvider>
+        <AppProvider>
             <NotesProvider>
-                <ViewProvider>
-                    <App/>
-                </ViewProvider>
+                <App/>
             </NotesProvider>
-        </SettingsProvider>
+        </AppProvider>
     </React.StrictMode>
 );

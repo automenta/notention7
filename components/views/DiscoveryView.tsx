@@ -4,7 +4,7 @@ import {NoteListItem} from '../sidebar/NoteListItem';
 import {LoadingSpinner} from '../icons';
 import {useNostrProfile} from '@/hooks/useNostrProfile.ts';
 import {NostrEventCard} from '../network/NostrEventCard';
-import {getTextFromHtml} from '@/utils/nostr.ts';
+import {getTextFromHtml} from '@/utils/dom.ts';
 import {useDiscoverySearch} from '@/hooks/useDiscoverySearch.ts';
 
 type SearchCriterion = { key: string; op: string; values: readonly string[] };

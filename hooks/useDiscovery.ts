@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import {findMatchingNotes, NOTENTION_KIND} from '../services/nostrService';
+import {nostrService, NOTENTION_KIND} from '../services/NostrService';
 import type {NostrEvent, Note, Property} from '@/types';
 
 /**
@@ -64,7 +64,7 @@ export const useDiscovery = () => {
                     limit: 100, // Let's not fetch the entire history of the world
                 };
 
-                const events = await findMatchingNotes(filter);
+                const events = await nostrService.findMatchingNotes(filter);
                 const allNotes = events
                     .map(eventToNote)
                     .filter((note): note is Note => note !== null);

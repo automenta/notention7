@@ -1,7 +1,7 @@
 import React from 'react';
 import type {View} from '@/types';
 import {ChatIcon, MapIcon, NetworkIcon, NoteIcon, OntologyIcon, PlusIcon, SearchIcon, SettingsIcon,} from './icons';
-import {useViewContext} from './contexts/ViewContext';
+import {useAppContext} from './contexts/AppContext';
 
 interface HeaderProps {
     onNewNote: () => void;
@@ -34,7 +34,7 @@ const NavButton: React.FC<NavButtonProps> = ({
 );
 
 export const Header: React.FC<HeaderProps> = ({onNewNote}) => {
-    const {activeView, setActiveView} = useViewContext();
+    const {activeView, setActiveView} = useAppContext();
     const navItems: { view: View; label: string; icon: React.ReactElement }[] = [
         {view: 'notes', label: 'Notes', icon: <NoteIcon/>},
         {view: 'map', label: 'Map', icon: <MapIcon/>},

@@ -2,14 +2,22 @@ import React from 'react';
 import {fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {DiscoveryView} from '@/components/views/DiscoveryView.tsx';
-import * as nostrService from '../../../services/nostrService';
+import {nostrService} from '@/services/NostrService.ts';
 import * as ontologyHook from '../../../hooks/useOntologyIndex';
 import type {NostrEvent, Note, OntologyAttribute} from '@/types';
 import {NotesContext} from '@/components/contexts/NotesContext.tsx';
 import * as useNostrProfile from '../../../hooks/useNostrProfile';
 
 // Mocks
-vi.mock('../../../services/nostrService');
+vi.mock('@/services/NostrService', async (importOriginal) => {
+    const actual = await importOriginal();
+    return {
+        ...actual,
+        nostrService: {
+            findMatchingNotes: vi.fn(),
+        },
+    };
+});
 vi.mock('../../../hooks/useOntologyIndex');
 vi.mock('../../../hooks/useNostrProfile');
 

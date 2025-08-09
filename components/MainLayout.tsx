@@ -1,10 +1,10 @@
 import React from 'react';
-import {useViewContext} from './contexts/ViewContext';
 import {Sidebar} from './Sidebar';
 import {MainView} from './MainView';
+import {useAppContext} from './contexts/AppContext';
 
 export const MainLayout: React.FC = () => {
-    const {activeView} = useViewContext();
+    const {activeView} = useAppContext();
 
     return (
         <div className="flex flex-1 overflow-hidden">

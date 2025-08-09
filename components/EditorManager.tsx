@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import type { AppSettings, Note } from '@/types';
 import { useEditors } from './editor/editors';
 import { WorldIcon } from './icons';
-import { publishNote } from '../services/nostrService';
+import { nostrService } from '../services/NostrService';
 
 interface EditorManagerProps {
   note: Note;
@@ -28,7 +28,7 @@ export const EditorManager: React.FC<EditorManagerProps> = ({
     }
     setIsPublishing(true);
     try {
-      await publishNote(note, settings.nostr.privkey);
+      await nostrService.publishNote(note, settings.nostr.privkey);
       alert('Note published successfully!');
     } catch (error) {
       console.error('Failed to publish note:', error);

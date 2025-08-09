@@ -1,13 +1,11 @@
 import React from 'react';
-import { useViewContext } from './contexts/ViewContext';
-import { useSettingsContext } from './contexts/SettingsContext';
 import { useNotesContext } from './contexts/NotesContext';
 import { LoadingSpinner } from './icons';
 import { useViews } from './views/views';
+import { useAppContext } from './contexts/AppContext';
 
 export const MainView: React.FC = () => {
-  const { activeView } = useViewContext();
-  const { settingsLoading } = useSettingsContext();
+  const { activeView, settingsLoading } = useAppContext();
   const { notesLoading } = useNotesContext();
   const { getView } = useViews();
 

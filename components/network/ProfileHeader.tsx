@@ -1,9 +1,9 @@
 import React, {useMemo, useState} from 'react';
-import {finalizeEvent, nip19} from 'nostr-tools';
+import {nip19} from 'nostr-tools';
 import type {AppSettings, NostrProfile} from '@/types';
 import {EditIcon, LoadingSpinner} from '../icons';
-import {DEFAULT_RELAYS, formatNpub, hexToBytes} from '@/utils/nostr.ts';
-import {pool} from '@/services/nostrService.ts';
+import {formatNpub} from '@/utils/format.ts';
+import {nostrService} from '@/services/NostrService.ts';
 
 const ProfileEditorModal: React.FC<{
     isOpen: boolean;
@@ -95,16 +95,7 @@ export const ProfileHeader: React.FC<{
         if (!settings.nostr.privkey) return;
         setIsSavingProfile(true);
         try {
-            const privkeyUI8A = hexToBytes(settings.nostr.privkey);
-            const eventTemplate = {
-                kind: 0,
-                created_at: Math.floor(Date.now() / 1000),
-                tags: [],
-                content: JSON.stringify(profile),
-            };
-            const signedEvent = finalizeEvent(eventTemplate, privkeyUI8A);
-
-            await Promise.all(pool.publish(DEFAULT_RELAYS, signedEvent));
+            await nostrService.publishProfile(settings.nostr.privkey, profile);
             // Profile will be updated via the nostr subscription
         } catch (error) {
             console.error('Failed to save profile:', error);

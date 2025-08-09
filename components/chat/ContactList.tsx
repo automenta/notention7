@@ -1,10 +1,10 @@
 import React, {useMemo, useState} from 'react';
-import {finalizeEvent, nip19} from 'nostr-tools';
+import {nip19} from 'nostr-tools';
 import {useNostrProfile} from '@/hooks/useNostrProfile.ts';
-import {pool} from '@/services/nostrService.ts';
 import type {Contact} from '@/types';
-import {DEFAULT_RELAYS, formatNpub, hexToBytes} from '@/utils/nostr.ts';
+import {formatNpub} from '@/utils/format.ts';
 import {UserPlusIcon} from '../icons';
+import {nostrService} from '@/services/NostrService.ts';
 
 interface ContactListProps {
     privkey: string;
@@ -45,22 +45,10 @@ export const ContactList: React.FC<ContactListProps> = ({
             if (contacts.some((c) => c.pubkey === newPubkey) || newPubkey === pubkey)
                 throw new Error('Contact already exists or is yourself.');
 
-            const currentTags = contacts.map((c) => ['p', c.pubkey]);
-            const newTags = [...currentTags, ['p', newPubkey]];
+            const newContacts = [...contacts, {pubkey: newPubkey}];
+            await nostrService.publishContactList(privkey, newContacts);
 
-            const event = finalizeEvent(
-                {
-                    kind: 3,
-                    created_at: Math.floor(Date.now() / 1000),
-                    tags: newTags,
-                    content: '',
-                },
-                hexToBytes(privkey)
-            );
-
-            await Promise.all(pool.publish(DEFAULT_RELAYS, event));
-
-            setContacts((c) => [...c, {pubkey: newPubkey}]);
+            setContacts(newContacts);
             setNewContactNpub('');
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to add contact.');

@@ -1,7 +1,7 @@
 import React from 'react';
 import type {Note} from '@/types';
 import {TrashIcon, WorldIcon} from '../icons';
-import {getTextFromHtml} from '@/utils/nostr.ts';
+import {getTextFromHtml} from '@/utils/dom.ts';
 
 export const NoteListItem: React.FC<{
     note: Note;

@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {Note} from '@/types';
-import {getTextFromHtml} from '../utils/nostr';
+import {getTextFromHtml} from '../utils/dom';
 
 interface TextareaEditorProps {
     note: Note;

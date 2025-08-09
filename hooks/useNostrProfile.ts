@@ -1,6 +1,5 @@
 import {useEffect, useState} from 'react';
-import {pool} from '../services/nostrService';
-import {DEFAULT_RELAYS} from '../utils/nostr';
+import {nostrService} from '../services/NostrService';
 import type {NostrEvent, NostrProfile} from '@/types';
 
 const profileCache = new Map<string, NostrProfile>();
@@ -60,13 +59,7 @@ export const useNostrProfile = (
             }
         };
 
-        const sub = pool.subscribeMany(
-            DEFAULT_RELAYS,
-            [{kinds: [0], authors: pubkeysToFetch}],
-            {
-                onevent: handleEvent,
-            }
-        );
+        const sub = nostrService.subscribeToProfiles(pubkeysToFetch, handleEvent);
 
         // Cleanup subscription on unmount or when pubkeys change
         return () => {

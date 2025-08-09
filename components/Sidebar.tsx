@@ -1,9 +1,10 @@
 import React, {useState} from 'react';
 import {Search} from './sidebar/Search';
 import {useNotesContext} from './contexts/NotesContext';
-import {useViewContext} from './contexts/ViewContext';
 import {NoteListItem} from './sidebar/NoteListItem';
 import {useSortedFilteredNotes} from '../hooks/useSortedFilteredNotes';
+import {useAppContext} from './contexts/AppContext';
+import {useNoteManagement} from '../hooks/useNoteManagement';
 
 type SortOrder =
     | 'updatedAt_desc'
@@ -14,24 +15,13 @@ type SortOrder =
     | 'title_desc';
 
 export const Sidebar: React.FC = () => {
-    const {notes, deleteNote} = useNotesContext();
-    const {selectedNoteId, setSelectedNoteId} = useViewContext();
+    const {notes} = useNotesContext();
+    const {selectedNoteId, setSelectedNoteId} = useAppContext();
+    const {handleDeleteAndSelectNext} = useNoteManagement();
     const [searchTerm, setSearchTerm] = useState('');
     const [sortOrder, setSortOrder] = useState<SortOrder>('updatedAt_desc');
 
     const sortedNotes = useSortedFilteredNotes(notes, searchTerm, sortOrder);
-
-    const handleDeleteNote = (noteIdToDelete: string) => {
-        if (selectedNoteId === noteIdToDelete) {
-            const currentIndex = sortedNotes.findIndex(
-                (n) => n.id === noteIdToDelete
-            );
-            const nextNote =
-                sortedNotes[currentIndex + 1] || sortedNotes[currentIndex - 1] || null;
-            setSelectedNoteId(nextNote ? nextNote.id : null);
-        }
-        deleteNote(noteIdToDelete);
-    };
 
     return (
         <div className="bg-gray-900 flex flex-col h-full">
@@ -62,7 +52,7 @@ export const Sidebar: React.FC = () => {
                             note={note}
                             isSelected={selectedNoteId === note.id}
                             onSelect={() => setSelectedNoteId(note.id)}
-                            onDelete={() => handleDeleteNote(note.id)}
+                            onDelete={() => handleDeleteAndSelectNext(note.id)}
                         />
                     ))
                 ) : (

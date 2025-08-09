@@ -2,8 +2,7 @@ import {render} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
 import App from '../App';
 import {NotesProvider} from '../components/contexts/NotesContext';
-import {SettingsProvider} from '../components/contexts/SettingsContext';
-import {ViewProvider} from '../components/contexts/ViewContext';
+import {AppProvider} from '../components/contexts/AppContext';
 
 // Mock the useNotes hook which is the dependency of the NotesProvider
 vi.mock('../hooks/useNotes', () => ({
@@ -22,13 +21,11 @@ describe('App component', () => {
         // We don't need to assert anything about the output for a simple smoke test.
         expect(() =>
             render(
-                <SettingsProvider>
+                <AppProvider>
                     <NotesProvider>
-                        <ViewProvider>
-                            <App/>
-                        </ViewProvider>
+                        <App/>
                     </NotesProvider>
-                </SettingsProvider>
+                </AppProvider>
             )
         ).not.toThrow();
     });

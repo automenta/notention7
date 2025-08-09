@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import L from 'leaflet';
 import {useNotesContext} from '../contexts/NotesContext';
-import {useViewContext} from '../contexts/ViewContext';
+import {useAppContext} from '../contexts/AppContext';
 
 interface GeoPoint {
     noteId: string;
@@ -12,7 +12,7 @@ interface GeoPoint {
 
 export const MapView: React.FC = () => {
     const {notes} = useNotesContext();
-    const {setActiveView, setSelectedNoteId} = useViewContext();
+    const {setActiveView, setSelectedNoteId} = useAppContext();
     const mapRef = useRef<L.Map | null>(null);
     const mapContainerRef = useRef<HTMLDivElement | null>(null);
     const markersRef = useRef<L.Marker[]>([]);

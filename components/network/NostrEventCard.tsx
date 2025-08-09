@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import {nip19} from 'nostr-tools';
 import type {NostrEvent, NostrProfile} from '@/types';
-import {formatNpub} from '@/utils/nostr.ts';
+import {formatNpub} from '@/utils/format.ts';
 
 type SearchCriterion = { key: string; op: string; values: readonly string[] };
 
