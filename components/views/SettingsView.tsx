@@ -2,7 +2,7 @@ import React, {useMemo, useState} from 'react';
 import {generateSecretKey, getPublicKey, nip19} from 'nostr-tools';
 import {bytesToHex, hexToBytes} from '@/utils/nostr.ts';
 import {ClipboardIcon, KeyIcon, SparklesIcon, TrashIcon} from '../icons';
-import {useSettingsContext} from '@/hooks/useSettingsContext.ts';
+import {useSettingsContext} from '../contexts/SettingsContext';
 import OntologyEditor from '../settings/OntologyEditor';
 
 const TabButton: React.FC<{

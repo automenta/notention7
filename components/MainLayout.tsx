@@ -1,5 +1,5 @@
 import React from 'react';
-import {useViewContext} from '../hooks/useViewContext';
+import {useViewContext} from './contexts/ViewContext';
 import {Sidebar} from './Sidebar';
 import {MainView} from './MainView';
 

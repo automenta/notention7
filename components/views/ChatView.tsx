@@ -5,7 +5,7 @@ import {DEFAULT_RELAYS, hexToBytes} from '@/utils/nostr.ts';
 import {pool} from '@/services/nostrService.ts';
 import {ContactList} from '../chat/ContactList';
 import {ChatWindow} from '../chat/ChatWindow';
-import {useSettingsContext} from '@/hooks/useSettingsContext.ts';
+import {useSettingsContext} from '../contexts/SettingsContext';
 
 export const ChatView: React.FC = () => {
     const {settings} = useSettingsContext();

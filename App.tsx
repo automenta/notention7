@@ -1,7 +1,7 @@
 import React from 'react';
 import {Header} from './components/Header';
-import {useNotesContext} from './hooks/useNotesContext';
-import {useViewContext} from './hooks/useViewContext';
+import {useNotesContext} from './components/contexts/NotesContext';
+import {useViewContext} from './components/contexts/ViewContext';
 import {useAutoSelectNote} from './hooks/useAutoSelectNote';
 import {MainLayout} from './components/MainLayout';
 

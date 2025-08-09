@@ -1,6 +1,6 @@
 import {useEffect} from 'react';
-import {useNotesContext} from './useNotesContext';
-import {useViewContext} from './useViewContext';
+import {useNotesContext} from '../components/contexts/NotesContext';
+import {useViewContext} from '../components/contexts/ViewContext';
 
 export const useAutoSelectNote = () => {
     const {notes, notesLoading} = useNotesContext();

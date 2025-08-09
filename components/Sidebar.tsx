@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {Search} from './sidebar/Search';
-import {useNotesContext} from '../hooks/useNotesContext';
-import {useViewContext} from '../hooks/useViewContext';
+import {useNotesContext} from './contexts/NotesContext';
+import {useViewContext} from './contexts/ViewContext';
 import {NoteListItem} from './sidebar/NoteListItem';
 import {useSortedFilteredNotes} from '../hooks/useSortedFilteredNotes';
 

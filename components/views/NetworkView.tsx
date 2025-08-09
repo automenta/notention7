@@ -6,8 +6,8 @@ import {DEFAULT_RELAYS, hexToBytes} from '@/utils/nostr.ts';
 import {pool} from '@/services/nostrService.ts';
 import {useNostrProfile} from '@/hooks/useNostrProfile.ts';
 import {ProfileHeader} from '../network/ProfileHeader';
-import {useSettingsContext} from '@/hooks/useSettingsContext.ts';
-import {useViewContext} from '@/hooks/useViewContext.ts';
+import {useSettingsContext} from '../contexts/SettingsContext';
+import {useViewContext} from '../contexts/ViewContext';
 import {NostrEventCard} from '../network/NostrEventCard';
 
 export const NetworkView: React.FC = () => {

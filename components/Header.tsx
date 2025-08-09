@@ -1,7 +1,7 @@
 import React from 'react';
 import type {View} from '@/types';
 import {ChatIcon, MapIcon, NetworkIcon, NoteIcon, OntologyIcon, PlusIcon, SearchIcon, SettingsIcon,} from './icons';
-import {useViewContext} from '../hooks/useViewContext';
+import {useViewContext} from './contexts/ViewContext';
 
 interface HeaderProps {
     onNewNote: () => void;

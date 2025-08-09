@@ -1,7 +1,23 @@
-import React, {ReactNode, useContext} from 'react';
+import React, {createContext, ReactNode, useContext} from 'react';
 import {useNotes as useNotesService} from '../../hooks/useNotes';
-import {NotesContext} from './notes';
+import type {Note} from '../../types';
 
+// 1. Define the context type
+export interface NotesContextType {
+    notes: Note[];
+    addNote: () => Note;
+    updateNote: (note: Note) => void;
+    deleteNote: (id: string) => void;
+    notesLoading: boolean;
+}
+
+// 2. Create the context
+// eslint-disable-next-line react-refresh/only-export-components
+export const NotesContext = createContext<NotesContextType | undefined>(
+    undefined
+);
+
+// 3. Create the provider component
 export const NotesProvider: React.FC<{ children: ReactNode }> = ({
                                                                      children,
                                                                  }) => {
@@ -17,6 +33,8 @@ export const NotesProvider: React.FC<{ children: ReactNode }> = ({
     );
 };
 
+// 4. Create the consumer hook
+// eslint-disable-next-line react-refresh/only-export-components
 export const useNotesContext = () => {
     const context = useContext(NotesContext);
     if (context === undefined) {

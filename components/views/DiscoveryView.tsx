@@ -1,5 +1,5 @@
 import React, {useMemo, useState} from 'react';
-import {useNotesContext} from '@/hooks/useNotesContext.ts';
+import {useNotesContext} from '../contexts/NotesContext';
 import {NoteListItem} from '../sidebar/NoteListItem';
 import {LoadingSpinner} from '../icons';
 import {useNostrProfile} from '@/hooks/useNostrProfile.ts';

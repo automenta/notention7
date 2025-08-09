@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import L from 'leaflet';
-import {useNotesContext} from '@/hooks/useNotesContext.ts';
-import {useViewContext} from '@/hooks/useViewContext.ts';
+import {useNotesContext} from '../contexts/NotesContext';
+import {useViewContext} from '../contexts/ViewContext';
 
 interface GeoPoint {
     noteId: string;

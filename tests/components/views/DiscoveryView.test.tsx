@@ -5,7 +5,7 @@ import {DiscoveryView} from '@/components/views/DiscoveryView.tsx';
 import * as nostrService from '../../../services/nostrService';
 import * as ontologyHook from '../../../hooks/useOntologyIndex';
 import type {NostrEvent, Note, OntologyAttribute} from '@/types';
-import {NotesContext} from '@/components/contexts/notes.ts';
+import {NotesContext} from '@/components/contexts/NotesContext.tsx';
 import * as useNostrProfile from '../../../hooks/useNostrProfile';
 
 // Mocks

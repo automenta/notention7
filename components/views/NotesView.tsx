@@ -1,7 +1,7 @@
 import React from 'react';
-import {useNotesContext} from '@/hooks/useNotesContext.ts';
-import {useViewContext} from '@/hooks/useViewContext.ts';
-import {useSettingsContext} from '@/hooks/useSettingsContext.ts';
+import {useNotesContext} from '../contexts/NotesContext';
+import {useViewContext} from '../contexts/ViewContext';
+import {useSettingsContext} from '../contexts/SettingsContext';
 import {EditorManager} from '../EditorManager';
 import {CubeTransparentIcon} from '../icons';
 
