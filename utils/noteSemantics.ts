@@ -41,10 +41,6 @@ const matchProperty = (
     imaginary: Property,
     attributeType: OntologyAttribute,
 ): boolean => {
-    if (real.key !== imaginary.key) {
-        return false;
-    }
-
     const realValue = real.values[0];
     if (realValue === undefined) {
         return false;
@@ -170,13 +166,29 @@ export const matchNotes = (
     queryProperties: Property[],
     ontologyIndex: Map<string, OntologyAttribute>,
 ): boolean => {
+    // Create a Map for efficient lookup of source properties by their key.
+    const sourcePropsMap = new Map<string, Property[]>();
+    for (const prop of sourceProperties) {
+        if (!sourcePropsMap.has(prop.key)) {
+            sourcePropsMap.set(prop.key, []);
+        }
+        sourcePropsMap.get(prop.key)!.push(prop);
+    }
+
     return queryProperties.every((imaginaryProp) => {
         const attributeType = ontologyIndex.get(imaginaryProp.key);
         if (!attributeType) {
             return false;
         }
 
-        return sourceProperties.some((realProp) =>
+        // Get only the relevant properties from the source note.
+        const relevantRealProps = sourcePropsMap.get(imaginaryProp.key);
+        if (!relevantRealProps) {
+            return false; // The source note doesn't have this property, so it can't match.
+        }
+
+        // Now we only loop through properties with the correct key.
+        return relevantRealProps.some((realProp) =>
             matchProperty(realProp, imaginaryProp, attributeType),
         );
     });

@@ -11,15 +11,13 @@ import {AppContext, AppContextType} from '@/components/contexts/AppContext.tsx';
 import {DEFAULT_ONTOLOGY} from '@/utils/ontology.default.ts';
 
 // Mocks
-vi.mock('@/services/NostrService', async (importOriginal) => {
-    const actual = await importOriginal();
-    return {
-        ...actual,
-        nostrService: {
-            findMatchingNotes: vi.fn(),
-        },
-    };
-});
+vi.mock('@/services/NostrService', () => ({
+  NOTENTION_KIND: 30019,
+  nostrService: {
+    findMatchingNotes: vi.fn(),
+    subscribeToProfiles: vi.fn().mockReturnValue({ close: vi.fn() }),
+  },
+}));
 vi.mock('../../../hooks/useOntologyIndex');
 vi.mock('../../../hooks/useNostrProfile');
 
@@ -116,7 +114,7 @@ describe('DiscoveryView', () => {
         expect(screen.getByText('Looking for a web developer')).toBeInTheDocument();
         fireEvent.click(screen.getByText('Looking for a web developer'));
         expect(
-            await screen.findByText(/Finding notes related to/),
+            await screen.findByText(/Discovery Results for/),
         ).toBeInTheDocument();
     });
 

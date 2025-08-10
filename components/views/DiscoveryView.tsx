@@ -6,6 +6,8 @@ import { NostrEventCard } from '../network/NostrEventCard';
 import { getTextFromHtml } from '@/utils/dom.ts';
 import { useDiscoverySearch } from '@/hooks/useDiscoverySearch.ts';
 import type { Note } from '@/types';
+import { useAppContext } from '../contexts/AppContext.tsx';
+import { useOntologyIndex } from '@/hooks/useOntologyIndex.ts';
 
 // A new, simplified list item for query notes
 const QueryNoteItem: React.FC<{
@@ -28,14 +30,18 @@ const QueryNoteItem: React.FC<{
 
 export const DiscoveryView: React.FC = () => {
   const { notes } = useNotesContext();
-  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
+  const { settings, selectedNoteId, setSelectedNoteId } = useAppContext();
+  const { propertyTypes: ontologyIndex } = useOntologyIndex(settings.ontology);
 
-  // Find notes that are 'imaginary' (i.e., contain conditional properties)
+  // Find notes that are 'imaginary' by checking against the ontology
   const queryNotes = useMemo(() => {
     return notes.filter(note =>
-      note.properties.some(p => p.op !== 'is')
+      note.properties.some(p => {
+        const attribute = ontologyIndex.get(p.key);
+        return !!attribute?.operators.imaginary.includes(p.operator);
+      })
     );
-  }, [notes]);
+  }, [notes, ontologyIndex]);
 
   // Auto-select the first query note if none is selected
   useEffect(() => {
@@ -48,13 +54,6 @@ export const DiscoveryView: React.FC = () => {
 
   const { results, searchState, searchCriteria, handleSearch } =
     useDiscoverySearch(selectedNote, notes);
-
-  // Automatically trigger search when the selected note changes
-  useEffect(() => {
-    if (selectedNote && searchCriteria.length > 0) {
-      handleSearch();
-    }
-  }, [selectedNote, searchCriteria, handleSearch]);
 
   const authorPubkeys = useMemo(
     () => [...new Set(results.map((e) => e.pubkey))],
@@ -100,7 +99,17 @@ export const DiscoveryView: React.FC = () => {
               Discovery Results for: "{selectedNote.title || 'Untitled Note'}"
             </h1>
             <div className="p-4 my-4 bg-gray-700/50 rounded-lg">
-              <h3 className="text-lg font-semibold text-white mb-2">Active Search Criteria</h3>
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="text-lg font-semibold text-white">Active Search Criteria</h3>
+                <button
+                  onClick={handleSearch}
+                  disabled={searchState === 'searching' || searchCriteria.length === 0}
+                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2 transition-colors"
+                >
+                  <SearchIcon className="h-5 w-5" />
+                  {searchState === 'searching' ? 'Searching...' : 'Find Matching Notes'}
+                </button>
+              </div>
               {searchCriteria.length > 0 ? (
                 <ul className="space-y-1">
                   {searchCriteria.map((c, i) => (

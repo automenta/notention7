@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import type {NostrEvent, Note, Property} from '@/types';
 import {nostrService, NOTENTION_KIND} from '../services/NostrService';
 import {IMAGINARY_TO_REAL_MAP} from '../utils/discovery';
@@ -47,7 +47,7 @@ export const useDiscoverySearch = (
         }
     }, [selectedNote]);
 
-    const handleSearch = async () => {
+    const handleSearch = useCallback(async () => {
         if (!selectedNote || relayCriteria.length === 0) return;
 
         setSearchState('searching');
@@ -102,7 +102,7 @@ export const useDiscoverySearch = (
 
         setResults(matchingEvents);
         setSearchState('results');
-    };
+    }, [selectedNote, relayCriteria, localNotes, ontologyIndex]);
 
     return {results, searchState, searchCriteria: relayCriteria, handleSearch};
 };

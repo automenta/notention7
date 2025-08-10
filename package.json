@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives",
     "format": "prettier --write .",
-    "test": "vitest"
+    "test": "NODE_OPTIONS=--max-old-space-size=4096 vitest"
   },
   "dependencies": {
     "@google/genai": "^1.12.0",

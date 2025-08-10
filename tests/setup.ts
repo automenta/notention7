@@ -27,3 +27,8 @@ Object.defineProperty(window, 'matchMedia', {
 
 // Polyfill for Element.scrollIntoView
 window.HTMLElement.prototype.scrollIntoView = vi.fn();
+
+// Global cleanup to ensure test isolation
+afterEach(() => {
+    vi.clearAllMocks();
+});
