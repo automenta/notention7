@@ -23,7 +23,7 @@ export const NostrEventCard: React.FC<{
         return event.tags
             .filter((tag) => {
                 if (tag[0] !== 'p') return false;
-                const [_, key, op, ...values] = tag;
+                const [, key, op, ...values] = tag;
                 return matchingCriteria.some(
                     (c) =>
                         c.key === key &&

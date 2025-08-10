@@ -5,8 +5,10 @@ import {DiscoveryView} from '@/components/views/DiscoveryView.tsx';
 import {nostrService} from '@/services/NostrService.ts';
 import * as ontologyHook from '../../../hooks/useOntologyIndex';
 import type {NostrEvent, Note, OntologyAttribute} from '@/types';
-import {NotesContext} from '@/components/contexts/NotesContext.tsx';
+import {NotesContext, NotesContextType} from '@/components/contexts/NotesContext.tsx';
 import * as useNostrProfile from '../../../hooks/useNostrProfile';
+import {AppContext, AppContextType} from '@/components/contexts/AppContext.tsx';
+import {DEFAULT_ONTOLOGY} from '@/utils/ontology.default.ts';
 
 // Mocks
 vi.mock('@/services/NostrService', async (importOriginal) => {
@@ -58,17 +60,46 @@ const nonMatchingEvent: NostrEvent = {
     content: JSON.stringify({title: 'Mobile Dev Available', content: '...'}),
 };
 
+const mockNotesContextValue: NotesContextType = {
+    notes: [mockQueryNote],
+    addNote: vi.fn(),
+    updateNote: vi.fn(),
+    deleteNote: vi.fn(),
+    notesLoading: false,
+};
+
+const mockAppContextValue: AppContextType = {
+    settings: {
+        aiEnabled: false,
+        geminiApiKey: null,
+        theme: 'dark',
+        nostr: {privkey: 'test-privkey'},
+        ontology: DEFAULT_ONTOLOGY,
+    },
+    setSettings: vi.fn(),
+    settingsLoading: false,
+    activeView: 'discovery',
+    setActiveView: vi.fn(),
+    selectedNoteId: 'note1',
+    setSelectedNoteId: vi.fn(),
+};
+
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({children}) => (
-    <NotesContext.Provider value={{notes: [mockQueryNote]} as any}>
-        {children}
-    </NotesContext.Provider>
+    <AppContext.Provider value={mockAppContextValue}>
+        <NotesContext.Provider value={mockNotesContextValue}>
+            {children}
+        </NotesContext.Provider>
+    </AppContext.Provider>
 );
 
 describe('DiscoveryView', () => {
     beforeEach(() => {
         vi.mocked(ontologyHook.useOntologyIndex).mockReturnValue({
-            ontologyIndex: mockOntologyIndex,
-        } as any);
+            allTags: [],
+            allProperties: [],
+            allTemplates: [],
+            propertyTypes: mockOntologyIndex,
+        });
         vi.mocked(useNostrProfile.useNostrProfile).mockReturnValue({});
         vi.mocked(nostrService.findMatchingNotes).mockResolvedValue([
             matchingEvent,
@@ -105,6 +136,9 @@ describe('DiscoveryView', () => {
 
         fireEvent.click(searchButton);
         expect(screen.getByText('Searching...')).toBeInTheDocument();
+
+        // Wait for the search to complete to avoid act(...) warnings
+        await screen.findByText(/Found \d+ matching note\(s\)/);
     });
 
     it('displays correctly filtered results after searching', async () => {

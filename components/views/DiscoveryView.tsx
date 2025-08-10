@@ -140,7 +140,7 @@ export const DiscoveryView: React.FC = () => {
                                         if (contentPreview.length === 300) {
                                             contentPreview += '...';
                                         }
-                                    } catch (e) {
+                                    } catch {
                                         // Fallback for old content format
                                         contentPreview = event.content.substring(0, 300);
                                     }

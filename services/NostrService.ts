@@ -1,4 +1,4 @@
-import {finalizeEvent, getPublicKey, SimplePool, Sub} from 'nostr-tools';
+import {finalizeEvent, getPublicKey, SimplePool, Sub, Filter} from 'nostr-tools';
 import type {Contact, NostrEvent, Note} from '@/types';
 import {DEFAULT_RELAYS, hexToBytes} from '../utils/format';
 
@@ -70,9 +70,7 @@ class NostrService {
         return signedEvent;
     };
 
-    public findMatchingNotes = (
-        filter: Record<string, any>
-    ): Promise<NostrEvent[]> => {
+    public findMatchingNotes = (filter: Filter): Promise<NostrEvent[]> => {
         return new Promise((resolve) => {
             const foundEvents: NostrEvent[] = [];
             const seenEventIds = new Set<string>();

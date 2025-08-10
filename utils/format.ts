@@ -8,8 +8,12 @@ export const DEFAULT_RELAYS = [
     'wss://nos.lol',
 ];
 
-export function formatNpub(npub: string) {
-  return `${npub.substring(0, 8)}...${npub.substring(npub.length - 8)}`;
+export function formatNpub(npub: string, start = 8, end = 13) {
+    if (npub.length <= start + end) {
+        return npub;
+    }
+
+    return `${npub.substring(0, start)}...${npub.substring(npub.length - end)}`;
 }
 
 export function bytesToHex(bytes: Uint8Array): string {

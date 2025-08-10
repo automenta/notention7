@@ -4,6 +4,7 @@ import {nostrService, NOTENTION_KIND} from '../services/NostrService';
 import {IMAGINARY_TO_REAL_MAP} from '../utils/discovery';
 import {useOntologyIndex} from './useOntologyIndex';
 import {matchNotes} from '../utils/noteSemantics';
+import {useAppContext} from '../components/contexts/AppContext';
 
 type SearchState = 'idle' | 'ready' | 'searching' | 'results';
 
@@ -17,7 +18,8 @@ export const useDiscoverySearch = (
     const [results, setResults] = useState<NostrEvent[]>([]);
     const [searchState, setSearchState] = useState<SearchState>('idle');
     const [relayCriteria, setRelayCriteria] = useState<RelaySearchCriterion[]>([]);
-    const {ontologyIndex} = useOntologyIndex();
+    const {settings} = useAppContext();
+    const {propertyTypes: ontologyIndex} = useOntologyIndex(settings.ontology);
 
     // Effect to derive search criteria when a note is selected
     useEffect(() => {

@@ -1,4 +1,4 @@
-import {renderHook, waitFor} from '@testing-library/react';
+import {act, renderHook, waitFor} from '@testing-library/react';
 import {describe, it, expect, vi, beforeEach, afterEach} from 'vitest';
 import {useNostrFeed} from '../../hooks/useNostrFeed';
 import {nostrService} from '../../services/NostrService';
@@ -55,9 +55,11 @@ describe('hooks/useNostrFeed', () => {
 
         // Simulate receiving events
         const oneventCallback = mockSubscribeToPublicFeed.mock.calls[0][0];
-        oneventCallback(event2);
-        oneventCallback(event1);
-        oneventCallback(event2); // Duplicate event to test seen logic
+        act(() => {
+            oneventCallback(event2);
+            oneventCallback(event1);
+            oneventCallback(event2); // Duplicate event to test seen logic
+        });
 
         await waitFor(() => {
             expect(result.current.sortedEvents).toHaveLength(2);
@@ -91,8 +93,10 @@ describe('hooks/useNostrFeed', () => {
         renderHook(() => useNostrFeed('test-pubkey'));
 
         const oneventCallback = mockSubscribeToPublicFeed.mock.calls[0][0];
-        oneventCallback(event1);
-        oneventCallback(event2);
+        act(() => {
+            oneventCallback(event1);
+            oneventCallback(event2);
+        });
 
         await waitFor(() => {
             const lastCall = mockUseNostrProfile.mock.calls.pop();

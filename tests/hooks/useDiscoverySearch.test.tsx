@@ -4,6 +4,9 @@ import {useDiscoverySearch} from '@/hooks/useDiscoverySearch.ts';
 import {nostrService} from '@/services/NostrService.ts';
 import * as ontologyHook from '../../hooks/useOntologyIndex';
 import type {NostrEvent, Note, OntologyAttribute} from '@/types';
+import {AppContext, AppContextType} from '@/components/contexts/AppContext.tsx';
+import {DEFAULT_ONTOLOGY} from '@/utils/ontology.default.ts';
+import React from 'react';
 
 // Mock services and hooks
 vi.mock('@/services/NostrService', async (importOriginal) => {
@@ -63,12 +66,34 @@ const nonMatchingEvent: NostrEvent = {
     sig: 'sig2',
 };
 
+const mockAppContextValue: AppContextType = {
+    settings: {
+        aiEnabled: false,
+        geminiApiKey: null,
+        theme: 'dark',
+        nostr: {privkey: 'test-privkey'},
+        ontology: DEFAULT_ONTOLOGY,
+    },
+    setSettings: vi.fn(),
+    settingsLoading: false,
+    activeView: 'discovery',
+    setActiveView: vi.fn(),
+    selectedNoteId: 'note1',
+    setSelectedNoteId: vi.fn(),
+};
+
+const TestWrapper = ({children}: { children: React.ReactNode }) => (
+    <AppContext.Provider value={mockAppContextValue}>{children}</AppContext.Provider>
+);
+
 describe('useDiscoverySearch', () => {
     beforeEach(() => {
         vi.mocked(ontologyHook.useOntologyIndex).mockReturnValue({
-            ontologyIndex: mockOntologyIndex,
-        } as any);
-
+            allTags: [],
+            allProperties: [],
+            allTemplates: [],
+            propertyTypes: mockOntologyIndex,
+        });
         vi.mocked(nostrService.findMatchingNotes).mockResolvedValue([
             matchingEvent,
             nonMatchingEvent,
@@ -80,7 +105,9 @@ describe('useDiscoverySearch', () => {
     });
 
     it('should return only the notes that match the query after client-side filtering', async () => {
-        const {result} = renderHook(() => useDiscoverySearch(mockQueryNote, []));
+        const {result} = renderHook(() => useDiscoverySearch(mockQueryNote, []), {
+            wrapper: TestWrapper,
+        });
 
         // Wait for the useEffect to run and set the criteria
         await waitFor(() => {

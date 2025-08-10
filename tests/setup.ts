@@ -8,7 +8,7 @@ import React from 'react';
 import {vi} from 'vitest';
 
 // Make React globally available for tests, which can help with some environment issues.
-(global as any).React = React;
+(global as typeof globalThis & { React: typeof React }).React = React;
 
 // Polyfill for window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
