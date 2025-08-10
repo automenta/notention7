@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header';
 import { useNotesContext } from './components/contexts/NotesContext';
 import { MainLayout } from './components/MainLayout';
-import { useAppContext } from './components/contexts/AppContext';
+import { useViewContext } from './components/contexts/ViewContext';
 import { CommandPalette } from './components/common/CommandPalette';
 import { useCommands } from './hooks/useCommands';
 
 const App: React.FC = () => {
   const { addNote } = useNotesContext();
-  const { setActiveView, setSelectedNoteId } = useAppContext();
+  const { setActiveView, setSelectedNoteId } = useViewContext();
   const [isCommandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const commands = useCommands();
 

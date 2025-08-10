@@ -5,10 +5,10 @@ import {hexToBytes} from '@/utils/format.ts';
 import {nostrService} from '@/services/NostrService.ts';
 import {ContactList} from '../chat/ContactList';
 import {ChatWindow} from '../chat/ChatWindow';
-import {useAppContext} from '../contexts/AppContext';
+import {useSettingsContext} from '../contexts/SettingsContext';
 
 export const ChatView: React.FC = () => {
-    const {settings} = useAppContext();
+    const {settings} = useSettingsContext();
     const privkey = settings.nostr.privkey;
     const pubkey = useMemo(
         () => (privkey ? getPublicKey(hexToBytes(privkey)) : null),

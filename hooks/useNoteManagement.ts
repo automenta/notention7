@@ -1,11 +1,11 @@
 import {useEffect, useMemo} from 'react';
 import {useNotesContext} from '../components/contexts/NotesContext';
-import {useAppContext} from '../components/contexts/AppContext';
+import {useViewContext} from '../components/contexts/ViewContext';
 import {sortNotesByDate} from '../utils/notes';
 
 export const useNoteManagement = () => {
     const {notes, deleteNote, notesLoading} = useNotesContext();
-    const {activeView, selectedNoteId, setSelectedNoteId} = useAppContext();
+    const {activeView, selectedNoteId, setSelectedNoteId} = useViewContext();
 
     // Find the full selected note object
     const selectedNote = useMemo(

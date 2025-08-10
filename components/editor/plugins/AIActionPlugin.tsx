@@ -12,7 +12,7 @@ import {
 } from '../../icons';
 import {getTextFromHtml} from '@/utils/dom.ts';
 import {useNotesContext} from '../../contexts/NotesContext';
-import {useAppContext} from '../../contexts/AppContext';
+import {useViewContext} from '../../contexts/ViewContext';
 
 type GenerationState = 'idle' | 'streaming' | 'done' | 'error';
 
@@ -38,7 +38,7 @@ const AIActionModal: React.FC<{
     const [copyButtonText, setCopyButtonText] = useState('Copy');
 
     const {addNote} = useNotesContext();
-    const {setActiveView, setSelectedNoteId} = useAppContext();
+    const {setActiveView, setSelectedNoteId} = useViewContext();
 
     useEffect(() => {
         if (!isOpen || !action) return;

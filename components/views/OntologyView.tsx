@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import type {OntologyNode} from '@/types';
 import {ChevronDownIcon} from '../icons';
-import {useAppContext} from '../contexts/AppContext';
+import {useSettingsContext} from '../contexts/SettingsContext';
 
 interface OntologyNodeProps {
     node: OntologyNode;
@@ -44,7 +44,7 @@ const OntologyNodeItem: React.FC<OntologyNodeProps> = ({node, level}) => {
 };
 
 export const OntologyView: React.FC = () => {
-    const {settings} = useAppContext();
+    const {settings} = useSettingsContext();
     const ontology = settings.ontology;
 
     return (

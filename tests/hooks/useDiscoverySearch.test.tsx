@@ -4,7 +4,8 @@ import {useDiscoverySearch} from '@/hooks/useDiscoverySearch.ts';
 import {nostrService} from '@/services/NostrService.ts';
 import * as ontologyHook from '../../hooks/useOntologyIndex';
 import type {NostrEvent, Note, OntologyAttribute} from '@/types';
-import {AppContext, AppContextType} from '@/components/contexts/AppContext.tsx';
+import {SettingsContext, SettingsContextType} from '@/components/contexts/SettingsContext.tsx';
+import {ViewContext, ViewContextType} from '@/components/contexts/ViewContext.tsx';
 import {DEFAULT_ONTOLOGY} from '@/utils/ontology.default.ts';
 import React from 'react';
 
@@ -66,7 +67,7 @@ const nonMatchingEvent: NostrEvent = {
     sig: 'sig2',
 };
 
-const mockAppContextValue: AppContextType = {
+const mockSettingsContextValue: SettingsContextType = {
     settings: {
         aiEnabled: false,
         geminiApiKey: null,
@@ -76,6 +77,9 @@ const mockAppContextValue: AppContextType = {
     },
     setSettings: vi.fn(),
     settingsLoading: false,
+};
+
+const mockViewContextValue: ViewContextType = {
     activeView: 'discovery',
     setActiveView: vi.fn(),
     selectedNoteId: 'note1',
@@ -83,7 +87,11 @@ const mockAppContextValue: AppContextType = {
 };
 
 const TestWrapper = ({children}: { children: React.ReactNode }) => (
-    <AppContext.Provider value={mockAppContextValue}>{children}</AppContext.Provider>
+    <SettingsContext.Provider value={mockSettingsContextValue}>
+        <ViewContext.Provider value={mockViewContextValue}>
+            {children}
+        </ViewContext.Provider>
+    </SettingsContext.Provider>
 );
 
 describe('useDiscoverySearch', () => {

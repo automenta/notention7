@@ -6,8 +6,10 @@ import { NostrEventCard } from '../network/NostrEventCard';
 import { getTextFromHtml } from '@/utils/dom.ts';
 import { useDiscoverySearch } from '@/hooks/useDiscoverySearch.ts';
 import type { Note } from '@/types';
-import { useAppContext } from '../contexts/AppContext.tsx';
+import { useSettingsContext } from '../contexts/SettingsContext.tsx';
+import { useViewContext } from '../contexts/ViewContext.tsx';
 import { useOntologyIndex } from '@/hooks/useOntologyIndex.ts';
+import { parseNostrEventContent } from '@/utils/discovery.ts';
 
 // A new, simplified list item for query notes
 const QueryNoteItem: React.FC<{
@@ -30,7 +32,8 @@ const QueryNoteItem: React.FC<{
 
 export const DiscoveryView: React.FC = () => {
   const { notes } = useNotesContext();
-  const { settings, selectedNoteId, setSelectedNoteId } = useAppContext();
+  const { settings } = useSettingsContext();
+  const { selectedNoteId, setSelectedNoteId } = useViewContext();
   const { propertyTypes: ontologyIndex } = useOntologyIndex(settings.ontology);
 
   // Find notes that are 'imaginary' by checking against the ontology
@@ -48,6 +51,7 @@ export const DiscoveryView: React.FC = () => {
     if (!selectedNoteId && queryNotes.length > 0) {
       setSelectedNoteId(queryNotes[0].id);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queryNotes, selectedNoteId]);
 
   const selectedNote = notes.find((n) => n.id === selectedNoteId);
@@ -140,17 +144,7 @@ export const DiscoveryView: React.FC = () => {
                 <div className="space-y-4">
                   {results.length > 0 ? (
                     results.map((event) => {
-                      let title = 'Untitled Note';
-                      let contentPreview = '';
-                      try {
-                        // New, standardized format
-                        const parsed = JSON.parse(event.content);
-                        title = parsed.title || 'Untitled Note';
-                        contentPreview = getTextFromHtml(parsed.content).substring(0, 200) + '...';
-                      } catch (e) {
-                        // Old, non-standard format
-                        contentPreview = event.content.substring(0, 200) + '...';
-                      }
+                      const { title, contentPreview } = parseNostrEventContent(event.content);
                       return (
                         <NostrEventCard
                           key={event.id}

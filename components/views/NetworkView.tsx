@@ -4,12 +4,14 @@ import {KeyIcon, LoadingSpinner, SettingsIcon} from '../icons';
 import {hexToBytes} from '@/utils/format.ts';
 import {ProfileHeader} from '../network/ProfileHeader';
 import {NostrEventCard} from '../network/NostrEventCard';
-import {useAppContext} from '../contexts/AppContext';
+import {useSettingsContext} from '../contexts/SettingsContext';
+import {useViewContext} from '../contexts/ViewContext';
 import {useNostrFeed} from '../../hooks/useNostrFeed';
 import {Placeholder} from '../common/Placeholder';
 
 export const NetworkView: React.FC = () => {
-    const {settings, setSettings, setActiveView} = useAppContext();
+    const {settings, setSettings} = useSettingsContext();
+    const {setActiveView} = useViewContext();
     const onNavigateToSettings = () => setActiveView('settings');
 
     const pubkey = useMemo(

@@ -35,3 +35,20 @@ export const IMAGINARY_TO_REAL_MAP: Record<string, string> = {
     'near-location': 'location',
     'event-date': 'startDateTime',
 };
+
+import {getTextFromHtml} from './dom';
+
+export const parseNostrEventContent = (content: string) => {
+    let title = 'Untitled Note';
+    let contentPreview = '';
+    try {
+        // New, standardized format
+        const parsed = JSON.parse(content);
+        title = parsed.title || 'Untitled Note';
+        contentPreview = getTextFromHtml(parsed.content).substring(0, 200) + '...';
+    } catch (e) {
+        // Old, non-standard format
+        contentPreview = content.substring(0, 200) + '...';
+    }
+    return {title, contentPreview};
+}

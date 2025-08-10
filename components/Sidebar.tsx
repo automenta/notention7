@@ -3,7 +3,7 @@ import {Search} from './sidebar/Search';
 import {useNotesContext} from './contexts/NotesContext';
 import {NoteListItem} from './sidebar/NoteListItem';
 import {useSortedFilteredNotes} from '../hooks/useSortedFilteredNotes';
-import {useAppContext} from './contexts/AppContext';
+import {useViewContext} from './contexts/ViewContext';
 import {useNoteManagement} from '../hooks/useNoteManagement';
 
 type SortOrder =
@@ -16,7 +16,7 @@ type SortOrder =
 
 export const Sidebar: React.FC = () => {
     const {notes} = useNotesContext();
-    const {selectedNoteId, setSelectedNoteId} = useAppContext();
+    const {selectedNoteId, setSelectedNoteId} = useViewContext();
     const {handleDeleteAndSelectNext} = useNoteManagement();
     const [searchTerm, setSearchTerm] = useState('');
     const [sortOrder, setSortOrder] = useState<SortOrder>('updatedAt_desc');

@@ -7,7 +7,8 @@ import * as ontologyHook from '../../../hooks/useOntologyIndex';
 import type {NostrEvent, Note, OntologyAttribute} from '@/types';
 import {NotesContext, NotesContextType} from '@/components/contexts/NotesContext.tsx';
 import * as useNostrProfile from '../../../hooks/useNostrProfile';
-import {AppContext, AppContextType} from '@/components/contexts/AppContext.tsx';
+import {SettingsContext, SettingsContextType} from '@/components/contexts/SettingsContext.tsx';
+import {ViewContext, ViewContextType} from '@/components/contexts/ViewContext.tsx';
 import {DEFAULT_ONTOLOGY} from '@/utils/ontology.default.ts';
 
 // Mocks
@@ -66,7 +67,7 @@ const mockNotesContextValue: NotesContextType = {
     notesLoading: false,
 };
 
-const mockAppContextValue: AppContextType = {
+const mockSettingsContextValue: SettingsContextType = {
     settings: {
         aiEnabled: false,
         geminiApiKey: null,
@@ -76,6 +77,9 @@ const mockAppContextValue: AppContextType = {
     },
     setSettings: vi.fn(),
     settingsLoading: false,
+};
+
+const mockViewContextValue: ViewContextType = {
     activeView: 'discovery',
     setActiveView: vi.fn(),
     selectedNoteId: 'note1',
@@ -83,11 +87,13 @@ const mockAppContextValue: AppContextType = {
 };
 
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({children}) => (
-    <AppContext.Provider value={mockAppContextValue}>
-        <NotesContext.Provider value={mockNotesContextValue}>
-            {children}
-        </NotesContext.Provider>
-    </AppContext.Provider>
+    <SettingsContext.Provider value={mockSettingsContextValue}>
+        <ViewContext.Provider value={mockViewContextValue}>
+            <NotesContext.Provider value={mockNotesContextValue}>
+                {children}
+            </NotesContext.Provider>
+        </ViewContext.Provider>
+    </SettingsContext.Provider>
 );
 
 describe('DiscoveryView', () => {

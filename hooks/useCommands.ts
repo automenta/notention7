@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { useAppContext } from '@/components/contexts/AppContext';
+import { useSettingsContext } from '@/components/contexts/SettingsContext';
+import { useViewContext } from '@/components/contexts/ViewContext';
 import { useNoteManagement } from './useNoteManagement';
 import { useNotesContext } from '@/components/contexts/NotesContext';
 import { Command } from '@/components/common/CommandPalette';
@@ -7,7 +8,8 @@ import { nostrService } from '@/services/NostrService';
 import { useNotification } from '@/components/contexts/NotificationContext';
 
 export const useCommands = (): Command[] => {
-  const { setActiveView, settings } = useAppContext();
+  const { settings, setSettings } = useSettingsContext();
+  const { setActiveView } = useViewContext();
   const { selectedNote, handleDeleteAndSelectNext } = useNoteManagement();
   const { addNote } = useNotesContext();
   const { addNotification } = useNotification();
@@ -30,7 +32,17 @@ export const useCommands = (): Command[] => {
       allCommands.push({
         id: 'delete-note',
         name: 'Delete Current Note',
-        action: () => handleDeleteAndSelectNext(),
+        action: () => handleDeleteAndSelectNext(selectedNote.id),
+        section: 'Notes',
+      });
+
+      allCommands.push({
+        id: 'copy-note-id',
+        name: 'Copy Note ID',
+        action: () => {
+            navigator.clipboard.writeText(selectedNote.id);
+            addNotification('Note ID copied to clipboard.');
+        },
         section: 'Notes',
       });
 
@@ -85,9 +97,25 @@ export const useCommands = (): Command[] => {
         action: () => setActiveView('discovery'),
         section: 'Navigation',
     });
+    allCommands.push({
+      id: 'view-settings',
+      name: 'Switch View: Settings',
+      action: () => setActiveView('settings'),
+      section: 'Navigation',
+    });
+
+    // --- Global Commands ---
+    allCommands.push({
+        id: 'toggle-theme',
+        name: `Toggle Theme (current: ${settings.theme})`,
+        action: () => {
+            setSettings(s => ({...s, theme: s.theme === 'dark' ? 'light' : 'dark'}));
+        },
+        section: 'Global',
+    });
 
     return allCommands;
-  }, [selectedNote, addNote, setActiveView, handleDeleteAndSelectNext, settings, addNotification]);
+  }, [selectedNote, addNote, setActiveView, handleDeleteAndSelectNext, settings, addNotification, setSettings]);
 
   return commands;
 };

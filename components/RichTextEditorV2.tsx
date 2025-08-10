@@ -28,12 +28,11 @@ export const RichTextEditorV2: React.FC<{
   } = useEditor(editorPlugins, note, settings, onSave, onDelete);
 
   useEffect(() => {
-    if (editorRef.current && content !== editorRef.current.innerHTML) {
-      const cursor = getCursorPosition(editorRef.current);
+    if (editorRef.current) {
       editorRef.current.innerHTML = content;
-      setCursorPosition(editorRef.current, cursor);
     }
-  }, [content, editorRef]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (pendingWidgetEdit) {
@@ -64,7 +63,6 @@ export const RichTextEditorV2: React.FC<{
             onKeyDown={handleKeyDown}
             suppressContentEditableWarning={true}
             data-placeholder="Start writing..."
-            dangerouslySetInnerHTML={{ __html: sanitizeHTML(content) }}
           />
           <WidgetRenderer editorApi={editorApi} />
           {popoverComponents.map((Popover, index) => (
