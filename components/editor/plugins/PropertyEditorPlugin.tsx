@@ -1,41 +1,52 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {PropertyEditor as PropertyEditorForm} from '../PropertyEditor';
-import {useOntologyIndex} from '@/hooks/useOntologyIndex.ts';
-import type {EditorApi, Property} from '@/types';
+import { PropertyEditor as PropertyEditorForm } from '../PropertyEditor';
+import { useOntologyIndex } from '@/hooks/useOntologyIndex.ts';
+import type { EditorApi, Property, PropertyWidgetNode } from '@/types';
 
 export const PropertyEditorPopover: React.FC<{ editorApi: EditorApi }> = ({
-                                                                              editorApi,
-                                                                          }) => {
-    const settings = editorApi.getSettings();
-    const {propertyTypes} = useOntologyIndex(settings.ontology);
-    const editingWidget = editorApi.getEditingWidget();
+  editorApi,
+}) => {
+  const settings = editorApi.getSettings();
+  const { propertyTypes } = useOntologyIndex(settings.ontology);
+  const editingWidgetElement = editorApi.getEditingWidget();
 
-    if (!editingWidget) {
-        return null;
-    }
+  if (!editingWidgetElement) {
+    return null;
+  }
 
-    const initialProperty: Property = {
-        key: editingWidget.dataset.key || '',
-        operator: editingWidget.dataset.operator || 'is',
-        values: JSON.parse(editingWidget.dataset.values || '[""]'),
-    };
+  const model = editorApi.getContentModel();
+  const widgetNode = model.find(
+    (node) => node.type === 'widget' && node.id === editingWidgetElement.id
+  ) as PropertyWidgetNode | undefined;
 
-    const handleSave = (property: Property) => {
-        if (!editingWidget?.id) return;
-        const {key, operator, values} = property;
-        editorApi.updateWidget(editingWidget.id, {key, operator, values});
-        editorApi.setEditingWidget(null);
-    };
+  if (!widgetNode) {
+    // If the node isn't in the model, we can't edit it. Close the editor.
+    editorApi.setEditingWidget(null);
+    return null;
+  }
 
-    const handleDelete = () => {
-        if (!editingWidget?.id) return;
-        editorApi.deleteWidget(editingWidget.id);
-        editorApi.setEditingWidget(null);
-    };
+  const initialProperty: Property = {
+    key: widgetNode.key,
+    operator: widgetNode.operator,
+    values: widgetNode.values,
+  };
 
-    const isMobile = window.matchMedia('(max-width: 768px)').matches;
-    const rect = editingWidget.getBoundingClientRect();
+  const handleSave = (property: Property) => {
+    if (!editingWidgetElement?.id) return;
+    const { key, operator, values } = property;
+    editorApi.updateWidget(editingWidgetElement.id, { key, operator, values });
+    editorApi.setEditingWidget(null);
+  };
+
+  const handleDelete = () => {
+    if (!editingWidgetElement?.id) return;
+    editorApi.deleteWidget(editingWidgetElement.id);
+    editorApi.setEditingWidget(null);
+  };
+
+  const isMobile = window.matchMedia('(max-width: 768px)').matches;
+  const rect = editingWidgetElement.getBoundingClientRect();
 
     const popoverStyle: React.CSSProperties = isMobile
         ? {

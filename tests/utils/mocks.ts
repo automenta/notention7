@@ -22,6 +22,7 @@ export const createMockEditorApi = (
             nostr: {privkey: null},
             ontology: [],
         })),
+        getContentModel: vi.fn(() => []),
         setEditingWidget: vi.fn(),
         getEditingWidget: () => editingWidget,
         updateWidget: vi.fn(),

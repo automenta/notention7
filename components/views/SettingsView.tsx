@@ -326,7 +326,12 @@ export const SettingsView: React.FC = () => {
                         <p className="text-sm text-gray-400 mb-4">
                             Define the types of tags and properties you can use in your notes.
                         </p>
-                        <OntologyEditor ontology={settings.ontology}/>
+                        <OntologyEditor
+                            ontology={settings.ontology}
+                            setOntology={(newOntology) =>
+                                setSettings((prev) => ({...prev, ontology: newOntology}))
+                            }
+                        />
                     </div>
                 )}
             </div>

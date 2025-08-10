@@ -1,5 +1,4 @@
 import React from 'react';
-import React from 'react';
 import {useNotesContext} from '../contexts/NotesContext';
 import {EditorManager} from '../EditorManager';
 import {CubeTransparentIcon} from '../icons';

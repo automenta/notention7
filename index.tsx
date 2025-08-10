@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import {NotesProvider} from './components/contexts/NotesContext';
 import {AppProvider} from './components/contexts/AppContext';
+import {NotificationProvider} from './components/contexts/NotificationContext';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -12,10 +13,12 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
     <React.StrictMode>
-        <AppProvider>
-            <NotesProvider>
-                <App/>
-            </NotesProvider>
-        </AppProvider>
+        <NotificationProvider>
+            <AppProvider>
+                <NotesProvider>
+                    <App/>
+                </NotesProvider>
+            </AppProvider>
+        </NotificationProvider>
     </React.StrictMode>
 );

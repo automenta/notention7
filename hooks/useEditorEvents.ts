@@ -16,8 +16,9 @@ export const useEditorEvents = (
                     return;
                 }
             }
+            // This is the core change: we now sync the model from the view's HTML
             const sanitizedContent = sanitizeHTML(event.currentTarget.innerHTML);
-            dispatch({type: 'SET_CONTENT', payload: sanitizedContent});
+            dispatch({type: 'SET_MODEL_FROM_HTML', payload: sanitizedContent});
         },
         [plugins, editorApi, dispatch]
     );

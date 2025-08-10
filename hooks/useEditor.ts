@@ -66,16 +66,12 @@ const createContentApi = (
       const newNodes = parseHTML(html);
       if (newNodes.length === 0) return;
 
-      // 1. Get cursor position from the DOM
       const charPosition = getCursorPosition(editorRef.current);
-
-      // 2. Find where that position maps to in our content model
       const { index: modelIndex, offset: modelOffset } = findModelPosition(
         state.contentModel,
         charPosition
       );
 
-      // 3. Split the target node if inserting in the middle of a text node
       const targetNode = state.contentModel[modelIndex];
       let newModel = [...state.contentModel];
 
@@ -97,8 +93,6 @@ const createContentApi = (
         newModel.splice(modelIndex, 0, ...newNodes);
       }
 
-      // 4. Dispatch the updated model and calculate next cursor position
-      const newContent = serializeToHTML(newModel);
       const nextCursorPos =
         charPosition +
         newNodes.reduce(
@@ -107,9 +101,53 @@ const createContentApi = (
         );
 
       dispatch({
-        type: 'SET_CONTENT_AND_MODEL',
+        type: 'SET_MODEL_AND_CURSOR',
         payload: {
-          content: newContent,
+          contentModel: newModel,
+          nextCursorPosition: nextCursorPos,
+        },
+      });
+    },
+    insertNodes: (nodes: ContentNode[]) => {
+      if (!editorRef.current || nodes.length === 0) return;
+
+      const charPosition = getCursorPosition(editorRef.current);
+      const { index: modelIndex, offset: modelOffset } = findModelPosition(
+        state.contentModel,
+        charPosition
+      );
+
+      const targetNode = state.contentModel[modelIndex];
+      let newModel = [...state.contentModel];
+
+      if (
+        targetNode?.type === 'text' &&
+        modelOffset > 0 &&
+        modelOffset < targetNode.content.length
+      ) {
+        const before = {
+          ...targetNode,
+          content: targetNode.content.substring(0, modelOffset),
+        };
+        const after = {
+          ...targetNode,
+          content: targetNode.content.substring(modelOffset),
+        };
+        newModel.splice(modelIndex, 1, before, ...nodes, after);
+      } else {
+        newModel.splice(modelIndex, 0, ...nodes);
+      }
+
+      const nextCursorPos =
+        charPosition +
+        nodes.reduce(
+          (len, node) => len + (node.type === 'text' ? node.content.length : 1),
+          0
+        );
+
+      dispatch({
+        type: 'SET_MODEL_AND_CURSOR',
+        payload: {
           contentModel: newModel,
           nextCursorPosition: nextCursorPos,
         },
@@ -128,7 +166,7 @@ const createNoteApi = (
   updateNote: (updatedFields: Partial<Note>) => {
     const updatedNote = {
       ...note,
-      content: state.content,
+      content: serializeToHTML(state.contentModel),
       ...updatedFields,
       updatedAt: new Date().toISOString(),
     };
@@ -175,11 +213,12 @@ const createEditorApi = (
     ...createNoteApi(note, state, onSave, onDelete),
     ...createWidgetApi(dispatch, state),
     getSettings: () => settings,
+    getContentModel: () => state.contentModel,
     getSelectionParent: Commands.getSelectionParent,
     syncViewToModel: () => {
       if (editorRef.current) {
         const sanitizedContent = sanitizeHTML(editorRef.current.innerHTML);
-        dispatch({ type: 'SET_CONTENT', payload: sanitizedContent });
+        dispatch({ type: 'SET_MODEL_FROM_HTML', payload: sanitizedContent });
       }
     },
     updateWidget: (
@@ -217,7 +256,6 @@ export const useEditor = (
   const editorRef = useRef<HTMLDivElement>(null);
 
   const initialState: EditorState = {
-    content: note.content,
     contentModel: parseHTML(note.content),
     editingWidget: null,
     pendingWidgetEdit: null,
@@ -225,13 +263,15 @@ export const useEditor = (
   };
 
   const [state, dispatch] = useReducer(editorReducer, initialState);
+  const lastSavedModel = useRef(initialState.contentModel);
 
   // Auto-save content changes with debounce
   useEffect(() => {
-    // Prevent saving on initial mount or if content is unchanged
-    if (state.content === note.content) {
+    // Prevent saving if the model hasn't changed meaningfully
+    if (state.contentModel === lastSavedModel.current) {
       return;
     }
+
     const handler = setTimeout(() => {
       // Derive tags and properties from the content model
       const newTags: string[] = [];
@@ -250,19 +290,21 @@ export const useEditor = (
         }
       });
 
+      const newContent = serializeToHTML(state.contentModel);
       onSave({
         ...note,
-        content: state.content,
+        content: newContent,
         tags: newTags,
         properties: newProperties,
         updatedAt: new Date().toISOString(),
       });
+      lastSavedModel.current = state.contentModel;
     }, AUTO_SAVE_DEBOUNCE_MS);
 
     return () => {
       clearTimeout(handler);
     };
-  }, [state.content, state.contentModel, note, onSave]);
+  }, [state.contentModel, note, onSave]);
 
   const editorApi: EditorApi = useMemo(
     () =>
@@ -293,8 +335,12 @@ export const useEditor = (
       // Reset the cursor position so this effect doesn't run again unintentionally
       dispatch({ type: 'RESET_CURSOR_POSITION' });
     }
-    // This effect should ONLY run when nextCursorPosition changes.
-  }, [state.nextCursorPosition, dispatch]);
+  }, [state.nextCursorPosition]);
+
+  const content = useMemo(
+    () => serializeToHTML(state.contentModel),
+    [state.contentModel]
+  );
 
   const toolbarComponents = useMemo(
     () => plugins.map((p) => p.ToolbarComponent).filter(Boolean),
@@ -315,7 +361,7 @@ export const useEditor = (
 
   return {
     editorRef,
-    content: state.content,
+    content, // Derived content
     handleInput,
     handleClick,
     handleKeyDown,

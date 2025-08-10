@@ -3,6 +3,7 @@ import {describe, expect, it, vi} from 'vitest';
 import App from '../App';
 import {NotesProvider} from '../components/contexts/NotesContext';
 import {AppProvider} from '../components/contexts/AppContext';
+import { NotificationProvider } from '../components/contexts/NotificationContext';
 
 // Mock the useNotes hook which is the dependency of the NotesProvider
 vi.mock('../hooks/useNotes', () => ({
@@ -21,11 +22,13 @@ describe('App component', () => {
         // We don't need to assert anything about the output for a simple smoke test.
         expect(() =>
             render(
-                <AppProvider>
-                    <NotesProvider>
-                        <App/>
-                    </NotesProvider>
-                </AppProvider>
+                <NotificationProvider>
+                    <AppProvider>
+                        <NotesProvider>
+                            <App/>
+                        </NotesProvider>
+                    </AppProvider>
+                </NotificationProvider>
             )
         ).not.toThrow();
     });

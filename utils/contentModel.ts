@@ -49,9 +49,9 @@ export const parseHTML = (html: string): ContentNode[] => {
                     nodes.push(propertyNode);
                 }
             } else {
-                // For now, we don't handle nested elements, just recurse.
-                // This could be improved to handle formatting like bold/italic.
-                el.childNodes.forEach(processNode);
+                // It's not a widget, so treat it as a text-like HTML node.
+                // This will preserve formatting tags like <b>, <i>, and other elements like <img>.
+                nodes.push({ type: 'text', content: el.outerHTML });
             }
         }
     };

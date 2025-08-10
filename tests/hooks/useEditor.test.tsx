@@ -41,10 +41,12 @@ Object.defineProperty(window, 'getSelection', {
 });
 
 describe('useEditor hook', () => {
+    // Note: The content is now plain text, not HTML, on initialization.
+    // The hook is responsible for serializing it to HTML.
     const mockNote: Note = {
         id: '1',
         title: 'Test Note',
-        content: '<p>Initial content</p>',
+        content: 'Initial content',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         tags: [],
@@ -63,33 +65,35 @@ describe('useEditor hook', () => {
 
     let editorDiv: HTMLDivElement;
 
-    // Setup a fake DOM element for the editor ref before each test
     beforeEach(() => {
         editorDiv = document.createElement('div');
         editorDiv.innerHTML = mockNote.content;
+        vi.clearAllMocks();
     });
 
-    it('should initialize with the note content', () => {
+    it('should initialize with the serialized note content', () => {
         const {result} = renderHook(() =>
             useEditor([], mockNote, mockSettings, mockOnSave, mockOnDelete)
         );
-        expect(result.current.content).toBe('<p>Initial content</p>');
+        // The hook should serialize the plain text content into HTML.
+        expect(result.current.content).toBe('Initial content');
     });
 
-    it('should update content when handleInput is called', () => {
+    it('should update content model when handleInput is called', () => {
         const {result} = renderHook(() =>
             useEditor([], mockNote, mockSettings, mockOnSave, mockOnDelete)
         );
 
         const mockEvent = {
-            currentTarget: {innerHTML: '<p>New content</p>'},
+            currentTarget: {innerHTML: 'New content'},
         } as unknown as React.FormEvent<HTMLDivElement>;
 
         act(() => {
             result.current.handleInput(mockEvent);
         });
 
-        expect(result.current.content).toBe('<p>New content</p>');
+        // The hook should serialize the new content model back to HTML.
+        expect(result.current.content).toBe('New content');
     });
 
     it('should sanitize content on input', () => {
@@ -97,8 +101,8 @@ describe('useEditor hook', () => {
             useEditor([], mockNote, mockSettings, mockOnSave, mockOnDelete)
         );
 
-        const unsafeHtml = '<p>Hello <script>alert("xss")</script><img src="x" onerror="alert(\'xss\')"></p>';
-        const sanitizedHtml = '<p>Hello <img src="x"></p>';
+        const unsafeHtml = 'Hello <script>alert("xss")</script><img src="x" onerror="alert(\'xss\')">';
+        const sanitizedHtml = 'Hello <img src="x">';
 
         const mockEvent = {
             currentTarget: {innerHTML: unsafeHtml},
@@ -114,7 +118,6 @@ describe('useEditor hook', () => {
     describe('debounced auto-save', () => {
         beforeEach(() => {
             vi.useFakeTimers();
-            mockOnSave.mockClear();
         });
 
         afterEach(() => {
@@ -134,17 +137,15 @@ describe('useEditor hook', () => {
             );
 
             const mockEvent = {
-                currentTarget: {innerHTML: '<p>New content</p>'},
+                currentTarget: {innerHTML: 'New content'},
             } as unknown as React.FormEvent<HTMLDivElement>;
 
             act(() => {
                 result.current.handleInput(mockEvent);
             });
 
-            // Should not have saved yet
             expect(mockOnSave).not.toHaveBeenCalled();
 
-            // Advance time by 1.5s
             act(() => {
                 vi.advanceTimersByTime(1500);
             });
@@ -152,7 +153,7 @@ describe('useEditor hook', () => {
             expect(mockOnSave).toHaveBeenCalledTimes(1);
             expect(mockOnSave).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    content: '<p>New content</p>',
+                    content: 'New content',
                 })
             );
         });

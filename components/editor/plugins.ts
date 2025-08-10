@@ -7,9 +7,11 @@ import {editorHeaderPlugin} from './plugins/EditorHeaderPlugin.plugin';
 import {insertMenuPlugin} from './plugins/InsertMenuPlugin.plugin';
 import {selectionToolbarPlugin} from './plugins/SelectionToolbarPlugin.plugin';
 import {aiActionPlugin} from './plugins/AIActionPlugin.plugin';
+import { AISuggestionsPlugin } from './plugins/AISuggestionsPlugin';
 
 export const editorPlugins: EditorPlugin[] = [
     editorHeaderPlugin,
+    AISuggestionsPlugin,
     toolbarPlugin,
     semanticInsertPlugin,
     propertyEditorPlugin,
