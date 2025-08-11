@@ -4,8 +4,8 @@ import {useDiscoverySearch} from '@/hooks/useDiscoverySearch.ts';
 import {nostrService} from '@/services/NostrService.ts';
 import * as ontologyHook from '../../hooks/useOntologyIndex';
 import type {NostrEvent, Note, OntologyAttribute} from '@/types';
-import {SettingsContext, SettingsContextType} from '@/components/contexts/SettingsContext.tsx';
-import {ViewContext, ViewContextType} from '@/components/contexts/ViewContext.tsx';
+import {SettingsContext, SettingsContextType} from '@/components/contexts/settings.context';
+import {ViewContext, ViewContextType} from '@/components/contexts/view.context';
 import {DEFAULT_ONTOLOGY} from '@/utils/ontology.default.ts';
 import React from 'react';
 

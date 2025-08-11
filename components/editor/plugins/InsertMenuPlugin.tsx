@@ -1,7 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { InsertMenu } from '../InsertMenu';
-import { useInsertMenuItems } from '@/hooks/useInsertMenuItems';
+import {
+  InsertMenuItem,
+  useInsertMenuItems,
+} from '@/hooks/useInsertMenuItems';
 import { useOntologyIndex } from '@/hooks/useOntologyIndex';
 import { TemplateEditor } from '../TemplateEditor';
 import type {
@@ -73,7 +76,7 @@ export const InsertMenuProvider: React.FC<{ editorApi: EditorApi }> = ({
     return null;
   }
 
-  const handleSelect = (item: any) => {
+  const handleSelect = (item: InsertMenuItem) => {
     closeMenu();
 
     if (item.type === 'tag') {

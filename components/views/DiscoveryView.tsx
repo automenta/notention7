@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { useNotesContext } from '../contexts/NotesContext';
 import { LoadingSpinner, SearchIcon } from '../icons';
 import { useNostrProfile } from '@/hooks/useNostrProfile';
@@ -7,7 +7,7 @@ import { getTextFromHtml } from '@/utils/dom';
 import { useDiscoverySearch } from '@/hooks/useDiscoverySearch';
 import type { Note } from '@/types';
 import { useSettingsContext } from '../contexts/settings.context';
-import { useViewContext } from '../contexts/ViewContext';
+import { useViewContext } from '../contexts/view.context';
 import { useOntologyIndex } from '@/hooks/useOntologyIndex';
 import { parseNostrEventContent } from '@/utils/discovery';
 
@@ -83,7 +83,7 @@ export const DiscoveryView: React.FC = () => {
           ) : (
             <div className="text-center p-6 text-gray-500">
               <p>No query notes found.</p>
-              <p className="text-sm">Create a note with a conditional property (e.g., '[budget &lt; 5000]') to start discovering.</p>
+              <p className="text-sm">Create a note with a conditional property (e.g., &apos;[budget &lt; 5000]&apos;) to start discovering.</p>
             </div>
           )}
         </div>
@@ -100,7 +100,7 @@ export const DiscoveryView: React.FC = () => {
         ) : (
           <div>
             <h1 className="text-3xl font-bold text-white mb-2">
-              Discovery Results for: "{selectedNote.title || 'Untitled Note'}"
+              Discovery Results for: &quot;{selectedNote.title || 'Untitled Note'}&quot;
             </h1>
             <div className="p-4 my-4 bg-gray-700/50 rounded-lg">
               <div className="flex justify-between items-center mb-2">

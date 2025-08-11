@@ -1,6 +1,6 @@
 import {useEffect, useMemo} from 'react';
 import {useNotesContext} from '../components/contexts/NotesContext';
-import {useViewContext} from '../components/contexts/ViewContext';
+import {useViewContext} from '../components/contexts/view.context';
 import {sortNotesByDate} from '../utils/notes';
 
 export const useNoteManagement = () => {

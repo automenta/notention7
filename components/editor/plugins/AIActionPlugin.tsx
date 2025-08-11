@@ -12,7 +12,7 @@ import {
 } from '../../icons';
 import {getTextFromHtml} from '@/utils/dom.ts';
 import {useNotesContext} from '../../contexts/NotesContext';
-import {useViewContext} from '../../contexts/ViewContext';
+import {useViewContext} from '../../contexts/view.context';
 
 type GenerationState = 'idle' | 'streaming' | 'done' | 'error';
 

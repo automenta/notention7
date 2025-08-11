@@ -5,7 +5,7 @@ import {hexToBytes} from '@/utils/format.ts';
 import {ProfileHeader} from '../network/ProfileHeader';
 import {NostrEventCard} from '../network/NostrEventCard';
 import {useSettingsContext} from '../contexts/settings.context';
-import {useViewContext} from '../contexts/ViewContext';
+import {useViewContext} from '../contexts/view.context';
 import {useNostrFeed} from '../../hooks/useNostrFeed';
 import {Placeholder} from '../common/Placeholder';
 

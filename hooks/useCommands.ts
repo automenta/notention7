@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useSettingsContext } from '@/components/contexts/settings.context';
-import { useViewContext } from '@/components/contexts/ViewContext';
+import { useViewContext } from '@/components/contexts/view.context';
 import { useNoteManagement } from './useNoteManagement';
 import { useNotesContext } from '@/components/contexts/NotesContext';
 import { Command } from '@/components/common/CommandPalette';
@@ -22,7 +22,7 @@ export const useCommands = (): Command[] => {
       id: 'new-note',
       name: 'New Note',
       action: () => {
-        const newNote = addNote();
+        addNote();
         setActiveView('notes');
       },
       section: 'Notes',

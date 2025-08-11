@@ -3,7 +3,7 @@ import { useNotesContext } from './contexts/NotesContext';
 import { LoadingSpinner } from './icons';
 import { useViews } from './views/views';
 import { useSettingsContext } from './contexts/settings.context';
-import { useViewContext } from './contexts/ViewContext';
+import { useViewContext } from './contexts/view.context';
 
 export const MainView: React.FC = () => {
   const { settingsLoading } = useSettingsContext();

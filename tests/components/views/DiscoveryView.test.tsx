@@ -5,10 +5,10 @@ import {DiscoveryView} from '@/components/views/DiscoveryView.tsx';
 import {nostrService} from '@/services/NostrService.ts';
 import * as ontologyHook from '../../../hooks/useOntologyIndex';
 import type {NostrEvent, Note, OntologyAttribute} from '@/types';
-import {NotesContext, NotesContextType} from '@/components/contexts/NotesContext.tsx';
+import {NotesContext, NotesContextType} from '@/components/contexts/notes.context';
 import * as useNostrProfile from '../../../hooks/useNostrProfile';
-import {SettingsContext, SettingsContextType} from '@/components/contexts/SettingsContext.tsx';
-import {ViewContext, ViewContextType} from '@/components/contexts/ViewContext.tsx';
+import {SettingsContext, SettingsContextType} from '@/components/contexts/settings.context';
+import {ViewContext, ViewContextType} from '@/components/contexts/view.context';
 import {DEFAULT_ONTOLOGY} from '@/utils/ontology.default.ts';
 
 // Mocks

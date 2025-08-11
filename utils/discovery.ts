@@ -46,7 +46,7 @@ export const parseNostrEventContent = (content: string) => {
         const parsed = JSON.parse(content);
         title = parsed.title || 'Untitled Note';
         contentPreview = getTextFromHtml(parsed.content).substring(0, 200) + '...';
-    } catch (e) {
+    } catch {
         // Old, non-standard format
         contentPreview = content.substring(0, 200) + '...';
     }

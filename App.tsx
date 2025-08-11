@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header';
 import { useNotesContext } from './components/contexts/NotesContext';
 import { MainLayout } from './components/MainLayout';
-import { useViewContext } from './components/contexts/ViewContext';
+import { useViewContext } from './components/contexts/view.context';
 import { CommandPalette } from './components/common/CommandPalette';
 import { useCommands } from './hooks/useCommands';
 

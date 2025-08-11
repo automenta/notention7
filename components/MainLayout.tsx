@@ -1,7 +1,7 @@
 import React from 'react';
 import {Sidebar} from './Sidebar';
 import {MainView} from './MainView';
-import {useViewContext} from './contexts/ViewContext';
+import {useViewContext} from './contexts/view.context';
 
 export const MainLayout: React.FC = () => {
     const {activeView} = useViewContext();

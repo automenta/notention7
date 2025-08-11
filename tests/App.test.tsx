@@ -16,6 +16,16 @@ vi.mock('../hooks/useNotes', () => ({
     }),
 }));
 
+vi.mock('../components/contexts/NotificationContext', async (importOriginal) => {
+    const actual = await importOriginal();
+    return {
+        ...actual,
+        useNotification: () => ({
+            addNotification: vi.fn(),
+        }),
+    };
+});
+
 describe('App component', () => {
     it('should render without crashing', () => {
         // We just want to make sure rendering doesn't throw an error.

@@ -5,7 +5,7 @@ import { PropertyEditorPopover } from '@/components/editor/plugins/PropertyEdito
 import { handleWidgetClick } from '@/components/editor/plugins/propertyEditorUtils.ts';
 import { useOntologyIndex } from '@/hooks/useOntologyIndex.ts';
 import { createMockEditorApi } from '../../../utils/mocks';
-import type { EditorApi, PropertyWidgetNode } from '@/types';
+import type { PropertyWidgetNode } from '@/types';
 
 // Mock dependencies
 vi.mock('@/hooks/useOntologyIndex');

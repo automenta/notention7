@@ -3,7 +3,7 @@ import {Search} from './sidebar/Search';
 import {useNotesContext} from './contexts/NotesContext';
 import {NoteListItem} from './sidebar/NoteListItem';
 import {useSortedFilteredNotes} from '../hooks/useSortedFilteredNotes';
-import {useViewContext} from './contexts/ViewContext';
+import {useViewContext} from './contexts/view.context';
 import {useNoteManagement} from '../hooks/useNoteManagement';
 
 type SortOrder =
