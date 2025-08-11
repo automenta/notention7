@@ -34,7 +34,15 @@ export const InsertMenuProvider: React.FC<{ editorApi: EditorApi }> = ({
                 const selection = window.getSelection();
                 if (selection && selection.rangeCount > 0) {
                     const range = selection.getRangeAt(0);
-                    const rect = range.getBoundingClientRect();
+                    let rect = range.getBoundingClientRect();
+                    // If the bounding rect is all zeros, it's likely an invalid selection
+                    if (rect.top === 0 && rect.left === 0 && rect.bottom === 0 && rect.right === 0) {
+                        // Fallback to positioning relative to the editor container
+                        const editorRect = editorApi.editorRef.current?.getBoundingClientRect();
+                        if (editorRect) {
+                           rect = editorRect;
+                        }
+                    }
                     newPos = {top: rect.bottom + 8, left: rect.left};
                 } else {
                     newPos = {top: window.innerHeight / 2, left: window.innerWidth / 2};

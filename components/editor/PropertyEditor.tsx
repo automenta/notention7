@@ -22,20 +22,28 @@ const inputClass =
 const labelClass =
     'text-xs font-bold text-gray-400 uppercase flex justify-between items-center';
 
+import {OntologyNode} from "@/types";
+
+import {OntologyNode} from "@/types";
+
 export interface PropertyEditorProps {
     property?: Property;
     propertyTypes: Map<string, OntologyAttribute>;
+    propertyTree: OntologyNode[];
     onSave: (property: Property) => void;
     onCancel: () => void;
     onDelete?: () => void;
+    isKeyEditable?: boolean;
 }
 
 export const PropertyEditor: React.FC<PropertyEditorProps> = ({
                                                                   property,
                                                                   propertyTypes,
+                                                                  propertyTree,
                                                                   onSave,
                                                                   onCancel,
                                                                   onDelete,
+                                                                  isKeyEditable = true,
                                                               }) => {
     const [key, setKey] = useState(property?.key || '');
     const [operator, setOperator] = useState(property?.operator || 'is');
@@ -59,18 +67,21 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
     useEffect(() => {
         if (attributeType) {
             const allOperators = [
-                ...attributeType.operators.real,
-                ...attributeType.operators.imaginary,
+                ...(attributeType.operators?.real || []),
+                ...(attributeType.operators?.imaginary || []),
             ];
             if (!allOperators.includes(operator)) {
                 setOperator(allOperators[0] || 'is');
             }
+        } else {
+            setOperator('is');
         }
-    }, [attributeType, operator]);
+    }, [key, attributeType, operator]);
 
     const handleSave = (e: React.FormEvent) => {
         e.preventDefault();
-        onSave({key, operator, values});
+        const finalOperator = operator || (attributeType?.operators?.real[0] || 'is');
+        onSave({key, operator: finalOperator, values});
     };
 
     const handleValueChange = (index: number, newValue: string) => {
@@ -119,6 +130,8 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
                     value={key}
                     onChange={setKey}
                     propertyTypes={propertyTypes}
+                    propertyTree={propertyTree}
+                    disabled={!isKeyEditable}
                 />
             </div>
 

@@ -1,68 +1,98 @@
 import React, {useEffect, useRef, useState} from 'react';
-import type {OntologyAttribute} from '@/types';
+import type {OntologyAttribute, OntologyNode} from '@/types';
 
 interface KeySelectorProps {
     value: string;
     onChange: (value: string) => void;
     propertyTypes: Map<string, OntologyAttribute>;
+    propertyTree: OntologyNode[];
+    disabled?: boolean;
 }
+
+const KeySelectorNode: React.FC<{
+    node: OntologyNode;
+    level: number;
+    onSelect: (key: string) => void;
+    filter: string;
+}> = ({node, level, onSelect, filter}) => {
+    const [isOpen, setIsOpen] = useState(true);
+
+    const hasMatchingChild = (n: OntologyNode): boolean => {
+        if (n.attributes) {
+            const matchingAttribute = Object.keys(n.attributes).find(attr => attr.toLowerCase().includes(filter.toLowerCase()));
+            if (matchingAttribute) return true;
+        }
+        if (n.children) {
+            return n.children.some(hasMatchingChild);
+        }
+        return false;
+    };
+
+    if (filter) {
+        const hasDirectMatchingAttribute = node.attributes && Object.keys(node.attributes).some(attr => attr.toLowerCase().includes(filter.toLowerCase()));
+        const hasChildMatch = node.children && node.children.some(hasMatchingChild);
+        if (!hasDirectMatchingAttribute && !hasChildMatch && !node.label.toLowerCase().includes(filter.toLowerCase())) {
+            return null;
+        }
+    }
+
+    return (
+        <div style={{paddingLeft: `${level * 16}px`}}>
+            <div
+                className="flex items-center cursor-pointer py-1"
+                onClick={() => setIsOpen(!isOpen)}
+            >
+                {node.children && node.children.length > 0 && (
+                    <span className="w-4">{isOpen ? '▼' : '▶'}</span>
+                )}
+                <span className="font-semibold">{node.label}</span>
+            </div>
+            {isOpen && (
+                <div>
+                    {node.attributes &&
+                        Object.keys(node.attributes)
+                            .filter(attr => attr.toLowerCase().includes(filter.toLowerCase()))
+                            .map((attrKey) => (
+                                <div
+                                    key={attrKey}
+                                    className="p-2 text-sm text-gray-300 hover:bg-gray-700 cursor-pointer"
+                                    style={{paddingLeft: '16px'}}
+                                    onMouseDown={() => onSelect(attrKey)}
+                                >
+                                    {attrKey}
+                                </div>
+                            ))}
+                    {node.children &&
+                        node.children.map((child) => (
+                            <KeySelectorNode
+                                key={child.id}
+                                node={child}
+                                level={level + 1}
+                                onSelect={onSelect}
+                                filter={filter}
+                            />
+                        ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
 
 export const KeySelector: React.FC<KeySelectorProps> = ({
                                                             value,
                                                             onChange,
-                                                            propertyTypes,
+                                                            propertyTree,
+                                                            disabled = false,
                                                         }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const [selectedIndex, setSelectedIndex] = useState(0);
-    const listRef = useRef<HTMLUListElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    const filteredKeys = Array.from(propertyTypes.keys()).filter((key) =>
-        key.toLowerCase().includes(value.toLowerCase())
-    );
-
-    useEffect(() => {
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (!isOpen) return;
-            if (event.key === 'ArrowUp') {
-                event.preventDefault();
-                setSelectedIndex((prev) =>
-                    prev === 0 ? filteredKeys.length - 1 : prev - 1
-                );
-            } else if (event.key === 'ArrowDown') {
-                event.preventDefault();
-                setSelectedIndex((prev) =>
-                    prev === filteredKeys.length - 1 ? 0 : prev + 1
-                );
-            } else if (event.key === 'Enter') {
-                event.preventDefault();
-                if (filteredKeys[selectedIndex]) {
-                    onChange(filteredKeys[selectedIndex]);
-                    setIsOpen(false);
-                    inputRef.current?.blur();
-                }
-            } else if (event.key === 'Escape') {
-                event.preventDefault();
-                setIsOpen(false);
-                inputRef.current?.blur();
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isOpen, filteredKeys, selectedIndex, onChange]);
-
-    useEffect(() => {
-        if (isOpen) {
-            setSelectedIndex(0);
-        }
-    }, [isOpen, value]);
-
-    useEffect(() => {
-        listRef.current?.querySelector('.selected')?.scrollIntoView({
-            block: 'nearest',
-        });
-    }, [selectedIndex]);
+    const handleSelect = (key: string) => {
+        onChange(key);
+        setIsOpen(false);
+        inputRef.current?.blur();
+    };
 
     return (
         <div className="relative">
@@ -77,34 +107,28 @@ export const KeySelector: React.FC<KeySelectorProps> = ({
                 onFocus={() => setIsOpen(true)}
                 onBlur={() => setTimeout(() => setIsOpen(false), 150)} // Delay to allow click
                 placeholder="Search for a property..."
-                className="w-full p-2 bg-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                className="w-full p-2 bg-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm disabled:bg-gray-800 disabled:text-gray-400"
                 autoComplete="off"
+                disabled={disabled}
             />
             {isOpen && (
-                <ul
-                    ref={listRef}
+                <div
                     className="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-600 rounded-md shadow-lg max-h-60 overflow-auto"
                 >
-                    {filteredKeys.length > 0 ? (
-                        filteredKeys.map((key, index) => (
-                            <li
-                                key={key}
-                                className={`p-2 text-sm text-gray-300 hover:bg-gray-700 cursor-pointer ${
-                                    index === selectedIndex ? 'bg-blue-600/50 selected' : ''
-                                }`}
-                                onMouseDown={() => {
-                                    onChange(key);
-                                    setIsOpen(false);
-                                }}
-                                onMouseEnter={() => setSelectedIndex(index)}
-                            >
-                                {key}
-                            </li>
+                    {propertyTree.length > 0 ? (
+                        propertyTree.map(node => (
+                            <KeySelectorNode
+                                key={node.id}
+                                node={node}
+                                level={0}
+                                onSelect={handleSelect}
+                                filter={value}
+                            />
                         ))
                     ) : (
-                        <li className="p-2 text-sm text-gray-500">No results</li>
+                        <div className="p-2 text-sm text-gray-500">No properties found</div>
                     )}
-                </ul>
+                </div>
             )}
         </div>
     );

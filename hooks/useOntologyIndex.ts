@@ -48,6 +48,23 @@ export const useOntologyIndex = (ontology: OntologyNode[]) => {
             description: propertyTypes.get(key)?.description,
         }));
 
+        const buildPropertyTree = (nodes: OntologyNode[]): OntologyNode[] => {
+            return nodes
+                .map((node) => {
+                    const children = node.children
+                        ? buildPropertyTree(node.children)
+                        : [];
+                    const hasAttributes = node.attributes && Object.keys(node.attributes).length > 0;
+                    if (hasAttributes || children.length > 0) {
+                        return {...node, children};
+                    }
+                    return null;
+                })
+                .filter((node): node is OntologyNode => node !== null);
+        };
+
+        const propertyTree = buildPropertyTree(safeOntology);
+
         return {
             allTags: Array.from(tags).filter(
                 (t) => !templates.some((tmpl) => tmpl.id === t.id)
@@ -55,6 +72,7 @@ export const useOntologyIndex = (ontology: OntologyNode[]) => {
             allProperties,
             allTemplates: templates,
             propertyTypes,
+            propertyTree,
         };
     }, [ontology]);
 };

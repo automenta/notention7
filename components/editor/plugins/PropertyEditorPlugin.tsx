@@ -8,7 +8,7 @@ export const PropertyEditorPopover: React.FC<{ editorApi: EditorApi }> = ({
                                                                               editorApi,
                                                                           }) => {
     const settings = editorApi.getSettings();
-    const {propertyTypes} = useOntologyIndex(settings.ontology);
+    const {propertyTypes, propertyTree} = useOntologyIndex(settings.ontology);
     const editingWidget = editorApi.getEditingWidget();
 
     if (!editingWidget) {
@@ -57,9 +57,11 @@ export const PropertyEditorPopover: React.FC<{ editorApi: EditorApi }> = ({
             <PropertyEditorForm
                 property={initialProperty}
                 propertyTypes={propertyTypes}
+                propertyTree={propertyTree}
                 onSave={handleSave}
                 onDelete={handleDelete}
                 onCancel={() => editorApi.setEditingWidget(null)}
+                isKeyEditable={false}
             />
         </div>
     );

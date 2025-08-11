@@ -18,9 +18,18 @@ describe('PropertyEditorPlugin', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         // Mock the return value for the hook
+        const mockPropertyTypes = new Map();
+        mockPropertyTypes.set('test-key', {
+            type: 'string',
+            operators: {
+                real: ['is', 'is not', 'contains'],
+                imaginary: [],
+            }
+        });
+
         (useOntologyIndex as vi.Mock).mockReturnValue({
-            propertyTypes: new Map(),
-            tagTree: {children: {}},
+            propertyTypes: mockPropertyTypes,
+            propertyTree: [], // Not needed for this test
         });
     });
 

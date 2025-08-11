@@ -225,11 +225,15 @@ export const useEditor = (
   };
 
   const [state, dispatch] = useReducer(editorReducer, initialState);
+  const noteRef = useRef(note);
+  useEffect(() => {
+    noteRef.current = note;
+  }, [note]);
 
   // Auto-save content changes with debounce
   useEffect(() => {
     // Prevent saving on initial mount or if content is unchanged
-    if (state.content === note.content) {
+    if (state.content === noteRef.current.content) {
       return;
     }
     const handler = setTimeout(() => {
@@ -251,7 +255,7 @@ export const useEditor = (
       });
 
       onSave({
-        ...note,
+        ...noteRef.current,
         content: state.content,
         tags: newTags,
         properties: newProperties,
@@ -262,7 +266,7 @@ export const useEditor = (
     return () => {
       clearTimeout(handler);
     };
-  }, [state.content, state.contentModel, note, onSave]);
+  }, [state.content, state.contentModel, onSave]);
 
   const editorApi: EditorApi = useMemo(
     () =>
