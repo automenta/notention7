@@ -4,7 +4,7 @@ import {nostrService, NOTENTION_KIND} from '../services/NostrService';
 import {IMAGINARY_TO_REAL_MAP} from '../utils/discovery';
 import {useOntologyIndex} from './useOntologyIndex';
 import {matchNotes} from '../utils/noteSemantics';
-import {useSettingsContext} from '../components/contexts/SettingsContext';
+import {useSettingsContext} from '../components/contexts/settings.context';
 
 type SearchState = 'idle' | 'ready' | 'searching' | 'results';
 

@@ -3,7 +3,7 @@ import type { AppSettings, Note } from '@/types';
 import { useEditors } from './editor/editors';
 import { WorldIcon } from './icons';
 import { nostrService } from '../services/NostrService';
-import { useNotification } from './contexts/NotificationContext';
+import { useNotification } from './contexts/notification.context';
 
 interface EditorManagerProps {
   note: Note;

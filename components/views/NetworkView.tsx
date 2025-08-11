@@ -4,7 +4,7 @@ import {KeyIcon, LoadingSpinner, SettingsIcon} from '../icons';
 import {hexToBytes} from '@/utils/format.ts';
 import {ProfileHeader} from '../network/ProfileHeader';
 import {NostrEventCard} from '../network/NostrEventCard';
-import {useSettingsContext} from '../contexts/SettingsContext';
+import {useSettingsContext} from '../contexts/settings.context';
 import {useViewContext} from '../contexts/ViewContext';
 import {useNostrFeed} from '../../hooks/useNostrFeed';
 import {Placeholder} from '../common/Placeholder';

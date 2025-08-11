@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useSettingsContext } from '@/components/contexts/SettingsContext';
+import { useSettingsContext } from '@/components/contexts/settings.context';
 import { useViewContext } from '@/components/contexts/ViewContext';
 import { useNoteManagement } from './useNoteManagement';
 import { useNotesContext } from '@/components/contexts/NotesContext';

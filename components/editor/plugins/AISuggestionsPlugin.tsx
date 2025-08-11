@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { SparklesIcon } from '../../icons';
-import { useNotification } from '../../contexts/NotificationContext';
+import { useNotification } from '../../contexts/notification.context';
 import { suggestTagsAndProperties } from '../../../services/languageModelService';
-import { serializeToHTML } from '../../../utils/contentModel';
 import type { EditorApi, TagWidgetNode, PropertyWidgetNode, TextNode } from '@/types';
 
+// eslint-disable-next-line react-refresh/only-export-components
 const AISuggestionsHeader: React.FC<{ editorApi: EditorApi }> = ({ editorApi }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { addNotification } = useNotification();

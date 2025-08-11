@@ -4,8 +4,6 @@ import type { AppSettings, Note } from '@/types';
 import { editorPlugins } from './editor/plugins';
 import WidgetRenderer from './editor/widgets/WidgetRenderer';
 import { SemanticInsertProvider } from './editor/plugins/SemanticInsertProvider';
-import { getCursorPosition, setCursorPosition } from '../utils/selection';
-import { sanitizeHTML } from '../utils/sanitize';
 
 export const RichTextEditorV2: React.FC<{
   note: Note;

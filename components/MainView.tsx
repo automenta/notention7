@@ -2,7 +2,7 @@ import React from 'react';
 import { useNotesContext } from './contexts/NotesContext';
 import { LoadingSpinner } from './icons';
 import { useViews } from './views/views';
-import { useSettingsContext } from './contexts/SettingsContext';
+import { useSettingsContext } from './contexts/settings.context';
 import { useViewContext } from './contexts/ViewContext';
 
 export const MainView: React.FC = () => {

@@ -1,15 +1,15 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useNotesContext } from '../contexts/NotesContext';
 import { LoadingSpinner, SearchIcon } from '../icons';
-import { useNostrProfile } from '@/hooks/useNostrProfile.ts';
+import { useNostrProfile } from '@/hooks/useNostrProfile';
 import { NostrEventCard } from '../network/NostrEventCard';
-import { getTextFromHtml } from '@/utils/dom.ts';
-import { useDiscoverySearch } from '@/hooks/useDiscoverySearch.ts';
+import { getTextFromHtml } from '@/utils/dom';
+import { useDiscoverySearch } from '@/hooks/useDiscoverySearch';
 import type { Note } from '@/types';
-import { useSettingsContext } from '../contexts/SettingsContext.tsx';
-import { useViewContext } from '../contexts/ViewContext.tsx';
-import { useOntologyIndex } from '@/hooks/useOntologyIndex.ts';
-import { parseNostrEventContent } from '@/utils/discovery.ts';
+import { useSettingsContext } from '../contexts/settings.context';
+import { useViewContext } from '../contexts/ViewContext';
+import { useOntologyIndex } from '@/hooks/useOntologyIndex';
+import { parseNostrEventContent } from '@/utils/discovery';
 
 // A new, simplified list item for query notes
 const QueryNoteItem: React.FC<{

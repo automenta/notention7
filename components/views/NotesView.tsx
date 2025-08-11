@@ -2,7 +2,7 @@ import React from 'react';
 import {useNotesContext} from '../contexts/NotesContext';
 import {EditorManager} from '../EditorManager';
 import {CubeTransparentIcon} from '../icons';
-import {useSettingsContext} from '../contexts/SettingsContext';
+import {useSettingsContext} from '../contexts/settings.context';
 import {useNoteManagement} from '../../hooks/useNoteManagement';
 import {Placeholder} from '../common/Placeholder';
 

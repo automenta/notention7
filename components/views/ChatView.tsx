@@ -5,7 +5,7 @@ import {hexToBytes} from '@/utils/format.ts';
 import {nostrService} from '@/services/NostrService.ts';
 import {ContactList} from '../chat/ContactList';
 import {ChatWindow} from '../chat/ChatWindow';
-import {useSettingsContext} from '../contexts/SettingsContext';
+import {useSettingsContext} from '../contexts/settings.context';
 
 export const ChatView: React.FC = () => {
     const {settings} = useSettingsContext();
