@@ -113,21 +113,23 @@ export const KeySelector: React.FC<KeySelectorProps> = ({
             />
             {isOpen && (
                 <div
-                    className="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-600 rounded-md shadow-lg max-h-60 overflow-auto"
+                    className="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto"
                 >
-                    {propertyTree.length > 0 ? (
-                        propertyTree.map(node => (
-                            <KeySelectorNode
-                                key={node.id}
-                                node={node}
-                                level={0}
-                                onSelect={handleSelect}
-                                filter={value}
-                            />
-                        ))
-                    ) : (
-                        <div className="p-2 text-sm text-gray-500">No properties found</div>
-                    )}
+                    <div className="flex flex-col p-2">
+                        {propertyTree.length > 0 ? (
+                            propertyTree.map(node => (
+                                <KeySelectorNode
+                                    key={node.id}
+                                    node={node}
+                                    level={0}
+                                    onSelect={handleSelect}
+                                    filter={value}
+                                />
+                            ))
+                        ) : (
+                            <div className="p-2 text-sm text-gray-500">No properties found</div>
+                        )}
+                    </div>
                 </div>
             )}
         </div>

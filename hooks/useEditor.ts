@@ -232,11 +232,20 @@ export const useEditor = (
 
   // Auto-save content changes with debounce
   useEffect(() => {
-    // Prevent saving on initial mount or if content is unchanged
-    if (state.content === noteRef.current.content) {
-      return;
-    }
+    const isInitialMount = noteRef.current.content === state.content;
+
     const handler = setTimeout(() => {
+      // On timeout, check again if content has actually changed from the last saved state.
+      // This prevents saving if the user types and then quickly undoes the change.
+      if (noteRef.current.content === state.content) {
+        return;
+      }
+
+      // Also prevent saving on the initial mount.
+      if (isInitialMount) {
+        return;
+      }
+
       // Derive tags and properties from the content model
       const newTags: string[] = [];
       const newProperties: Note['properties'] = [];
@@ -266,7 +275,7 @@ export const useEditor = (
     return () => {
       clearTimeout(handler);
     };
-  }, [state.content, state.contentModel, onSave]);
+  }, [state.content, state.contentModel, onSave, noteRef]);
 
   const editorApi: EditorApi = useMemo(
     () =>

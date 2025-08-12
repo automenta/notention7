@@ -63,25 +63,34 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
 
     // When the selected key (and thus its type) changes, we need to ensure the
     // currently selected operator is still valid. If not, we reset the operator
-    // to the first available one for the new type, but we preserve the value.
+    // to the first available one for the new type.
     useEffect(() => {
         if (attributeType) {
             const allOperators = [
                 ...(attributeType.operators?.real || []),
                 ...(attributeType.operators?.imaginary || []),
             ];
+            // If the current operator isn't valid for the new type, reset it.
             if (!allOperators.includes(operator)) {
                 setOperator(allOperators[0] || 'is');
             }
         } else {
+            // If there's no attribute type, default to 'is'
             setOperator('is');
         }
-    }, [key, attributeType, operator]);
+        // This effect should ONLY run when the attribute type changes.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [attributeType]);
 
     const handleSave = (e: React.FormEvent) => {
         e.preventDefault();
-        const finalOperator = operator || (attributeType?.operators?.real[0] || 'is');
-        onSave({key, operator: finalOperator, values});
+        if (!key.trim()) {
+            // Or show a user-facing error
+            console.error("Property key cannot be empty.");
+            return;
+        }
+        // The operator state is now guaranteed to be valid.
+        onSave({key, operator, values});
     };
 
     const handleValueChange = (index: number, newValue: string) => {
