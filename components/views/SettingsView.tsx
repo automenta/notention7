@@ -1,82 +1,35 @@
-import React, {useMemo, useState} from 'react';
-import {generateSecretKey, getPublicKey, nip19} from 'nostr-tools';
-import {bytesToHex, hexToBytes} from '@/utils/format.ts';
-import {ClipboardIcon, KeyIcon, SparklesIcon, TrashIcon} from '../icons';
-import {useAppContext} from '../contexts/AppContext';
-import OntologyEditor from '../settings/OntologyEditor';
-
-const TabButton: React.FC<{
-    label: string;
-    isActive: boolean;
-    onClick: () => void;
-}> = ({label, isActive, onClick}) => (
-    <button
-        onClick={onClick}
-        className={`px-4 py-3 text-sm font-medium transition-colors border-b-2 ${
-            isActive
-                ? 'border-blue-500 text-white'
-                : 'border-transparent text-gray-400 hover:text-white hover:border-gray-500'
-        }`}
-    >
-        {label}
-    </button>
-);
-
-const CopyableField: React.FC<{
-    label: string;
-    value: string;
-    isSecret?: boolean;
-}> = ({label, value, isSecret = false}) => {
-    const [copied, setCopied] = useState(false);
-    const [visible, setVisible] = useState(!isSecret);
-
-    const handleCopy = () => {
-        navigator.clipboard.writeText(value);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-    };
-
-    return (
-        <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">
-                {label}
-            </label>
-            <div className="flex items-center gap-2">
-                <input
-                    type={visible ? 'text' : 'password'}
-                    readOnly
-                    value={value}
-                    className="flex-grow p-2 bg-gray-800 rounded-md text-gray-300 font-mono text-xs focus:outline-none"
-                />
-                {isSecret && (
-                    <button
-                        onClick={() => setVisible(!visible)}
-                        className="p-2 text-gray-400 hover:text-white rounded-md text-xs bg-gray-700 hover:bg-gray-600"
-                    >
-                        {visible ? 'Hide' : 'Show'}
-                    </button>
-                )}
-                <button
-                    onClick={handleCopy}
-                    className="p-2 bg-gray-600 rounded-md hover:bg-gray-500"
-                    title="Copy to clipboard"
-                >
-                    <ClipboardIcon className="h-4 w-4"/>
-                </button>
-            </div>
-            {copied && (
-                <p className="text-xs text-green-400 mt-1">Copied to clipboard!</p>
-            )}
-        </div>
-    );
-};
-
 export const SettingsView: React.FC = () => {
     const {settings, setSettings} = useAppContext();
     const [activeTab, setActiveTab] = useState<
         'ai' | 'nostr' | 'data' | 'ontology'
     >('ai');
     const [apiKeyInput, setApiKeyInput] = useState(settings.geminiApiKey || '');
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingItem, setEditingItem] = useState<Partial<OntologyItem> | null>(null);
+    const [itemType, setItemType] = useState<'tag' | 'property'>('tag');
+
+    const handleOpenModal = (type: 'tag' | 'property', item?: Partial<OntologyItem>) => {
+        setItemType(type);
+        setEditingItem(item || null);
+        setIsModalOpen(true);
+    }
+
+    const handleSave = (item: Partial<OntologyItem>) => {
+        console.log('Saving item:', itemType, item);
+        if (itemType === 'tag') {
+            const newTag: OntologyNode = {
+                id: item.label!.toLowerCase().replace(/\s+/g, '-'),
+                label: item.label!,
+                description: item.description,
+            };
+            setSettings(
+                produce((draft) => {
+                    draft.ontology.push(newTag);
+                })
+            )
+        }
+    };
 
     const handleToggleAI = () => {
         if (!settings.geminiApiKey) return;
