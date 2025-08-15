@@ -80,6 +80,7 @@ export type View =
 
 // --- Content Model Types ---
 
+// Inline content: text or interactive widgets
 export type TextNode = {
     type: 'text';
     content: string;
@@ -94,7 +95,7 @@ export type TagWidgetNode = {
 export type PropertyWidgetNode = {
     type: 'widget';
     kind: 'property';
-    id: string; // For referencing the widget
+    id: string;
     key: string;
     operator: string;
     values: unknown[];
@@ -102,26 +103,61 @@ export type PropertyWidgetNode = {
 
 export type WidgetNode = TagWidgetNode | PropertyWidgetNode;
 
-export type ContentNode = TextNode | WidgetNode;
+// An inline node is either text or a widget
+export type InlineNode = TextNode | WidgetNode;
+
+// Block content: paragraphs that contain inline content
+export type ParagraphNode = {
+    type: 'paragraph';
+    content: InlineNode[];
+};
+
+// A block node can be a paragraph (and later, maybe a list, etc.)
+export type BlockNode = ParagraphNode;
+
+// The full document is an array of BlockNodes
+export type ContentModel = BlockNode[];
 
 // --- Editor Types ---
 
+export interface EditorSelection {
+    // The index of the block node in the content model
+    blockIndex: number;
+    // The index of the inline node within the block
+    inlineIndex: number;
+    // The character offset within the inline text node
+    offset: number;
+    // The end of the selection, for ranges
+    end?: {
+        blockIndex: number;
+        inlineIndex: number;
+        offset: number;
+    };
+}
+
+import { Transaction } from '@/utils/transaction';
+import { EditorState } from '@/hooks/reducers/editorReducer';
+
 export interface EditorApi {
     editorRef: React.RefObject<HTMLDivElement>;
+    // The current state of the editor (model, selection, etc.)
+    state: EditorState;
+    // The primary method for dispatching changes to the document
+    dispatchTransaction: (tr: Transaction) => void;
+
     execCommand: (command: string, value?: string) => void;
     toggleBlock: (tag: string) => void;
     queryCommandState: (command: string) => boolean;
     getSelectionParent: () => HTMLElement | null;
-    insertHtml: (html: string) => void;
     getNote: () => Note;
     getSettings: () => AppSettings;
+
     // For property editor popover
     setEditingWidget: (element: HTMLElement | null) => void;
     getEditingWidget: () => HTMLElement | null;
     syncViewToModel: () => void;
-    updateWidget: (widgetId: string, data: Partial<PropertyWidgetNode>) => void;
-    deleteWidget: (widgetId: string) => void;
     scheduleWidgetEdit: (widgetId: string) => void;
+
     // For header plugin
     updateNote: (updatedFields: Partial<Note>) => void;
     deleteNote: () => void;

@@ -1,120 +1,122 @@
+import { EditorSelection } from '@/types';
+
 /**
- * Calculates the character offset of the cursor within a container element.
- * This function creates a temporary range from the start of the container to the
- * cursor's position and returns the length of its text content. This is a robust
- * way to measure character offset across different node types.
- *
- * @param container - The contentEditable element that contains the selection.
- * @returns The character offset of the cursor from the start of the container.
+ * Maps the browser's current DOM selection to the editor's hierarchical content model.
+ * @param editorRoot The root contentEditable element of the editor.
+ * @returns An EditorSelection object or null if no selection exists.
  */
-export const getCursorPosition = (container: HTMLElement): number => {
+export const mapDomSelectionToModel = (editorRoot: HTMLElement): EditorSelection | null => {
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) {
-        return 0;
+        return null;
     }
 
     const range = selection.getRangeAt(0);
-    // Create a range that spans from the start of the container to the cursor
-    const preCaretRange = range.cloneRange();
-    preCaretRange.selectNodeContents(container);
-    preCaretRange.setEnd(range.startContainer, range.startOffset);
+    let { startContainer, startOffset } = range;
 
-    // The length of the text content of this range is the cursor position.
-    // We replace widget elements with a single character to match the content model.
-    return rangeToString(preCaretRange).length;
-};
+    // Find the block and inline nodes corresponding to the selection point.
+    let blockNode: Node | null = startContainer;
+    let inlineNode: Node | null = startContainer;
 
-/**
- * Sets the cursor position within a container element to a specific character offset.
- * It traverses the DOM tree using a TreeWalker, node by node, until it finds the
- * text node and offset corresponding to the target position, then sets the
- - * selection range accordingly.
- *
- * @param container - The contentEditable element in which to set the cursor.
- * @param position - The character offset to place the cursor at.
- */
-export const setCursorPosition = (container: HTMLElement, position: number) => {
-    if (position < 0) return;
+    // If the selection is in a text node, the inline node is the text node itself.
+    // The block node is its parent paragraph/div.
+    if (inlineNode.nodeType === Node.TEXT_NODE) {
+        blockNode = inlineNode.parentElement;
+    }
 
-    const walker = document.createTreeWalker(container, NodeFilter.SHOW_ALL);
-    let charCount = 0;
-    let targetNode: Node | null = null;
+    // Traverse up to find the root block element (e.g., <p>).
+    while (blockNode && blockNode.parentElement !== editorRoot) {
+        blockNode = blockNode.parentElement;
+    }
+    if (!blockNode) return null; // Selection is outside a valid block
 
-    while ((targetNode = walker.nextNode())) {
-        if (targetNode.nodeType === Node.TEXT_NODE) {
-            const len = targetNode.textContent?.length || 0;
-            if (charCount + len >= position) {
-                const range = document.createRange();
-                const sel = window.getSelection();
-                range.setStart(targetNode, position - charCount);
-                range.collapse(true);
-                sel?.removeAllRanges();
-                sel?.addRange(range);
-                return;
-            }
-            charCount += len;
-        } else if (targetNode.nodeType === Node.ELEMENT_NODE) {
-            // Check if it's a widget, which we count as 1 character
-            if ((targetNode as HTMLElement).classList.contains('widget')) {
-                if (charCount === position) {
-                    const range = document.createRange();
-                    const sel = window.getSelection();
-                    // Place cursor right before the widget
-                    range.setStartBefore(targetNode);
-                    range.collapse(true);
-                    sel?.removeAllRanges();
-                    sel?.addRange(range);
-                    return;
-                }
-                charCount += 1;
-            }
+    // Calculate blockIndex
+    const blockIndex = Array.from(editorRoot.children).indexOf(blockNode as Element);
+
+    // Calculate inlineIndex and offset
+    let inlineIndex = 0;
+    let offset = 0;
+    let found = false;
+
+    // Create a temporary range to count characters up to the cursor
+    const preCaretRange = document.createRange();
+    preCaretRange.selectNodeContents(blockNode);
+    preCaretRange.setEnd(startContainer, startOffset);
+
+    // Walk the inline nodes to find the index and offset
+    const inlineNodes = Array.from((blockNode as Element).childNodes);
+    for (let i = 0; i < inlineNodes.length; i++) {
+        const currentInlineNode = inlineNodes[i];
+        if (currentInlineNode === startContainer) {
+            inlineIndex = i;
+            offset = startOffset;
+            found = true;
+            break;
+        }
+        // If the selection is inside a text node that's a child of a span, etc.
+        if (currentInlineNode.contains(startContainer)) {
+             inlineIndex = i;
+             // The offset needs to be calculated relative to the start of the inline node
+             const tempRange = document.createRange();
+             tempRange.selectNodeContents(currentInlineNode);
+             tempRange.setEnd(startContainer, startOffset);
+             offset = tempRange.toString().length;
+             found = true;
+             break;
         }
     }
 
-    // If the position is out of bounds, place it at the end of the container.
-    const range = document.createRange();
-    const sel = window.getSelection();
-    range.selectNodeContents(container);
-    range.collapse(false); // false collapses to the end
-    sel?.removeAllRanges();
-    sel?.addRange(range);
+    // A simplified fallback for when the selection is on the block itself
+    if(!found && startContainer === blockNode) {
+        inlineIndex = startOffset > 0 ? (blockNode as Element).childNodes.length - 1 : 0;
+        offset = 0; // This is an approximation
+    }
+
+
+    return { blockIndex, inlineIndex, offset };
 };
 
 
 /**
- * Converts a Range object to a string, replacing specific elements (like widgets)
- * with a single character representation ('\uFFFC', the object replacement character).
- * This is used to accurately calculate cursor position in an editor that contains
- * non-textual elements.
- *
- * @param range - The DOM Range to convert.
- * @returns A string representation of the range's content.
+ * Sets the browser's cursor to a position described by the editor's model selection.
+ * @param editorRoot The root contentEditable element of the editor.
+ * @param selection The EditorSelection object to apply.
  */
-function rangeToString(range: Range): string {
-    const container = range.cloneContents();
-    let str = '';
+export const setCursorFromModelSelection = (editorRoot: HTMLElement, selection: EditorSelection): void => {
+    const { blockIndex, inlineIndex, offset } = selection;
 
-    function getNodeText(node: Node): void {
-        if (node.nodeType === Node.TEXT_NODE) {
-            str += node.textContent;
-        } else if (node.nodeType === Node.ELEMENT_NODE) {
-            const el = node as HTMLElement;
-            // If it's a widget, represent it as a single character.
-            // The object replacement character is a good choice for this.
-            if (el.classList.contains('widget')) {
-                str += '\uFFFC';
-                return; // Don't process children of widgets
+    const blockNode = editorRoot.children[blockIndex];
+    if (!blockNode) return;
+
+    let targetNode: Node | null = (blockNode as Element).childNodes[inlineIndex] || blockNode;
+    let finalOffset = offset;
+
+    // If the target is an element (like a widget), we might need to find a text node inside it
+    // or place the cursor before/after it. For now, we simplify.
+    // If the target is a text node, we can set the cursor directly.
+    if (targetNode.nodeType === Node.ELEMENT_NODE) {
+        // If it's a widget, place cursor before it. A more robust solution is needed here.
+        if((targetNode as HTMLElement).classList.contains('widget')) {
+            targetNode = blockNode;
+            finalOffset = inlineIndex;
+        } else {
+             // Try to find the first text node inside
+            let textNode = targetNode.firstChild;
+            while(textNode && textNode.nodeType !== Node.TEXT_NODE) {
+                textNode = textNode.firstChild;
             }
-            // Recurse for other elements
-            for (let i = 0; i < node.childNodes.length; i++) {
-                getNodeText(node.childNodes[i]);
-            }
+            if(textNode) targetNode = textNode;
         }
     }
 
-    for (let i = 0; i < container.childNodes.length; i++) {
-        getNodeText(container.childNodes[i]);
+    try {
+        const range = document.createRange();
+        const sel = window.getSelection();
+        range.setStart(targetNode, finalOffset);
+        range.collapse(true);
+        sel?.removeAllRanges();
+        sel?.addRange(range);
+    } catch (e) {
+        console.error("Failed to set cursor from model selection", e, {selection, targetNode});
     }
-
-    return str;
-}
+};

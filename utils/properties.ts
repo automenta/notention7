@@ -29,8 +29,8 @@ export const formatPropertyForDisplay = (
     values: string[]
 ): string => {
     // Sanitize values to prevent accidental HTML injection
-    const escapeHtml = (unsafe: string) =>
-        unsafe
+    const escapeHtml = (unsafe: unknown) =>
+        String(unsafe)
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')

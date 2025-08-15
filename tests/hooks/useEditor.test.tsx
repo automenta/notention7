@@ -15,6 +15,11 @@ vi.mock('../../utils/editorCommands', () => ({
 vi.mock('../../utils/selection', () => ({
     getCursorPosition: vi.fn(() => 0),
     setCursorPosition: vi.fn(),
+    mapDomSelectionToModel: vi.fn(() => ({
+        blockIndex: 0,
+        inlineIndex: 0,
+        offset: 0,
+    })),
 }));
 
 // Mock browser APIs
@@ -86,6 +91,11 @@ describe('useEditor hook', () => {
         } as unknown as React.FormEvent<HTMLDivElement>;
 
         act(() => {
+            // In the test environment, the ref isn't automatically attached.
+            // We need to manually link the ref to our mock DOM element.
+            result.current.editorRef.current = editorDiv;
+            // The mock event's innerHTML should be on the mock element.
+            editorDiv.innerHTML = '<p>New content</p>';
             result.current.handleInput(mockEvent);
         });
 
@@ -101,10 +111,12 @@ describe('useEditor hook', () => {
         const sanitizedHtml = '<p>Hello <img src="x"></p>';
 
         const mockEvent = {
-            currentTarget: {innerHTML: unsafeHtml},
+            currentTarget: { innerHTML: unsafeHtml },
         } as unknown as React.FormEvent<HTMLDivElement>;
 
         act(() => {
+            result.current.editorRef.current = editorDiv;
+            editorDiv.innerHTML = unsafeHtml;
             result.current.handleInput(mockEvent);
         });
 
@@ -134,10 +146,12 @@ describe('useEditor hook', () => {
             );
 
             const mockEvent = {
-                currentTarget: {innerHTML: '<p>New content</p>'},
+                currentTarget: { innerHTML: '<p>New content</p>' },
             } as unknown as React.FormEvent<HTMLDivElement>;
 
             act(() => {
+                result.current.editorRef.current = editorDiv;
+                editorDiv.innerHTML = '<p>New content</p>';
                 result.current.handleInput(mockEvent);
             });
 
@@ -224,52 +238,8 @@ describe('useEditor hook', () => {
         });
     });
 
-    describe('insertHtml API', () => {
-        let getCursorPositionMock: vi.Mock;
-
-        beforeEach(async () => {
-            vi.useFakeTimers();
-            mockOnSave.mockClear();
-            const selectionUtils = await import('../../utils/selection');
-            getCursorPositionMock = selectionUtils.getCursorPosition as vi.Mock;
-        });
-
-        afterEach(() => {
-            vi.useRealTimers();
-        });
-
-        it('should update content and tags correctly on save after insertion', () => {
-            const initialContent = 'Hello world';
-            const noteWithText: Note = {...mockNote, content: initialContent, tags: []};
-
-            const {result} = renderHook(() =>
-                useEditor([], noteWithText, mockSettings, mockOnSave, mockOnDelete)
-            );
-
-            // Setup the editor ref so that insertHtml can work
-            act(() => {
-                result.current.editorRef.current = editorDiv;
-            });
-
-            getCursorPositionMock.mockReturnValue(6);
-
-            act(() => {
-                result.current.editorApi.insertHtml(
-                    '<span class="widget tag" data-tag="beautiful">#beautiful</span>'
-                );
-            });
-
-            // Advance timers to trigger auto-save
-            act(() => {
-                vi.advanceTimersByTime(1500);
-            });
-
-            expect(mockOnSave).toHaveBeenCalledTimes(1);
-            const savedNote = mockOnSave.mock.calls[0][0];
-
-            const expectedContent = 'Hello <span class="widget tag" contenteditable="false" data-tag="beautiful">#beautiful</span>world';
-            expect(savedNote.content).toBe(expectedContent);
-            expect(savedNote.tags).toEqual(['beautiful']);
-        });
-    });
+    // NOTE: The tests for the `insertHtml` API have been removed.
+    // This functionality was part of the old, flat content model and was removed
+    // during the transition to a hierarchical model. It will be replaced by a
+    // more robust, transaction-based insertion API in a future step.
 });

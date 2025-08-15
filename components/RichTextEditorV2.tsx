@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import {useEditor} from '../hooks/useEditor';
 import {sanitizeHTML} from '../utils/sanitize';
+import {setCursorFromModelSelection} from '../utils/selection';
 import type {AppSettings, Note} from '@/types';
 import {editorPlugins} from './editor/plugins';
 import WidgetRenderer from './editor/widgets/WidgetRenderer';
@@ -27,14 +28,21 @@ export const RichTextEditorV2: React.FC<{
     } = useEditor(editorPlugins, note, settings, onSave, onDelete);
 
     useEffect(() => {
-        // Sync the editor's DOM with the state, but only if they differ.
-        // This is to avoid resetting cursor position on every input.
+        // This effect syncs the React state (content) to the DOM.
+        // It's crucial that this runs *before* the selection effect.
         if (editorRef.current && content !== editorRef.current.innerHTML) {
             editorRef.current.innerHTML = content;
         }
         // We only want this to run when the content state changes, not on every render.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [content]);
+
+    useEffect(() => {
+        // This effect syncs the React state (selection) to the DOM.
+        if (editorRef.current && editorApi.state.selection) {
+            setCursorFromModelSelection(editorRef.current, editorApi.state.selection);
+        }
+    }, [editorApi.state.selection]);
 
     useEffect(() => {
         if (pendingWidgetEdit) {
