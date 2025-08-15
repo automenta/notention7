@@ -9,11 +9,11 @@ import {selectionToolbarPlugin} from './plugins/SelectionToolbarPlugin.plugin';
 import {aiActionPlugin} from './plugins/AIActionPlugin.plugin';
 
 export const editorPlugins: EditorPlugin[] = [
+    inputRulesPlugin,
     editorHeaderPlugin,
     toolbarPlugin,
     semanticInsertPlugin,
     propertyEditorPlugin,
-    inputRulesPlugin,
     insertMenuPlugin,
     selectionToolbarPlugin,
     aiActionPlugin,

@@ -61,6 +61,8 @@ export const parseHTML = (html: string): ContentNode[] => {
     return nodes;
 };
 
+import {formatPropertyForDisplay} from './properties';
+
 export const serializeToHTML = (nodes: ContentNode[]): string => {
     if (!nodes) return '';
     return nodes
@@ -76,8 +78,11 @@ export const serializeToHTML = (nodes: ContentNode[]): string => {
                 if (node.kind === 'property') {
                     const propNode = node as PropertyWidgetNode;
                     const valuesJson = JSON.stringify(propNode.values);
-                    // Use formatPropertyForDisplay for the text content
-                    const displayText = `[${propNode.key}:${propNode.operator}:${propNode.values.join(',')}]`;
+                    const displayText = formatPropertyForDisplay(
+                        propNode.key,
+                        propNode.operator,
+                        propNode.values as string[]
+                    );
                     return `<span id="${propNode.id}" class="widget property" contenteditable="false" data-key="${propNode.key}" data-operator="${propNode.operator}" data-values='${valuesJson}'>${displayText}</span>`;
                 }
             }

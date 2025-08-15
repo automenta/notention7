@@ -25,6 +25,21 @@ const processInputRules = (editorApi: EditorApi): boolean => {
         return true;
     }
 
+    // Rule: #tag
+    const tagMatch = textBeforeCaret.match(/(#\w+)\s$/);
+    if (tagMatch) {
+        const [fullMatch, tagName] = tagMatch;
+        const offsetToReplace = fullMatch.length;
+        range.setStart(container, range.startOffset - offsetToReplace);
+        range.deleteContents();
+
+        const tag = tagName.substring(1); // remove the '#'
+        const htmlToInsert = `<span class="widget tag" contenteditable="false" data-tag="${tag}">#${tag}</span>&nbsp;`;
+
+        editorApi.insertHtml(htmlToInsert);
+        return true;
+    }
+
     // Rule: [key:value]
     const propMatch = textBeforeCaret.match(/(\[([^:\]]+?):([^\]]*?)\])$/);
     if (propMatch) {
