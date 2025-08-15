@@ -23,14 +23,13 @@ const SemanticWidget: React.FC<SemanticWidgetProps> = ({
     };
 
     return (
-        <span
+        <div
             contentEditable="false"
-            className="bg-blue-900/50 text-blue-300 px-2 py-1 rounded-md text-sm mx-1 cursor-pointer"
+            className="relative inline-block bg-blue-900/50 text-blue-300 px-2 py-1 rounded-md text-sm mx-0.5 cursor-pointer z-10"
             onClick={handleClick}
-            dangerouslySetInnerHTML={{
-                __html: `${property} ${operator} ${values.join(' and ')}`,
-            }}
-        />
+        >
+            {`${property} ${operator} ${values.join(' and ')}`}
+        </div>
     );
 };
 
