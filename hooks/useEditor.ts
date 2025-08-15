@@ -180,7 +180,7 @@ export const useEditor = (
         [state, dispatch, note, settings, onSave, onDelete, plugins]
     );
 
-    const { handleInput, handleClick, handleKeyDown } = useEditorEvents(
+    const { handleInput, handleClick, handleKeyDown, handlePaste } = useEditorEvents(
         plugins,
         editorApi
     );
@@ -208,6 +208,7 @@ export const useEditor = (
         handleInput,
         handleClick,
         handleKeyDown,
+        handlePaste,
         toolbarComponents,
         modalComponents,
         popoverComponents,

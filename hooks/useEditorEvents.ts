@@ -1,7 +1,9 @@
 import React, { useCallback } from 'react';
-import type { EditorApi, EditorPlugin } from '@/types';
+import type { EditorApi, EditorPlugin, InlineNode, TextNode } from '@/types';
 import { mapDomSelectionToModel } from '@/utils/selection';
 import { Transaction, SplitBlockStep, MergeBlockStep, ReplaceStep } from '@/utils/transaction';
+import DOMPurify from 'dompurify';
+import { parseHTML } from '@/utils/contentModel';
 
 export const useEditorEvents = (
     plugins: EditorPlugin[],
@@ -9,8 +11,8 @@ export const useEditorEvents = (
 ) => {
     const handleInput = useCallback(
         (event: React.FormEvent<HTMLDivElement>) => {
-            // This is now a fallback for complex inputs (IME, paste, etc.)
-            // that are not handled by specific keydown events.
+            // This is now a fallback for complex inputs (IME, etc.)
+            // that are not handled by specific keydown or paste events.
             console.log('Fallback handleInput triggered');
             editorApi.syncViewToModel();
         },
@@ -92,5 +94,54 @@ export const useEditorEvents = (
         [editorApi]
     );
 
-    return { handleInput, handleClick, handleKeyDown };
+    const handlePaste = useCallback(
+        (event: React.ClipboardEvent<HTMLDivElement>) => {
+            event.preventDefault();
+
+            const pastedHtml = event.clipboardData.getData('text/html');
+            const pastedText = event.clipboardData.getData('text/plain');
+            let nodesToInsert: InlineNode[] = [];
+
+            // Prioritize HTML content, as it may contain formatting.
+            if (pastedHtml) {
+                const sanitizedHtml = DOMPurify.sanitize(pastedHtml, { USE_PROFILES: { html: true } });
+                if (sanitizedHtml) {
+                    // The transaction system currently only supports single-line pastes.
+                    // Enforce this by taking only the content before the first <br>.
+                    const firstLineHtml = sanitizedHtml.split(/<br\s*\/?>/i)[0];
+                    const newBlocks = parseHTML(firstLineHtml);
+                    nodesToInsert = newBlocks[0]?.content || [];
+                }
+            }
+            // Fallback to plain text if HTML is not available or was sanitized away.
+            else if (pastedText) {
+                // Take the first line of plain text.
+                const firstLine = pastedText.split('\n')[0];
+                if (firstLine) {
+                    nodesToInsert = [{ type: 'text', content: firstLine }];
+                }
+            }
+
+            if (nodesToInsert.length === 0) {
+                return;
+            }
+
+            const selection = mapDomSelectionToModel(event.currentTarget);
+            if (!selection) return;
+
+            const tr = new Transaction(editorApi.state.contentModel);
+
+            // Replace the current selection with the new nodes.
+            tr.addStep(new ReplaceStep(selection, selection, nodesToInsert));
+
+            // TODO: Set the selection to the end of the pasted content.
+            // This is complex as it depends on the structure of nodesToInsert.
+            // For now, the selection behavior might be slightly off after paste.
+
+            editorApi.dispatchTransaction(tr);
+        },
+        [editorApi]
+    );
+
+    return { handleInput, handleClick, handleKeyDown, handlePaste };
 };

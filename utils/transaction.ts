@@ -34,48 +34,50 @@ export class ReplaceStep implements Step {
             const { inlineIndex: fromInline, offset: fromOffset } = this.from;
             const { inlineIndex: toInline, offset: toOffset } = this.to;
 
-            const newContent: InlineNode[] = [];
-            // Add content before the replacement range
-            for (let i = 0; i < fromInline; i++) {
-                newContent.push(block.content[i]);
-            }
+            // --- Build the new content array in three parts ---
 
-            // Handle the start of the replacement
+            // Part 1: Content before the replacement
+            const contentBefore: InlineNode[] = block.content.slice(0, fromInline);
             const startNode = block.content[fromInline];
-            if (startNode?.type === 'text') {
-                newContent.push({ type: 'text', content: startNode.content.substring(0, fromOffset) });
-            } else if (fromOffset === 0) {
-                 newContent.push(startNode);
+            if (startNode) {
+                if (startNode.type === 'text') {
+                    contentBefore.push({ type: 'text', content: startNode.content.substring(0, fromOffset) });
+                } else if (fromOffset > 0) {
+                    contentBefore.push(startNode);
+                }
             }
 
+            // Part 2: The new nodes themselves
+            const nodesToInsert = this.nodes;
 
-            // Add the new nodes
-            newContent.push(...this.nodes);
-
-            // Handle the end of the replacement
+            // Part 3: Content after the replacement
+            const contentAfter: InlineNode[] = [];
             const endNode = block.content[toInline];
-            if (endNode?.type === 'text') {
-                newContent.push({ type: 'text', content: endNode.content.substring(toOffset) });
-            } else if (toOffset === 0) {
-                newContent.push(endNode);
+            if (endNode) {
+                if (endNode.type === 'text') {
+                    contentAfter.push({ type: 'text', content: endNode.content.substring(toOffset) });
+                } else if (toOffset === 0) {
+                    contentAfter.push(endNode);
+                }
             }
+            contentAfter.push(...block.content.slice(toInline + 1));
 
-
-            // Add content after the replacement range
-            for (let i = toInline + 1; i < block.content.length; i++) {
-                newContent.push(block.content[i]);
-            }
-
-            // Basic normalization: merge adjacent text nodes
+            // Combine the parts and normalize
+            const combinedContent = [...contentBefore, ...nodesToInsert, ...contentAfter];
             const finalContent: InlineNode[] = [];
-            for(const node of newContent) {
+            for (const node of combinedContent) {
                 const lastNode = finalContent[finalContent.length - 1];
                 if (lastNode && lastNode.type === 'text' && node.type === 'text') {
-                    lastNode.content += node.content;
+                    // Create a new merged node instead of mutating.
+                    const mergedNode: TextNode = {
+                        type: 'text',
+                        content: lastNode.content + node.content,
+                    };
+                    // Replace the last node with the new merged one.
+                    finalContent[finalContent.length - 1] = mergedNode;
                 } else if (node.type === 'text' && node.content === '') {
                     // Do not push empty text nodes
-                }
-                else {
+                } else {
                     finalContent.push(node);
                 }
             }

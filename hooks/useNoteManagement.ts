@@ -1,11 +1,12 @@
-import {useEffect, useMemo} from 'react';
+import {useCallback, useEffect, useMemo} from 'react';
 import {useNotesContext} from '../components/contexts/NotesContext';
 import {useAppContext} from '../components/contexts/AppContext';
 import {sortNotesByDate} from '../utils/notes';
 
 export const useNoteManagement = () => {
-    const {notes, deleteNote, notesLoading} = useNotesContext();
-    const {activeView, selectedNoteId, setSelectedNoteId} = useAppContext();
+    const {notes, addNote, deleteNote, notesLoading} = useNotesContext();
+    const {activeView, setActiveView, selectedNoteId, setSelectedNoteId} =
+    useAppContext();
 
     // Find the full selected note object
     const selectedNote = useMemo(
@@ -47,8 +48,16 @@ export const useNoteManagement = () => {
         deleteNote(idToDelete);
     };
 
+    // Create a new note and select it
+    const createAndSelectNewNote = useCallback(() => {
+        const newNote = addNote();
+        setSelectedNoteId(newNote.id);
+        setActiveView('notes');
+    }, [addNote, setSelectedNoteId, setActiveView]);
+
     return {
         selectedNote,
         handleDeleteAndSelectNext,
+        createAndSelectNewNote,
     };
 };

@@ -20,6 +20,7 @@ export const RichTextEditorV2: React.FC<{
         handleInput,
         handleClick,
         handleKeyDown,
+        handlePaste,
         headerComponents,
         toolbarComponents,
         modalComponents,
@@ -71,6 +72,7 @@ export const RichTextEditorV2: React.FC<{
                         onInput={handleInput}
                         onClick={handleClick}
                         onKeyDown={handleKeyDown}
+                        onPaste={handlePaste}
                         suppressContentEditableWarning={true}
                         data-placeholder="Start writing..."
                         // Set initial content. After this, the useEffect will sync state to the DOM.
