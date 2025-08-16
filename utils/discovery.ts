@@ -35,3 +35,23 @@ export const IMAGINARY_TO_REAL_MAP: Record<string, string> = {
     'near-location': 'location',
     'event-date': 'startDateTime',
 };
+
+import { NostrEvent } from 'nostr-tools';
+import { getTextFromHtml } from '@/utils/dom';
+
+export const parseNostrEventContent = (event: NostrEvent) => {
+  let title = 'Untitled';
+  let contentPreview = 'Could not parse content.';
+  try {
+    const parsedContent = JSON.parse(event.content);
+    title = parsedContent.title || 'Untitled';
+    contentPreview = getTextFromHtml(parsedContent.content).substring(0, 300);
+    if (contentPreview.length === 300) {
+      contentPreview += '...';
+    }
+  } catch {
+    // Fallback for old content format
+    contentPreview = event.content.substring(0, 300);
+  }
+  return { title, contentPreview };
+};

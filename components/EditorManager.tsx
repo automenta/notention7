@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import type { AppSettings, Note } from '@/types';
 import { useEditors } from './editor/editors';
 import { WorldIcon } from './icons';
-import { nostrService } from '../services/NostrService';
+import { useNostrPublish } from '../hooks/useNostrPublish';
 
 interface EditorManagerProps {
   note: Note;
@@ -19,22 +19,11 @@ export const EditorManager: React.FC<EditorManagerProps> = ({
 }) => {
   const { editors, getEditor } = useEditors();
   const [selectedEditorId, setSelectedEditorId] = useState<string>('rich-text'); // Default to Rich Text editor
-  const [isPublishing, setIsPublishing] = useState(false);
+  const { isPublishing, publishNote } = useNostrPublish();
 
-  const handlePublish = async () => {
-    if (!settings.nostr.privkey) {
-      alert('Nostr private key not set in settings.');
-      return;
-    }
-    setIsPublishing(true);
-    try {
-      await nostrService.publishNote(note, settings.nostr.privkey);
-      alert('Note published successfully!');
-    } catch (error) {
-      console.error('Failed to publish note:', error);
-      alert(`Failed to publish note. See console for details.`);
-    } finally {
-      setIsPublishing(false);
+  const handlePublish = () => {
+    if (settings.nostr.privkey) {
+      publishNote(note, settings.nostr.privkey);
     }
   };
 
