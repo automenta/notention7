@@ -17,8 +17,14 @@ export const EditorManager: React.FC<EditorManagerProps> = ({
   onDelete,
   settings,
 }) => {
-  const { editors, getEditor } = useEditors();
-  const [selectedEditorId, setSelectedEditorId] = useState<string>('rich-text'); // Default to Rich Text editor
+  const {
+    items: editors,
+    getItem: getEditor,
+    default: defaultEditor,
+  } = useEditors();
+  const [selectedEditorId, setSelectedEditorId] = useState<string>(
+    defaultEditor?.id || ''
+  );
   const { isPublishing, publishNote } = useNostrPublish();
 
   const handlePublish = () => {

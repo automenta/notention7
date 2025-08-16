@@ -32,9 +32,7 @@ export const RichTextEditorV2: React.FC<{
         if (editorRef.current && content !== editorRef.current.innerHTML) {
             editorRef.current.innerHTML = content;
         }
-        // We only want this to run when the content state changes, not on every render.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [content]);
+    }, [content, editorRef]);
 
     useEffect(() => {
         if (pendingWidgetEdit) {

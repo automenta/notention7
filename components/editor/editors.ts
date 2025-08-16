@@ -15,9 +15,8 @@ export const availableEditors: AvailableEditor[] = [
   },
 ];
 
+import { useCollection } from '../../hooks/useCollection';
+
 export const useEditors = () => {
-  return {
-    editors: availableEditors,
-    getEditor: (id: string) => availableEditors.find((e) => e.id === id),
-  };
+  return useCollection(availableEditors);
 };

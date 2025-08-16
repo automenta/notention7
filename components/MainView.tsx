@@ -7,7 +7,7 @@ import { useAppContext } from './contexts/AppContext';
 export const MainView: React.FC = () => {
   const { activeView, settingsLoading } = useAppContext();
   const { notesLoading } = useNotesContext();
-  const { getView } = useViews();
+  const { getItem: getView } = useViews();
 
   if (notesLoading || settingsLoading) {
     return (
