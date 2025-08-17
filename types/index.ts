@@ -62,6 +62,12 @@ export interface NostrProfile {
     lud16?: string;
 }
 
+export type SearchCriterion = {
+    key: string;
+    op: string;
+    values: readonly string[];
+};
+
 export interface Contact {
     pubkey: string;
     name?: string;

@@ -35,10 +35,7 @@ export default tseslint.config(
             ...tseslint.configs.stylisticTypeChecked.rules,
             ...pluginReact.configs.recommended.rules,
             ...pluginReactHooks.configs.recommended.rules,
-            'react-refresh/only-export-components': [
-                'error',
-                {allowConstantExport: true},
-            ],
+            'react-refresh/only-export-components': 'off',
             'react/react-in-jsx-scope': 'off',
             'react/prop-types': 'off',
             '@typescript-eslint/no-unused-vars': [

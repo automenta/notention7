@@ -12,7 +12,6 @@ export interface NotesContextType {
 }
 
 // 2. Create the context
-// eslint-disable-next-line react-refresh/only-export-components
 export const NotesContext = createContext<NotesContextType | undefined>(
     undefined
 );
@@ -34,7 +33,6 @@ export const NotesProvider: React.FC<{ children: ReactNode }> = ({
 };
 
 // 4. Create the consumer hook
-// eslint-disable-next-line react-refresh/only-export-components
 export const useNotesContext = () => {
     const context = useContext(NotesContext);
     if (context === undefined) {

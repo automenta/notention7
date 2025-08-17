@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useReducer, useRef } from 'react';
+import { useEffect, useMemo, useReducer, useRef } from 'react';
 import type {
   AppSettings,
   EditorApi,

@@ -1,13 +1,13 @@
 import React from 'react';
 import { NostrEvent } from 'nostr-tools';
-import { NostrProfile } from '@/types';
+import { NostrProfile, SearchCriterion } from '@/types';
 import { parseNostrEventContent } from '@/utils/discovery';
 import { NostrEventCard } from '../../network/NostrEventCard';
 
 interface ResultsListProps {
   results: NostrEvent[];
   profiles: Record<string, NostrProfile>;
-  searchCriteria: any[]; // You might want to type this more strictly
+  searchCriteria: SearchCriterion[];
 }
 
 export const ResultsList: React.FC<ResultsListProps> = ({

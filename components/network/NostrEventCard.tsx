@@ -1,9 +1,7 @@
 import React, {useMemo} from 'react';
 import {nip19} from 'nostr-tools';
-import type {NostrEvent, NostrProfile} from '@/types';
+import type {NostrEvent, NostrProfile, SearchCriterion} from '@/types';
 import {formatNpub} from '@/utils/format.ts';
-
-type SearchCriterion = { key: string; op: string; values: readonly string[] };
 
 export const NostrEventCard: React.FC<{
     event: NostrEvent;

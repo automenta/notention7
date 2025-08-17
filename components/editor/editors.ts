@@ -1,4 +1,5 @@
 import type { AvailableEditor } from '@/types';
+import { useCollection } from '../../hooks/useCollection';
 import { RichTextEditorV2 } from '../RichTextEditorV2';
 import { TextareaEditor } from '../TextareaEditor';
 
@@ -14,8 +15,6 @@ export const availableEditors: AvailableEditor[] = [
     component: TextareaEditor,
   },
 ];
-
-import { useCollection } from '../../hooks/useCollection';
 
 export const useEditors = () => {
   return useCollection(availableEditors);

@@ -2,7 +2,6 @@ import React from 'react';
 import * as Commands from '../../utils/editorCommands';
 import type {
   AppSettings,
-  ContentNode,
   EditorApi,
   EditorPlugin,
   Note,

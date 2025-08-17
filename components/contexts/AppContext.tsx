@@ -18,7 +18,6 @@ export interface AppContextType {
 }
 
 // 2. Create the context
-// eslint-disable-next-line react-refresh/only-export-components
 export const AppContext = createContext<AppContextType | undefined>(undefined);
 
 // 3. Create the provider component
@@ -67,7 +66,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({children}) => {
 };
 
 // 4. Create the consumer hook
-// eslint-disable-next-line react-refresh/only-export-components
 export const useAppContext = () => {
     const context = useContext(AppContext);
     if (context === undefined) {

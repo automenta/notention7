@@ -52,7 +52,7 @@ export const InsertMenuProvider: React.FC<{ editorApi: EditorApi }> = ({
             setContext(newContext || {mode: 'all'});
             setMenuOpen(true);
         },
-        []
+        [editorApi.editorRef]
     );
 
     const closeMenu = useCallback(() => {

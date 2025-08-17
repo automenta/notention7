@@ -4,12 +4,12 @@ import {sortNotesByDate} from '../utils/notes';
 import type {Note} from '@/types';
 
 export const useNotes = () => {
-    const [notes, setNotes, notesLoading] = useLocalForage<Note[]>(
+    const [rawNotes, setNotes, notesLoading] = useLocalForage<Note[]>(
         'notention-notes',
         []
     );
 
-    const sortedNotes = useMemo(() => sortNotesByDate(notes), [notes]);
+    const notes = useMemo(() => sortNotesByDate(rawNotes), [rawNotes]);
 
     const addNote = useCallback(() => {
         const newNote: Note = {
@@ -46,7 +46,7 @@ export const useNotes = () => {
     );
 
     return {
-        notes: sortedNotes,
+        notes,
         addNote,
         updateNote,
         deleteNote,
