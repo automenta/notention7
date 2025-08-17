@@ -13,6 +13,8 @@ export const getCleanText = (html: string): string => {
 };
 
 // A one-time conversion for legacy note content from plain text to widgets.
+import {ContentNode} from '../types';
+
 export const convertPlainTextToWidgets = (html: string): string => {
     if (!html) return html;
     const tempDiv = document.createElement('div');
@@ -43,4 +45,25 @@ export const convertPlainTextToWidgets = (html: string): string => {
     });
 
     return widgetizedHtml;
+};
+
+export const findModelPosition = (model: ContentNode[], charPosition: number) => {
+    let currentCharCount = 0;
+    for (let i = 0; i < model.length; i++) {
+        const node = model[i];
+        if (node.type === 'text') {
+            const nodeLength = node.content.length;
+            if (currentCharCount + nodeLength >= charPosition) {
+                return {index: i, offset: charPosition - currentCharCount};
+            }
+            currentCharCount += nodeLength;
+        } else if (node.type === 'widget') {
+            // Widgets are treated as a single character
+            if (currentCharCount + 1 >= charPosition) {
+                return {index: i, offset: charPosition - currentCharCount};
+            }
+            currentCharCount += 1;
+        }
+    }
+    return {index: model.length, offset: 0}; // Default to the end
 };
